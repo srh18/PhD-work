@@ -1,0 +1,854 @@
+\documentclass[12pt]{article}
+\newcommand{\rt}{^{\frac{1}{2}}}
+\newcommand{\rtt}{^{\frac{3}{2}}}
+\newcommand{\Pe}{\mathrm{Pe}}
+\input{../Tex/header.tex}
+%\geometry{twoside,bindingoffset = 2cm,left = 15mm, right = 15mm}
+\onehalfspacing
+\renewcommand{\bibname}{References}
+% opening
+\title{Stalactite Scalings}
+\author[1,2]{Samuel Richard Harrison}
+\author[2]{\authorcr Supervisors: Prof. D.T. Papageorgiou}
+
+\affil[1]{ University of Reading}
+\affil[2]{Imperial College London}
+\date{\today}
+
+\begin{document}
+	Modelling the fluid down a stalactite in a cylindrical geometry with continuity equation.
+\begin{align}
+\pdv{\tilde u}{\tilde r}+\frac{\tilde u}{\tilde r}+\pdv{\tilde w}{\tilde z}=0 \label{continuity}
+\end{align}
+And the Navier Stokes Equations give
+\begin{align}
+\pdv{\tilde u}{\tilde t}+\tilde u\pdv{\tilde u}{\tilde r}+\tilde w\pdv{\tilde u}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde r}+\nu\left(\pdv[2]{\tilde u}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde u}{\tilde r}-\frac{1}{r^2}\tilde u+\pdv[2]{\tilde u}{\tilde z}\right)\label{navierr}\\
+\pdv{\tilde w}{\tilde t}+u\pdv{\tilde w}{\tilde r}+\tilde w\pdv{\tilde w}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde z}+\nu\left(\pdv[2]{\tilde w}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde w}{\tilde r}+\pdv[2]{\tilde w}{\tilde z}\right) + g \label{navierv}
+\end{align}
+On the boundary between the stalactite and the fluid we have no flux and no slip i.e
+\begin{align}
+\tilde u=0,\;\tilde  w=0\quad\mathrm{on}\; \tilde r=R(z) \label{solidboundary}
+\end{align}
+On the surface of the fluid at $\tilde r=R(z)+a(z)=\tilde S(\tilde z,\tilde t)$, the kinematic boundary condition gives
+\begin{align}
+\tilde   u=\pdv{\tilde S}{\tilde t}+\tilde w\pdv{\tilde S}{\tilde z} \quad\mathrm{on}\;\tilde  r=\tilde S \label{kinematic}
+\end{align}
+The tangential and normal stress balances on the free surface gives
+\footnotesize
+\begin{align}
+2\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde r}-\pdv{\tilde w}{\tilde z}\right)+\left(1-\left(\pdv{\tilde S}{\tilde z}\right)^2\right)\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)&=0\label{tangstress}\\
+\tilde p\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-2\mu\left( \pdv{\tilde u}{\tilde r}-\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)+\left(\pdv{\tilde S}{\tilde z}\right)^2\pdv{\tilde w}{\tilde z}\right)&=\gamma\frac{\left(\frac{1}{\tilde S}\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-\pdv[2]{\tilde S}{\tilde z}\right)}{\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)^{\frac{1}{2}}}\label{normstress}
+\end{align}
+\normalsize
+The vertical velocity scale will be chosen to balance the gravity. i.e $W = \frac{a_0^2g}{\nu}$. The horizontal velocity will balance the continuity equation i.e $U  =\epsilon\rt W$
+	These are the values that have made me use these equations, I have obtained these from various sources \cite{short}
+	\begin{table}[H]
+		\centering
+		\caption{Numerical values of variables}
+		\begin{tabular}{|l|c|c|}
+			\hline
+			Variable&Symbol & Value\\
+			\hline
+			Radius& $R$ & $(0.5 - 1)\e{-1}$m\\
+			Mean Crenulation amplitude& $\eta_0$&$2\e{-3}$ m\footnote{don't actually have a good value for this - this was chosen so that epsilons were nice... maybe should choose this so that pressure balances better}\\
+			Mean fluid thickness & $a_0$ & $1\e{-5}$m\\ 
+			gravitational constant & $g$&$ 0.98\e{}\mathrm{m}\,\mathrm{s}^{-2}$\\
+			density of water & $\rho$&$0.997\e{3}\mathrm{kg\,m}^{-3}$\\
+			Kinematic viscosity& $\nu$&$1\e{-6}\mathrm{m^2\,s^{-1}}$\\
+			Surface tension of water& $\gamma$& $0.7\e{-1}\mathrm{kg\,s^{-2}}$\\
+			mean vertical fluid velocity& $w_0$ & $1\e{-3}\mathrm{m\,s^{-1}}$
+			\\ \hline
+		\end{tabular}
+	\end{table}\footnote{don't actually have a good value for crenulation amplitude - this was chosen so that epsilons were nice... maybe should choose this so that pressure balances better}
+The Fluid thickness will acrtually be determined by the flow rate $Q$, with \begin{align}
+a_0 = \left(\frac{3 Q\nu}{2\pi g}\right)^{\frac{1}{3}}
+\end{align}
+Looking at the usual geometry of stalactites which we have $\tilde r,\;\tilde z$ and scaling this into a rectangular domain so that the fluid is between $r\in[0,1]$. This is done by $\tilde{r} = R + \eta_0\eta(z) +a_0a(z) r,\; \tilde{z} = Rz$. Where $R$ is the mean radius, $\eta_0$ is the mean amplitude of the crenulations and $a_0$ is the mean fluid thickness. If we call the ratio between 
+the stalactite radius and the fluid thickness $\frac{a_0}{R} = \epsilon \sim O(10^{-4})$, with $\frac{a_0}{\eta_0}\sim\frac{\eta_0}{R}\sim O(10^{-2}) = \epsilon\rt$ 
+Therefore we can write the coordinates as
+\begin{align}
+\tilde{r} = a_0\left(\frac{1}{\epsilon}+\frac{\eta(z)}{\epsilon\rt}+a(z) r\right)\\
+\tilde{z} = \frac{a_0}{\epsilon}z
+\end{align}
+The derivatives become
+	\begin{align}
+\pdv{\tilde r } = \frac{1}{a_0a}\pdv{r}\\
+\pdv{\tilde z} = \frac{1}{a_0}\left(-\epsilon\rt\frac{\eta_z}{a}\pdv{r}+\epsilon\left(\pdv{z}-\frac{ra_z}{a}\pdv{r}\right)\right)\\
+\pdv[2]{\tilde z}= \frac{1}{a_0^2}\left(\epsilon\frac{\eta_z^2}{a^2}\pdv[2]{r}+\epsilon\rtt\left(\frac{2\eta_za_z}{a^2}\pdv{r}+2\frac{\eta_za_zr}{a^2}\pdv[2]{r}-2\frac{\eta_z}{a}\pdv{}{r}{z}-\frac{\eta_{zz}}{a}\pdv{r}\right)\right) +O(\epsilon^2)\\
+\frac{1}{\tilde r} = \frac{1}{a_0}\left(\epsilon-\epsilon\rtt\eta\right)+O(\epsilon^2)\\
+\frac{1}{\tilde r^2} = O(\epsilon^2)
+\end{align}
+
+The vertical velocity scale will be chosen to balance the gravity. i.e $W = \frac{a_0^2g}{\nu}$. The horizontal velocity will balance the continuity equation i.e $U  =\epsilon\rt W$. Pressure will be made to balance the surface tension. We do this by setting $\tilde p = P_0 + \epsilon\rt P p(r,z)$ where $P_0 = \frac{\gamma}{R}$ and $P = \frac{\rho\nu W}{a_0}$. Note that the next largest term due to surface tension is 10 times larger than the first term due to the the derivatives of the velocities. This may have an affect later. 
+	\begin{table}[H]
+	\centering
+	\caption{Derived Quantities}
+	\begin{tabular}{|l|c|c|c|}
+		\hline
+		Variable&Symbol &Equation& Magnitude\\
+		\hline
+		Velocity Scale & $W$& $\frac{a_0^2g}{\nu}$& $10^{-3}\mathrm{m\,s^{-1}}$\\
+		Reynold's Number &$\Re$&$\frac{Wa_0}{\nu}$& $10^{-2}$ \\
+		Modified Bond Number & $\B$&$\frac{\gamma}{\rho g a_0^2}$& $10^5$\\
+		Base Pressure & $P_0$ & $\frac{\gamma}{R}$& $1\mathrm{kg\,m^{-1}\,s^{-2}}$\\
+		Pressure Scale & $P$& $\frac{\rho\nu W}{a_0}$& $10^{-1}\mathrm{kg\,m^{-1}\,s^{-2}}$\\
+		Time Scale & $T$& $\frac{R}{W}$&$10^2\mathrm{s}$
+		\\ \hline
+	\end{tabular}
+\end{table}
+The time scale comes from how long it takes for the fluid to move down one crenulation, so $\tilde t =\frac{a_0}{W\epsilon\rt} t $ . I'm going to here introduce a scaled Reynold's Number $\tilde\Re = \epsilon\rt$
+As pressure due to normal stresses is roughly $\epsilon^\frac{1}{4}$ * pressure due to surface tension I will look at 2 case: 1 with these pressures being of similar order, another with the surface tension being $\epsilon\rt$ smaller.
+
+
+
+Note that in these cases I have set $a_0$ to be an arbitrary constant, as I have already scaled the value out of it all $a_0 = 1$
+\section{Case 1: pressure balances horizontal velocity}
+	\begin{align}
+\frac{1}{a}\pdv{u}{r}-\frac{\eta_z}{a}\pdv{w}{r} +\epsilon\rt\left(\pdv{w}{z}-r\frac{a_z}{a}\pdv{w}{r}\right)+\epsilon u -\epsilon\rtt\eta u &= O(\epsilon^2)\\
+-\frac{1}{a}\pdv{p}{r}+\frac{1}{a^2}\pdv[2]{u}{r}+\epsilon\left(\frac{1}{a}\pdv{u}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{u}{r}-\tilde\Re\left(\pdv{u}{t}+\frac{1}{a}\pdv{u}{r}\left(u-\eta_z w\right)\right)\right)&\\
+\epsilon\rtt\left(\frac{2\eta_z a_z}{a^2}\left(\pdv{u}{r}+r\pdv[2]{u}{r}\right) -2\frac{\eta_z}{a}\pdv{u}{r}{z}-\frac{\eta_{zz}}a\pdv{u}{r}-\frac{\eta}{a}\pdv{u}{r}-\Re\left(\pdv{u}{z}-\frac{ra_z}{a}\pdv{u}{r}\right)\right)& = O(\epsilon^2)\\
+\frac{1}{a^2}\pdv[2]{w}{r} + 1 +\epsilon\left(\frac{\eta_z}{a}\pdv{p}{r}+\frac{1}{a}\pdv{w}{r}+\frac{\eta_z^2}{a^2}\pdv[2]{w}{r}+\Re\pdv{w}{t}+\frac{\Re}{a}\left(\eta_z w-u\right)\pdv{w}{r}\right)&\\
+-\epsilon\rtt\left(\frac{ra_z}{a}\pdv{p}{r}-\pdv{p}{z}+\Re\left(w\pdv{w}{z}-\frac{r a_z}{a}\pdv{w}{r}\right)+\frac{2\eta_za_z}{a^2}\pdv{w}{r}+2\frac{\eta_za_zr}{a^2}\pdv[2]{w}{r}-2\frac{\eta_z}{a}\pdv{w}{r}{z}-\frac{\eta_{zz}}{a}\pdv{w}{r}\right)& = O(\epsilon^2)
+\end{align}
+With Boundary conditions 
+\begin{align}
+u(0) = \epsilon\rtt\eta_t +O(\epsilon^2)\\
+w(0) = 0 \\
+u(1) =w(1)\eta_z +\epsilon\rt(a_z w(1)) +\epsilon\rtt\eta_t +O(\epsilon^2)\\
+\frac{1}{a}\pdv{w}{r}+\epsilon\left(\eta_z\frac{1}{a}\pdv{u}{r}+\frac{\eta_z^2}{a}\pdv{w}{r}\right)\\
++\epsilon\rtt\left(2\frac{a_z}{a}\pdv{u}{r}-2\eta_z\pdv{w}{z}+2\frac{\eta_za_zr}{a}\pdv{w}{r}+\pdv{u}{z}-\frac{a_zr}{a}\pdv{u}{r}\right)=O(\epsilon^2)\\
+p-\frac{2}{a}\left(\pdv{u}{r}-\eta_z\pdv{w}{r}\right)+\B(\eta+\eta_{zz}) + O(\epsilon\rt)
+\end{align}
+
+If we write $u,w,p,a$ as an expansion in powers of $\epsilon\rt$, looking at the O(1) equations, we get:
+\begin{align}
+\pdv{u_0}{r}-\eta_z\pdv{w_0}{r} = 0\\
+\pdv[2]{u_0}{r}-a_0\pdv{p_0}{r} = 0\\
+\pdv[2]{w_0}{r} = -a_0^2
+\end{align}
+
+which gives 
+\begin{align}
+u_0 = \eta_za_0^2\left(r-\frac{r^2}{2}\right)\\
+w_0 = a_0^2\left(r-\frac{r^2}{2}\right)\\
+p_0=(1-r)a_0\eta_z-\B(\eta+\eta_{zz})
+\end{align}
+These automatically satisfy the kinematic boundary condition.
+$O(\epsilon\rt)$ equations
+\begin{align}
+	\pdv{u_1}{r}-\eta_z\pdv{w_1}{r}+ a_0\pdv{w_0}{z}- r{a_0}_z\pdv{w_0}{r}= 0 \\
+	\pdv[2]{u_1}{r}-a_0\pdv{p_1}{r}-a_1\pdv{p_0}{r}\\
+	\pdv[2]{w_1}{r}+2a_0a_1 = 0\\
+\end{align}
+\begin{align}
+w_1 = a_1a_0(2r - r^2)\\
+u_1 = \eta_z a_0 a_1(2r-r^2)- a_0^2{a_0}_z\frac{r^2}{2}\\
+p_1 = ...
+\end{align}\footnote{$p_1$Needed for $O(\epsilon\rtt)$}
+From the kinematic equation we find
+\begin{align}
+u_1(1) = \eta_z w_1(1) + {a_0}_z w_0(1)\end{align}
+\begin{align}
+a_0^2{a_0}_z = 0 
+\end{align}
+i.e $a_0$ is a constant.
+ At $O(\epsilon)$
+ \begin{align}
+ \pdv{u_2}{r}-\eta_z\pdv{w}{r}+a_0\pdv{w_1}{z}+a_1\pdv{w_0}{z}-r{a_1}_z\pdv{w_0}{r}+a_0u_0=0\\
+ \pdv[2]{w_2	}{r}+a_1^2+2a_0a_2+a_0\eta_z\pdv{p_0}{r}+a_0\pdv{w_0}{r}+\eta_z^2\pdv[2]{w_0}{r}+\Re\pdv{w_0}{t}=0
+ \end{align}
+ I've previously (in the kinematic equation) assume that the surface of water varies on the same time scale as the wall changes - If this time derivative has an affect I should really also have an ${a_0}_t$ at $O(\epsilon\rt)$
+ \begin{align}
+ w_2 = \left(  2a_0a_2+a_1^2+a_0^3-2a_0^2\eta_z^2\right)\left(r-\frac{r^2}{2}\right)+\left(\frac{r^3}{3} - r\right)\frac{a_0^3}{2}+\Re a_0{a_0}_t\left(\frac{r^3}{3}-\frac{r^4}{12}\right)\\
+ u_2 = \eta_z w_2-{a_1}_za_0^2\frac{r^2}{2}-a_0^3\eta_z\left(\frac{r^2}{2}-\frac{r^3}{6}\right)
+ \end{align}
+ and so from the kinematic equation we find
+ \begin{align}
+ u_2(1) = \eta_z w_2(1) + {a_1}_z w_0(1)
+ \end{align}
+ \begin{align}
+ a_1 = -\frac{1}{3}a_0\eta+ C
+ \end{align}
+ Where C is a constant that is chosen to be zero so $a_1$ integrates to 0.
+\section{Case 2: pressure balances vertical velocity}
+	\begin{align}
+\frac{1}{a}\pdv{u}{r}-\frac{\eta_z}{a}\pdv{w}{r} +\epsilon\rt\left(\pdv{w}{z}-r\frac{a_z}{a}\pdv{w}{r}\right)+\epsilon u -\epsilon\rtt\eta u &= O(\epsilon^2)\\
+-\frac{1}{a}\pdv{p}{r}+\epsilon\rt\frac{1}{a^2}\pdv[2]{u}{r} & = O(\epsilon^2)\\
+\frac{1}{a^2}\pdv[2]{w}{r} + 1 +\epsilon\rt\frac{\eta_z}{a}\pdv{p}{r}+\epsilon\left(\frac{ra_z}{a}\pdv{p}{r}-\pdv{p}{z}+\frac{1}{a}\pdv{w}{r}+\frac{\eta_z^2}{a^2}\pdv[2]{w}{r}+\frac{\Re}{a}\left(\eta_z w-u\right)\pdv{w}{r}\right)&\\
+-\epsilon\rtt\left(\Re\left(\pdv{w}{t}+w\pdv{w}{z}\right)+\frac{2\eta_za_z}{a^2}\pdv{w}{r}+2\frac{\eta_za_zr}{a^2}\pdv[2]{w}{r}-2\frac{\eta_z}{a}\pdv{w}{r}{z}-\frac{\eta_{zz}}{a}\pdv{w}{r}\right)& = O(\epsilon^2)
+\end{align}
+With Boundary conditions 
+\begin{align}
+u(0) = \epsilon\rtt\eta_t +O(\epsilon^2)\\
+w(0) = 0 \\
+u(1) =w(1)\eta_z +\epsilon\rt(a_z w(1)) +\epsilon\rtt\eta_t +O(\epsilon^2)\\
+\frac{1}{a}\pdv{w}{r}+\epsilon\left(\eta_z\frac{1}{a}\pdv{u}{r}+\frac{\eta_z^2}{a}\pdv{w}{r}\right)\\
++\epsilon\rtt\left(2\frac{a_z}{a}\pdv{u}{r}-2\eta_z\pdv{w}{z}+2\frac{\eta_za_zr}{a}\pdv{w}{r}+\pdv{u}{z}-\frac{a_zr}{a}\pdv{u}{r}\right)=O(\epsilon^2)\\
+p+\B(\eta+\eta_{zz})+ O(\epsilon\rt)
+\end{align}
+These equations are the same except for the pressure and so we would find
+\begin{align}
+a = a_0\left(1 -\frac{1}{3}\epsilon\rt\eta\right)
+\end{align}
+
+All I really need is the continuity equation and the boundary condtions.
+Integrating continuity and combining with previous results we find
+\begin{align}
+a_2 = \frac{2}{3}a_0\left(\frac{\eta^2}{3}+\eta_z^2\right)\end{align}
+\begin{align}
+a = a_0\left(1-\epsilon\rt\frac{1}{3}\eta +\epsilon\frac{2}{3}\left(\frac{\eta^2}{3}+\eta_z^2\right)\right)
+\end{align}
+= lveSo if I have a function with a very big derivative, interesting things may happen
+\section{Continuity - Kinematic approach}
+If we simply integrate up the continuity equation at each order we can find the values of $u_i$
+and comparing this to the kinematic equation we get some integrals that must be 0. Note the constants of integration are mostly 0 as in most cases $u_i(0)=w(0)_i = 0$ the exception being for now $u_3(0) = \eta_t$
+\begin{align}
+u_0 & = \eta_z w_0\\
+u_1 & = \eta_z w_1 + {a_0}_z r w_0 -\int_{0}^{r}\pdv{z}\left(a_0w_0(\hat r)\right)\dd{\hat r}\\
+u_2 & = \eta_z w_2 + r\left({a_0}_zw_1 + {a_1}_zw_0 \right)-\int_{0}^r\left[\pdv{z}\left(a_0w_1+a_1w_0+a_0u_0\right)\right]\dd{\hat r}\\
+u_3 & = \eta_z w_3 + r\left({a_0}_zw_2+{a_1}_zw_1+{a_2}_zw_0\right)\\
+&-\int_{0}^r\left[\pdv{z}\left(a_0w_2+a_1w_1+a_2w_0\right)+a_0u_1+a_1u_0-a_0\eta u_0\right]\dd{\hat r}+\eta_t\\
+u_4 & =  \eta_z w_4 + r\left({a_0}_zw_3+{a_1}_zw_2+{a_2}_zw_1+{a_3}_z w_0\right)\\
+&-\int_{0}^r\left[\pdv{z}\left(a_0w_3+a_1w_2+a_2w_1+a_3w_0\right)+a_0u_2+a_1u_1+a_2u_0-(a_0u_1+a_1u_0)\eta - a_0(\eta^2 - a_0) u_0\right]\dd{\hat r}\\
+\end{align}
+Combining these with the Kinematic equation we are left  with 
+\begin{align}
+\int_{0}^1\pdv{z}(a_0w_0)\dd r = 0\\
+\int_{0}^1\left[\pdv{z}(a_0w_1+a_1w_0)\right]+a_0u_0\dd{r} = 0\\
+\int_0^1\left[\pdv{z}(a_0w_2+a_1w_1+a_2w_0)+a_0u_1 +a_1 u_0 - a_0\eta u_0\right]\dd r=0\end{align}\begin{align}
+\int_0^1\left[\pdv{z}(a_0w_3+a_1w_2+a_2w_1+a_3 w_0)+a_0u_2 +a_1u_1 +a_2u_0+a_0(\eta^2 - a_0)u_0-(a_0 u_1 +a_1u_0)\eta\right]\dd r = {a_0}_t^{(?)}
+\end{align}
+The last equation includes an ${a_0}_t^{(?)}$ as at this order it may be expected to occur given the speed at which the wall changes should appear in the order before this.
+To get to this order we need $w_0 - w_3$, $u_0 - u_2$ and $p_0 - p_2$ depending on which scaling we use. 
+Starting from case 1 we can find
+\begin{align}
+w_0 = a_0^2(r-\frac{r^2}{2})\\
+u_0 = \eta_z w_0 \\
+\int_0^1 w_0 \dd r = \frac{a_0^2}{3}\\
+\int_0^1 w_0 \dd r = \frac{\eta_z a_0^2}{3}\\
+\end{align}
+
+This means that 
+\begin{align}
+\frac{1}{3}a_0^2{a_0}_z = 0
+\end{align}
+\begin{align}
+w_1 = a_1 a_0 (2r - r^2) \\
+u_1 = \eta_z w_1\\
+\int_0^1 w_1 = \frac{2a_0 a_1}{3}\\
+\int_0^1 u_1 = \frac{2\eta_za_0 a_1}{3}
+\end{align}
+which leads to 
+\begin{align}
+a_1 = -\frac{1}{3}\eta
+\end{align}
+where the constant of integration is chosen to be 0.
+\begin{align}
+w_2 = \frac{1}{2} a_0^3 \left(\frac{r^3}{3}-r\right)+\left(r-\frac{r^2}{2}\right) \left(-2
+a_0^2 \eta '(z)^2+\frac{1}{9} a_0^2 \eta (z)^2+2 a_0 a_2(z)+a_0^3\right)
+\end{align}
+\begin{align}
+a_2 = \frac{2}{3}a_0\left(\frac{\eta^2}{3}+\eta_z^2\right)\end{align}
+ To the next order we finally see some effects from surface tension
+ \begin{align}
+ a_3 = \frac{1}{162} a_0 \left(81 a_0 \eta ''(z)+72 a_0 \eta (z)-54 B \eta
+ ^{(3)}(z)-54 B \eta '(z)-36 \eta (z) \eta '(z)^2-28 \eta (z)^3\right)
+ \end{align}
+\section{Larger surface disturbances}
+If we now have
+\begin{align}
+\tilde{r} = a_0\left(\frac{1}{\epsilon}+\frac{\eta(z)}{\epsilon}+a(z) r\right)\\
+\tilde{z} = \frac{a_0}{\epsilon}z
+\end{align}
+So the disturbance is a similar order to the radius, as this is the case I will just absorb the radius into the function $\eta$. This leads to both $u$ and $w$ scaling by the same factor. I will also rescale the Bond number to be $\frac{\B}{\epsilon}$ The continuity equation becomes 
+\begin{align}
+\pdv{u}{r}-\eta_z\pdv{w}{r}+\epsilon\left(\frac{au}{\eta}+a\pdv{w}{z}-ra_z\pdv{w}{r}\right)+ O(\epsilon^2)
+\end{align}
+Balancing the pressure with the normal stresses gives
+\begin{align}
+p(1+\eta_z^2)-\B\left(\frac{1+\eta_z^2-\eta\eta_{zz}}{\eta\sqrt{1+\eta_z^2}}\right)-\frac{2}{a}\left(\pdv{u}{r}+\eta_z^2-\eta_z\pdv{w}{r}-\eta_z^3\pdv{w}{r}\right)+O(\epsilon)
+\end{align}
+To get rid of all the $\epsilon\rt$ we will say Reynolds appears at the highest order
+To highest order the continuity equations gives 
+\begin{align}
+u = \eta_z w
+\end{align}
+where the constant of integration is 0 due to no slip and no flux at the boundary of the stalactite. This will eliminate the Reynolds terms that appear at highest order.
+
+The Navier stokes equations at highest order now give
+\begin{align}
+\pdv[2]{w}{r}+\frac{a^2}{1+\eta_z^2}\left(1 +\frac{\eta_z}{a}\pdv{p}{r}\right)=0\\
+\pdv[2]{u}{r}-\frac{a}{1+\eta_z^2}\pdv{p}{r}=0
+\end{align}
+Which results in 
+\begin{align}
+\pdv[2]{w}{r} = -\frac{a^2}{(1+\eta_z^2)^2}
+\end{align}
+The tangential stress at highest order is 
+\begin{align}
+(1+\eta_z^2)\eta_z(\eta_z\pdv{u}{r}+\pdv{w}{r} =0
+\end{align}
+which means 
+\begin{align}
+\pdv{w}{r} =0
+\end{align}
+at $r = 1$
+which results in 
+\begin{align}
+w_0= \frac{a^2}{2(1+\eta_z^2)^2}(2r- r^2)\\
+u_0 = \eta_z w_0\\
+p_0 = a\eta_z(1-r)+\B\frac{1+\eta_z^2- \eta\eta_{zz}}{\eta\left(1+\eta_z^2\right)^{\frac{3}{2}}}
+\end{align}
+To satisfy the kinematic at the first order we require
+\begin{align}
+a_0^3\frac{\eta_z}{\eta(1+\eta_z^2)^2}+\pdv{z}\left(\frac{a_0^3}{(1+\eta_z^2)^2}\right)=0
+\end{align}
+This gives
+\begin{align}
+a_0=A (1+\eta_z^2)^{\frac{2}{3}}\eta^{-\frac{1}{3}}
+\end{align}
+If we let $\eta = 1 +l\sin z$ then as we vary $l$ the thickness of the fluid will change like this
+\begin{figure}[H]
+	\includegraphics{varybump}
+\end{figure}
+So we can that the fluid thins as the crenulations stick out and thickens in the trough but a slight thinning of the thickening.
+\section{Squarer disturbances}
+In this section I will try to have the wavelengths of the crenulations of similar order to the amplitude of them (and them both being small).
+\begin{align}
+\tilde{r} = a_0\left(\frac{1}{\epsilon}+\frac{\eta(z)}{\epsilon\rt}+a(z) r\right)\\
+\tilde{z} = \frac{a_0\ell}{\epsilon\rt}z
+\end{align}
+where $\ell$ is the ratio between the wavelength and the amplitude.
+	\begin{align}
+\pdv{\tilde r } = \frac{1}{a_0a}\pdv{r}\\
+\pdv{\tilde z} = \frac{1}{\ell a_0}\left(-\frac{\eta_z}{a}\pdv{r}+\epsilon\rt\left(\pdv{z}-\frac{ra_z}{a}\pdv{r}\right)\right)\\
+\pdv[2]{\tilde z}= \frac{1}{l^2 a^2}\left(\eta_{z}^2 \pdv[2]{r}+\sqrt{\epsilon } \left(2 a_{z} \eta_{z} \pdv{r}+2 r a_{z} \eta_{z} \pdv[2]{r}-a \eta_{zz}\pdv{r}-2 a \eta_{z} \pdv{}{r}{z}\right)\right)\\
++\epsilon\frac{1}{l^2 a^2}\left(-r a a_{zz} \pdv{r}+r^2 a_{z}^2 \pdv[2]{r}-2 r a a_{z}\pdv{}{r}{z}+2 r a_{z}^2 \pdv{r}+a^2 \pdv[2]{z}\right)\\
+\frac{1}{\tilde r} = \frac{1}{a_0}\left(\epsilon-\epsilon\rtt\eta\right)+O(\epsilon^2)\\
+\frac{1}{\tilde r^2} = O(\epsilon^2)\end{align}
+So using continuity $U$ scales like $W$. This actually would cause the second derivative in the tangential stress to be the largest term. If we again set the bond number to be $\frac{\B}{\epsilon}$ then the tangential stress will be 
+\begin{align}
+\frac{B \eta_{zz}}{l^2 \sqrt{\epsilon } \sqrt{\frac{l^2+\eta
+			_{z}^2}{l^2}}}\\-\frac{2 \left(l^3 \pdv{u}{r}-l^2 \eta_{z} \pdv{w}{r}+l
+	\eta_{z}^2 \pdv{u}{r}-\eta_{z}^3 \pdv{w}{r}\right)}{l^3 a}+\frac{\eta
+	_{z}^2 p}{l^2}+p\\+B \left(-\frac{-a_{zz}+l^2+\eta_{z}^2}{l^2
+	\sqrt{\frac{l^2+\eta_{z}^2}{l^2}}}-\frac{a_{z} \eta_{z} \eta_{zz}}{l^2
+	\left(l^2+\eta_{z}^2\right) \sqrt{\frac{l^2+\eta
+			_{z}^2}{l^2}}}\right)+O(\epsilon\rt)
+\end{align}
+So the pressure must be $O(\frac{1}{\epsilon\rt})$ to balance the highest order term. So if we let  \begin{align}
+w = w_0 +\epsilon\rt w_1+\dots\\
+u =u_0 +\epsilon\rt u_1+\dots\\
+p = \frac{p_0}{\epsilon\rt} +p_1+\dots
+\end{align} 
+we find from the momentum equation at $O(\frac{1}{\epsilon\rt})$
+That 
+\begin{align}
+p_0 = B\frac{\eta_{zz}}{\ell(\ell^2+\eta_z^2})^{\frac{3}{2}}
+\end{align}
+From the kinematic/continuity equation at $O(\epsilon\rt)$ we find that \begin{align}
+\int_0^1\pdv{z}\left(a_0w_0\right) = 0
+\end{align}
+from the $O(1)$ momentum equations we find
+\begin{align}
+\pdv{u_0}{r}= \frac{\eta_z}{\ell}\pdv{w_0}{r}\\
+a_0\pdv{p_1}{r} = \pdv[2]{u_0}{r}\left(1+\frac{\eta_z^2}{\ell^2}\right)\\
+\left(1+\frac{\eta_z^2}{\ell^2}\right)\pdv[2]{w_0}{r}+a_0^2(1-\frac{1}{\ell}\pdv{p_0}{z})+\frac{a_0\eta_z}{\ell}\pdv{p_1}{r}
+\end{align} 
+Putting this all together we find that 
+\begin{align}
+\pdv[2]{w}{r} = -\frac{a_0^2(1-\frac{{p_0}_z}{\ell})}{(1+\frac{\eta_z^2}{\ell^2})^2}
+\end{align}
+We find that the tangential stress gives
+\begin{align}
+\pdv{w}{r} =0 
+\end{align}
+at $r=1$ and implementing the no slip condition we find that 
+\begin{align}
+w_0 =\frac{a_0^2(1-\frac{{p_0}_z}{\ell})}{(1+\frac{\eta_z^2}{\ell^2})^2}\left(r-\frac{r^2}{2}\right)
+\end{align}
+Therefore 
+\begin{align}
+\pdv{z}\left(\frac{a_0^3(1-\frac{{p_0}_z}{\ell})}{(1+\frac{\eta_z^2}{\ell^2})^2}\right) =0
+\end{align}
+\begin{align}
+a_0 = \frac{(1+\frac{\eta_z^2}{\ell^2})^{\frac{2}{3}}}{(k(1-\frac{{p_0}_z}{\ell}))^{\frac{1}{3}}}
+	\end{align}
+	where the $k$ comes from the constant of integration and will hopefully result in the bottom being positive.
+	
+	\section{Better way?}
+	
+	Lets say we want the leading order terms for $\frac{1}{S} $and $S_{zz}$ to balance. We can do this by making
+	\begin{align}
+\tilde{r} = a_0\left(\frac{1}{\delta^4}+\frac{\eta(z)}{\delta^2}+a(z) r\right)\\
+\tilde{z} = \frac{a_0}{\delta^3}z
+	\end{align}
+	Doing this with $\delta = 0.1$ seems to match the numerical values quite well
+		\begin{align}
+	\pdv{\tilde r } = \frac{1}{a_0a}\pdv{r}\\
+	\pdv{\tilde z} = \frac{1}{a_0}\left(-\delta\frac{\eta_z}{a}\pdv{r}+\delta^3\left(\pdv{z}-\frac{ra_z}{a}\pdv{r}\right)\right)\\
+	\pdv[2]{\tilde z}= \frac{1}{a_0^2}\left(\delta^2\frac{\eta_z^2}{a^2}\pdv[2]{r}+\delta^4\left(\frac{2\eta_za_z}{a^2}\pdv{r}+2\frac{\eta_za_zr}{a^2}\pdv[2]{r}-2\frac{\eta_z}{a}\pdv{}{r}{z}-\frac{\eta_{zz}}{a}\pdv{r}\right)\right) +O(\delta^6)\\
+	\frac{1}{\tilde r} = \frac{1}{a_0}(\delta^4 -\delta^6\eta) +O(\delta^8)\\
+	\frac{1}{\tilde r^2} = O(\delta^8)
+	\end{align}
+	The Bond number is $O(\frac{1}{\delta^5}) $ and so we want the pressure to balance the surface tension terms, and the leading order terms in the continuity equation to balance. So we can expand in powers of $\delta$
+	\begin{align}
+	w &= w_0+\delta w_1 +\delta^2 w_2+\dots\\
+	u &= \delta(u_0+\delta u_1 +\delta^2 u_2+\dots )\\
+	p &= \frac{1}{\delta}(p_0 + \delta p_1 +\delta^2 p_2 +\dots)\\
+	a &= a_0 +\delta a_1 +\delta^2 a_2+\dots
+	\end{align}
+	
+	We find from looking at the equations at first order
+	\begin{align}
+	w_0 &=a_0^2\left(r-\frac{r}{2}\right)\\
+	u_0 & = \eta_z w_0 \\
+	p_0 & = \B(1- \eta_{zz})
+	\end{align}
+	We can look at the equations order by order. 
+	At $O(\delta^2)$ we find that $a_0$ is a constant.  At $O(\delta^3)$ we find that $a_1$ is a constant, I believe therefore we can set this to be 0 if we set $a_0$ appropriately. This leaves all the equations and terms increasing by $\delta^2$, like it was doing previously. Now at $O(\delta^4)$ from the kinematic we find
+	\begin{align}
+	a_2 = \frac{a_0}{3}(2\eta_z^2-\eta -\B \eta_{zzz})
+	\end{align}   
+	If we now set our initial disturbance to be 
+	\begin{align}
+	\eta = A \sin k z
+	\end{align}
+	so now 
+	\begin{align}
+	a_2  = \frac{a_0A}{3}(2Ak^2\cos^2 kz -\sin kz +\B k^3\cos kz)
+	\end{align}
+	We can see if we increase the Amplitude of the disturbance then the $\cos^2 kz$ term will dominate. As we increase the bond number the $cos kz$ term will dominate. This is also true if we decrease the wavelength which sort of agrees with the squarer wave case I considered. . If we increase the wavelength ($k$ decreases) then the $\sin kz$ term will dominate. This agrees with the first case I considered. (If we increase the wavelength from $\frac{1}{\delta^3}$ to $\frac{1}{\delta^4})$. Interesting things will happen at $n\frac{\pi}{4}$ as here we will have either the $\sin$ or the $\cos$ being 0
+	Note we have no time derivatives as the growth rate should come in at around $\delta^6$
+	\begin{figure}[H]
+		\centering
+		\caption{How varying the surface tension changes the thickness}
+		\includegraphics[width =0.7\linewidth]{varyBond}
+		\end{figure}
+		Here the amplitude is 1 and the wavelength is $2\pi$. We can see that increasing the Bond number causes the amplitude of the fluid to grow. It also shifts the turning points down the surface as the bond number increases and begins to look like a $cos z$ curve.
+	\begin{figure}[H]
+		\centering
+		\caption{How varying the amplitude changes the thickness}
+		\includegraphics[width =0.7\linewidth]{varyA}
+	\end{figure}
+	Here we see that increasing the amplitude just amplifies the features, especially the minimum at $\frac{-\pi}{2}$
+\begin{figure}[H]
+	\centering
+	\caption{How varying the wavelength changes the thickness}
+	\includegraphics[width =0.7\linewidth]{varyL}
+\end{figure}
+Increasing the wavelength causes the amplitude to decrease and flattens out the top smaller minimum. The fluid shifts down for smaller wavelengths.\\
+If we want to know the roots of this function we can set $a_2 = 0 $. Then this tells us for this to be true
+\begin{align}
+\tan kz  = k^2(\B k+2A \cos k z) 
+\end{align}
+Plotting this graphically we can see that this must have between 2 and 4 roots.
+\begin{figure}[H]
+	\centering
+	\caption{How varying the Bond number while keeping $\B k-2A$ constant changes the thickness}
+	\includegraphics[width =0.7\linewidth]{Bk2A}
+\end{figure}
+
+Say for some reason we would want a turning point at the root, which occurs at the start then \begin{align}
+\B = \frac{1}{2k^3}\\
+A=\frac{1}{4k^2}
+\end{align}
+
+what we can do is find regions where a root/ turning point is impossible...
+The region $\frac{-\pi}{2}<kz< 0$ there will never be a root. also no roots at these values as $a_2 = A$ at $z=\frac{-\pi}{2}$ and $a_2 = 2A^2k^2+BAk^3$ at $z=0$ at $z= \frac{\pi}{2}$ 
+\begin{table}[H]
+	\centering
+	\caption{Values of $a_2$ at nice points}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		$kz$ &value& sign\\
+		\hline
+	$-\pi$&$\frac{1}{3} A \left(2 A k^2-B k^3\right)$&either\\$-\frac{5\pi}{6}$&$\frac{1}{3} A \left(\frac{3 A
+		k^2}{2}-\frac{1}{2} \sqrt{3} B k^3+\frac{1}{2}\right)$& either\\
+	$-\frac{3\pi}{4}$&$\frac{1}{3} A \left(A k^2-\frac{Bk^3}{\sqrt{2}}+\frac{1}{\sqrt{2}}\right)$&either\\
+	$-\frac{2\pi}{3}$&$\frac{1}{3} A \left(\frac{A
+		k^2}{2}-\frac{B k^3}{2}+\frac{\sqrt{3}}{2}\right)$& either\\$-\frac{\pi}{2}$&$\frac{A}{3}$&positive\\ $-\frac{\pi}{3}$& $\frac{1}{3} A
+	\left(\frac{A k^2}{2}+\frac{B k^3}{2}+\frac{\sqrt{3}}{2}\right)$& positive\\$-\frac{\pi}{4}$&$\frac{1}{3} A \left(A k^2+\frac{B
+		k^3}{\sqrt{2}}+\frac{1}{\sqrt{2}}\right)$& positive\\$-\frac{\pi}{6}$&$\frac{1}{3} A
+	\left(\frac{3 A k^2}{2}+\frac{1}{2} \sqrt{3} B k^3+\frac{1}{2}\right)$& positive\\ $0$&$\frac{1}{3} A
+	\left(2 A k^2+B k^3\right)$& positive\\$\frac{\pi}{6}$&$\frac{1}{3} A \left(\frac{3 A k^2}{2}+\frac{1}{2} \sqrt{3}B k^3-\frac{1}{2}\right)$& either\\$\frac{\pi}{4}$& $\frac{1}{3} A \left(A k^2+\frac{B
+		k^3}{\sqrt{2}}-\frac{1}{\sqrt{2}}\right)$&either\\$\frac{\pi}{3}$&$\frac{1}{3} A \left(\frac{A k^2}{2}+\frac{B
+		k^3}{2}-\frac{\sqrt{3}}{2}\right)$&either\\$\frac{\pi}{2}$&$-\frac{A}{3}$& negative\\$\frac{2\pi}{3}$&$\frac{1}{3} A \left(\frac{A
+		k^2}{2}-\frac{B k^3}{2}-\frac{\sqrt{3}}{2}\right)$&either\\
+	$\frac{3\pi}{4}$& $\frac{1}{3} A \left(A k^2-\frac{Bk^3}{\sqrt{2}}-\frac{1}{\sqrt{2}}\right)$& either\\
+	$\frac{5\pi}{6}$&$\frac{1}{3} A \left(\frac{3 A
+		k^2}{2}-\frac{1}{2} \sqrt{3} B k^3-\frac{1}{2}\right)$&either\\$\pi$&$\frac{1}{3} A \left(2 A k^2-B
+	k^3\right)$& either
+		\\ \hline
+	\end{tabular}
+\end{table}
+
+if we note that as this is periodic the fact that there is at least one positive and at least one negative there must be 2 roots. At least one in $0<kz<\frac{pi}{2}$ and at least one in $ \frac{\pi}{2}<kz<\frac{3\pi}{2}$
+
+If we look at ${a_2}_z$ we find that ${a_2}_z<0 $ for $0<kz<\frac{\pi}{2}$ so there can't be any turning points in this region. This also tells us that $a_2$ is always decreasing in this region and so there can only be one root here.
+
+\begin{align}
+\begin{array}{cc c}
+-\pi  & \frac{A k}{3}&\mathrm{positive} \\
+-\frac{3 \pi }{4} & \frac{1}{3} A k \left(\frac{B k^3}{\sqrt{2}}-2 A
+k^2+\frac{1}{\sqrt{2}}\right) &\mathrm{either}\\
+-\frac{\pi }{2} & \frac{1}{3} A B k^4 &\mathrm{positive}\\
+-\frac{\pi }{4} & \frac{1}{3} A k \left(\frac{B k^3}{\sqrt{2}}+2 A
+k^2-\frac{1}{\sqrt{2}}\right)& \mathrm{either}\\
+0 & -\frac{A k}{3} &\mathrm{negative}\\
+\frac{\pi }{4} & \frac{1}{3} A k \left(-\frac{B k^3}{\sqrt{2}}-2 A
+k^2-\frac{1}{\sqrt{2}}\right) &\mathrm{negative}\\
+\frac{\pi }{2} & -\frac{1}{3} A B k^4 &\mathrm{negative}\\
+\frac{3 \pi }{4} & \frac{1}{3} A k \left(-\frac{B k^3}{\sqrt{2}}+2 A
+k^2+\frac{1}{\sqrt{2}}\right)& \mathrm{either}\\
+\pi  & \frac{A k}{3} &\mathrm{positive}\\
+\end{array}
+\end{align}
+From this we can see that there must always be a maximum between $-\frac{\pi}{2}<kz<0$ and a mimimum between $\frac{\pi}{2}<kz<\pi$. The fluid is always thickening where the wall attains its minimum and thinning where the wall obtains its maximum. We can force another 2 roots to appear if we make$ A > \frac{Bk^3+1}{2\sqrt{2}k^2}$ 
+\section{Fluid thickness as thick as the wall crenulations}
+If we had a much thicker fluid, say $a_0 = O(10^{-3})$ then this would result in the fluid velocity scale being much faster. $W = O(10)$ which would result in a large Reynolds number $\Re = 10^4$. To do this scaling I will both shrink the crenulation and grow the fluid, so now $\eta_0, a_0 = O(10^-4)$, so now $W= O(10^{-1})$ and the Reynold's number is O(10), Bond number is $\B = O(10^3)$. Now 
+\begin{align} 
+\tilde{r} = a_0\left(\frac{1}{\delta^3}+\eta(z) +a(z)r\right)\\
+\tilde{z} = \frac{z}{\delta^2}
+\end{align}
+
+Note if we want to balance $\frac{1}{S}$ and $\eta_{zz}$, then we need $O(\hat z^2) = O(\hat r)$
+
+If we have 
+\begin{align} 
+\tilde{r} = a_0\left(\frac{1}{\delta^4}+\eta(z) +a(z)r\right)\\
+\tilde{z} = \frac{z}{\delta^2}
+\end{align}
+Then we find that 
+\begin{align}
+a = a_0(1- \delta\frac{1}{3}\B\eta_{zzz}+ \delta^2\frac{\B^2}{9}(2\eta_{zzz}^2+a_0\eta^{(7)}))
+\end{align}
+where $^{(n)}$ denotes the nth derivative
+If we instead make the fluid slightly thicker and balance that with the surface crenulations and have the Reynolds number and Bond number like above. To balance the normal stress terms we also make the radius slightly smaller so overall we have
+\begin{align}
+\hat r = a_0\left(\frac{1}{\delta^2}+\eta(z)+ ra(z)\right) \\
+\hat z = a_0 \frac{z}{\delta}
+\end{align}
+This leaves the Reynolds in quite high.
+
+Lets say Reynolds is order 1 then Bond is $10^4$. This leads to potential inconsistencies. If we "alter R" we should be able to make Bond $\frac{1}{\delta^3}$ This makes $p = O(\frac{1}{\delta})$ again.
+\section{Camporeale Scaling}
+
+In Camporeale's article \cite{camporeale_2017}, he has the fluid and wall boundaries at the same order. Reynold's number seems to be around order 1. So does the pressure. For Reynold's to be order 1 we require $a_0 \sim 10^{-\frac{13}{3}}$ This gives the pressure to be about $10^{-\frac{1}{3}}$ We also want the Bond number to be $O(\frac{1}{\delta^2}) $ which makes $\delta\sim10^{-\frac{7}{8}}$ and hence $R\sim 10^{-0.8}$. This mostly seems fine apart from slightly small crenulations.
+	This leads to \begin{align}
+	a = a_0(1 - \delta\frac{B}{3}\eta_{zzz})+\delta^2 a_2\\
+	a_2 = \left(\frac{1}{3}-\frac{1}{9 a_0}\right)\B^2 {\eta ^{(3)}}^2+\frac{1}{9} a_0 \left(\B^2 \eta^{(6)}+6 {\eta '}^2-3 \eta \right)+\left(\frac{37}{840} {a_0}-\frac{1}{40}\right) {a_0}^4 \B \Re \eta ^{(4)}+\frac{1}{2} {a_0}^2 \eta
+	''
+	\end{align}
+	If we like Camporeale consider $a_0 =1$ $d=-\frac{B}{3}\eta_{zzz}$ and ignore non linear terms we can see the 3rd derivative of $d$ depending on the Bond number and first derivative depending on the Reynolds number. The shape derivatives here have been ignored by Camporeale and since I didn't expand out the surface I don't get the $\xi$ terms.
+	\section{Dealing With the slope} 
+	
+	There is a Slope... - This should introduce some bonus terms? If we make it so that $R = R -\alpha z$ this won't affect the balance of $\frac{1}{R}$ and $S_{zzz}$. It probably makes most sense that $\alpha = O(\delta)$. The slope is decaying much slower than the Radius? I have this in a mathematica file - the slope is a bit much. can incorporate this into the $\eta$
+\section{Craster Matar scaling}
+If we have a stalactite without crenulations then it makes more sense to think of this as a long wave problem where the radius is much shorter than the length of the stalactite. So using similar scaling to Craster and Matar \cite{CRASTER_2006} and rescaling the coordinates so that the fluid is between 0 and 1 by doing.
+\begin{align}
+\hat r = R_0(R(z)+\delta r a(z))\\
+\hat z = \frac{R_0}{\epsilon}z
+\end{align}
+Where we scale $\hat w = W w,\; \hat u = \epsilon W u \;$ where $ W = \frac{ R_0^2 g}{\nu},\; \hat p = \frac{\rho g R_0}{\epsilon} , \;\epsilon \Re  = \frac{W R_0}{\nu}, \;  \B= \frac{\epsilon\gamma}{\rho g R_0^2}$
+Now if we assume that $\epsilon\ll\delta$ so that higher order terms in the flow shouldn't have an effect.
+Then the difference between the kinematic and the continuity equation appears at  $O(\delta)$ and gives
+\begin{align}
+\pdv{z}\left(a(z) \tilde w(z) \right)+ \frac{a(z)\tilde u (z)}{R(z)} =O(\delta)
+\end{align}
+where the tilde denotes the integral between 0 and 1.
+This leads to
+\begin{align}
+\frac{1}{R}\pdv{z}\left(R a^3(p_z -1)\right) = O(\delta)
+\end{align} 
+so \begin{align}
+a &=\left(\frac{A}{R(p_z-1)}\right)^{\frac{1}{3}}\\
+a &=\left(\frac{-AR}{R+R_z+\epsilon^2RR_{zzz}}\right)^{\frac{1}{3}}	
+\end{align}
+Ideally the numerator won't be zero. If we assume that $R = 1+ \hat R$ with $|\hat R|\ll 1$ then we get that if we set $A= -1$
+\begin{align}
+a = 1 - \frac{1}{3} (\hat R + \hat R_z +\epsilon^2 \hat R_{zzz}) 
+\end{align}
+which is pretty similar to what we previously got - now the first derivative is positive and linear
+\section{Base Case}
+If we use the Craster Matar Scaling where we have again transformed the coordinates so that the fluid is between 0 and 1. Then if we start with a smooth cylinder (i.e no z dependence - nothing driving the fluid in the r direction the z direction. Note we don't currently consider $a$ to be small
+Then we find that 
+\begin{align}
+u &= 0 \\
+w&= \frac{1}{4}\left(2(a+R)^2\log\left(1+\frac{ar}{R}\right)-ar(2R+ar)\right)\\
+p &= \frac{1}{R+a}
+\end{align}
+If we again say $|a|\ll 1 $ we recover
+\begin{align}
+w = a^2\left(r-\frac{r^2}{2}\right)+O(a^3)
+p = \frac{1}{R}+ O(a)
+\end{align}
+Due to the flux conditions we find 
+\begin{align}
+C = 1
+\end{align}
+Doing similar things with carbon dioxide, we get a horrible expression with bessels functions. As $k_1,\; k_2$ are small, we can recover a quadratic. If we have normalised our fluid i.e say $a = 1$ then we get our base more similar to that of Vesipa et al \cite{doi:10.1098/rspa.2015.0031}. The difference being the pressure term, as we have used a base cylinder where as they have used a base slope. In this base state we would expect uniform growth... However if this has been set to 0 why hasn't F
+\section{Time Dependence}
+
+\section{Small changes to base case}
+
+Assuming what I did in my MRES project was correct I am going to start with a base case flow of the fluid. 
+However normalising quantities depending on the the fluid thickness
+i.e $S = \frac{R}{a} + 1$. We will call $\delta = \frac{a}{R}$ The base case is 
+\begin{align}
+U&=0\\
+W&=\frac{1}{4}\left(\frac{1}{\delta^2}-r^2+2S^2\log\delta r\right)\\
+P&=\frac{\B}{S}
+\end{align}
+Next we are going to introduce a small perturbation $\epsilon$ where $\epsilon\ll \delta$. The perturbations will be of the form $q(r)e^{ikz + \omega t} $ We will not assume anything is smallish for now but we may expect $\omega$ to be small. As currently $\epsilon$ is the smallest thing we will linearise to leading order in $\epsilon$
+This leads to the equations
+\begin{align}
+\Re(\omega u + ik W u) = - p' + u'' +\frac{u'}{r}- \frac{u}{r^2} - k^2 u \\
+\Re(\omega w + u W'+ ikW w ) = -ikp + w'' + \frac{w'}{r}- k^2 w\\
+u' + \frac{u}{r} + ik w = 0 
+\end{align}
+with boundary conditions
+\begin{align}
+u(\delta^{-1}) = 0\\
+w(\delta^{-1}) = -(1 + \frac{\delta}{2}) R\\
+u(\delta^{-1} + 1) = \omega (R+ a) + ik (R+ a) W(1 + \delta^{-1})\\
+ik u(1+\delta^{-1})+w'(1 + \delta^{-1}) =  (1+\delta+\frac{\delta^2}{2})(R+ a)\\
+p - 2 u'  = \B(k^2(R+a) - \frac{R+ a}{S^2}) 
+\end{align}
+Now if we assume that $\delta$ is small and we will rescale $r = \frac{1}{\delta} + r$, so we can see the affect - note we will also make $R = \frac{R}{\delta}$ - what if we don't... I'm tempted not to.
+Looking at leading order terms in $\delta$ we find \begin{align}
+w = \frac{i}{k}u'\\
+u''''-2k^2 u'' +k^4 u + \Re\left(\omega(k^2u +iku'')+k^2\left(r-\frac{r^2}{2}\right)(u''+iku)-k^2 u\right)= 0 
+\end{align}
+\begin{align}
+u(0) = 0\\
+w(0) = -R
+u(1) = \omega(R+a) + \frac{ik}{2}(R+a)\\
+ik u(1) + w'(1) = R + a\\
+ p(1) - 2u'(1) = \B k^2(R+a) \end{align}
+The Reynolds number is also small with $\Re\approx\delta^{\frac{1}{2}}$
+so to the new leading order we find
+\begin{align}
+u'''' - 2k^2 u'' + k^4 u =0\\
+p = \frac{1}{k^2}(u'''-k^2 u)
+\end{align}
+This leads to 
+\begin{align}
+u = (A+Br) \sinh(kr)+ (C+ Dr)\cosh(kr)
+\end{align}
+I believe that since the fluid and radius are on different length scales a perturbation like this will not really be noticable
+If we set the perturbation of the wall to be $\frac{1}{\delta}$ so that the ratio of the perturbations is the same as the ratio of the wall fluid thickness then we find that $w = O(\delta^{-1})$ The equations give
+
+\begin{align}
+w = \frac{1}{\delta}R(r-1)+\left(-R\frac{r^2}{2} +(\left(2+\frac{k^2}{2}\right)R+ a)r - \frac{1}{2} R\right)\\
+u = ik R(r- \frac{r^2}{2})\\
+\end{align}
+If I say that the perturbation is of the form $e^{ik z + \omega t}$ If I am expanding my velocities in powers of $\delta$ it may be wise to do similar things with my $a$
+
+\section{The base case grows} 
+Again if we think of the cylindrical case, however this time we add in the slow growth, which will be driven by 
+ a calcium gradient in the z direction.
+ 
+ \section{Forced by chemical gradient}
+ 
+ Say we start with flow down a cylinder. Now let's say that there is a small chemical gradient, that drives the increase in radius. 
+ From the flux condition we know that
+ 
+ \begin{align}
+ R_t([\ce{CaCO3}] - [\ce{Ca^2+}])= D\eval{\pdv{[\ce{Ca^2+}]}{r}}_R
+ \end{align}
+ 
+\ce{[CaCO3]} is a constant and $\ce{[Ca^2+}]=c$ satisfies the diffusion reaction equation
+\begin{align}
+\Pe\left(u\pdv{c}{r}  + w\pdv{c}{z}\right) = \pdv[2]{c}{r}+\frac{1}{r}\pdv{c}{r} \pdv[2]{c}{z}
+\end{align}
+If we say that $c = c_0 + \epsilon\left(c_1(r) + \hat{c_1}(z)\right)$
+then we find that \begin{align}
+\eval{\pdv{c_1}{r}}_R= \frac{1}{16R}\left(8(R^2-S^2)\pdv[2]{\hat{c_1}}{z}+\Pe\pdv{\hat{c_1}}{z}\left(R^4-4R^2S^2+3S^4-4S^4\log\frac{S}{R}\right)\right)
+\end{align}
+ If we have instead that $c = c_0 + \epsilon\left(c_1(r)e^{ikz}\right)$ then this is some mix between a bessel equation and a parabolic cylinder - not sure how to solve. Assume $\frac{a}{R}$ is small to get the parabolic cylinder function.  
+ If we stick with the first case and expand $R$ in powers of $\epsilon$ then we will find 
+ $R_1 = f(z) t $ 
+ where $f(z) = K$ is a constant if
+ \begin{align}
+ \hat{c_1} = \alpha e^{-\frac{B}{A}z} + \frac{K}{B}z+\frac{K_2-AK}{B}
+ \end{align}
+ where
+ \begin{align}
+ A = \frac{R_0^2 - S_0^2}{2R_0(\ce{[CaCO3]}-c_0)}\\
+ B = \frac{\Pe}{2R_0(\ce{[CaCO3]}-c_0)}\left(R_0^4-4R_0^2S_0^2+3S_0^4-4S_0^2\log\frac{S}{R}\right)
+ \end{align}
+ It will also be a constant if $\hat{c_1}$ doesn't have the exponential term.
+\section{Chemistry}
+For Calcium as the reactions are really quick we just have advection diffusion. The problem being if we are expanding in orders of $\epsilon$ can we be sure less than $O(\epsilon)$ calcium is being produced... 
+\begin{align}
+\frac{Dc_1}{Dt} = D\grad^2c_1
+\end{align}
+Diffusion time is 0.1s. This is $t_d=  \frac{a_0^2}{D}$. $D=6\times10^{-10}$. The Peclet Number $\hat\Pe = \frac{Wa_0}{D}= O\left(\frac{1}{\epsilon\rt}\right)$ Rescaling the Pectlet number to be order one we find
+\begin{align}
+\frac{a_0^2}{D}\pdv{c_1}{t}+\Pe\left(\frac{u}{a}-\frac{\eta_z}{a}w\right)\pdv{c}{r}-\frac{1}{a^2}\pdv[2]{c}{r}+\epsilon\rt\Pe\left(w\pdv{c}{z}-\frac{wra_z}{a}\pdv{c_1}{r}\right)\\-\epsilon\left(\frac{1}{a}\pdv{c_1}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{c}{r}\right)
+\end{align}
+Depends how we scale t on where the time derivative appears. Concentrations of species
+\begin{table}[H]
+	\begin{tabular}{| c | c|}
+		\hline species& Concentation (mol/m$^3$)\\\hline
+		\ce{[H+]}&$10^{-6}$\\
+		\ce{[OH^-]}&$10^{-2}$\\
+		\ce{[Ca^2+]}&$3\times10^{-1}$\\
+		\ce{[CO2]}&$3\times10^{-1}$\\
+		\ce{[HCO3^-]}&$6\times10^{-1}$\\
+		\ce{[CO2^3-]}&$2\times10^{-2}$\\\hline
+	\end{tabular}
+\end{table}
+Where did I get these values?
+We will write the non dimensionalised concentrations (dividing by the equilibrium concentration of calcium)
+let
+\begin{align}
+\ce{[H^+]} = \epsilon\rtt(h_0+\epsilon\rt h_1+\epsilon h_2 +\dots)\\
+\ce{[Ca]} =c =  c_0 + \epsilon\rt c_1+\epsilon c_2 +\dots\\
+\ce{[HCO3^-]}= d= d_0 + \epsilon\rt d_1+\epsilon d_2 + \dots\\
+\ce{[CO2]} = g =  g_0 + \epsilon\rt g_1+\epsilon g_2 +\dots\\
+\end{align}
+Now making use of two equilibria 
+\begin{align}
+\ce{[CO3^2-]=\frac{K[HCO3^-]}{[H+]}}\\
+\ce{[OH^-]=\frac{K_W}{[H^+]}}
+\end{align}
+rescaling the rate constants to be order one we find
+\begin{align}
+\ce{[CO3^2-]}=K\epsilon\rt\left(\frac{d_0}{h_0}+\epsilon\rt\left(\frac{d_1}{h_0}-\frac{d_0h_1}{h_0^2}\right)+\dots\right)\\
+\ce{[OH^-]}=K_W\epsilon\rt\left(\frac{1}{h_0}-\epsilon\rt\frac{h_1}{h_0^2}+\dots\right)\\
+\end{align}
+Making use of the electoneutrality condition
+\begin{align}
+\ce{2[Ca^2+] + [H^+]=[HCO3^-] + [OH^-] + 2[CO3^2-]}
+\end{align}
+at orders 1-$\epsilon$ this leads to 
+\begin{align}
+2c_0 &= d_0\\
+2c_1 & = d_1+\frac{2Kd_0+K_W}{h_0}\\
+2c_2& = d_2+\frac{2K(d_1h_0-d_0h_1)-K_Wh_1}{h_0^2}
+\end{align}
+Overall we have 
+We find that
+\begin{align}
+k_+ = \epsilon\rt\left(k_1^+ + \frac{k_2^+K_W}{h_0}-\epsilon\rt \frac{k_2^+K_Wh_1}{h_0}+\dots\right)\\
+k_- = \epsilon\rtt\left(k_1^-h_0+k_2^-\right)
+\end{align}
+\begin{align}
+\frac{a_0^2}{D_1}\pdv{c}{t}+\Pe_1\left(\frac{u}{a}-\frac{\eta_z}{a}w\right)\pdv{c}{r}-\frac{1}{a^2}\pdv[2]{c}{r}+\epsilon\rt\Pe\left(w\pdv{c}{z}-\frac{wra_z}{a}\pdv{c}{r}\right)\\-\epsilon\left(\frac{1}{a}\pdv{c}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{c}{r}\right)\\
+\frac{a_0^2}{D_2}\pdv{g}{t}+\Pe_2\left(\frac{u}{a}-\frac{\eta_z}{a}w\right)\pdv{g}{r}-\frac{1}{a^2}\pdv[2]{g}{r}\\
++\epsilon\rt\left(\Pe_2\left(w\pdv{g}{z}-\frac{wra_z}{a}\pdv{g}{r}\right)+\left(k_1^++\frac{k_2^+K_W}{h_0}\right)g\right)\\
+-\epsilon\left(\frac{1}{a}\pdv{g}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{g}{r}-\frac{k2_+K_Wh_1g}{h_0^2}\right)
+\end{align}
+Have similar equation with d.
+The boundary conditions come in at ... I'm not sure that they do 
+Boundary condition:
+\begin{align}
+-Dv_m\pdv{c}{r} &= \epsilon\rt \eta_t
+\end{align}
+where $v_m$ is the molar volume of calcium carbonate, as it has now become a solid which has a much larger "concentration" than that of calicium ions in water.
+PWP equation
+\begin{align}
+F = K_1(\ce{H+})+K_2((\ce{H2CO3})+(\ce{CO2}))+K_3-k_4\ce{(Ca^2+)(HCO3^-)}
+\end{align}
+Looking at this equation all terms are $10^9$ except $K_3$ which is $10^6$
+\subsection{Chemistry Scaling}
+Using the scaling that balances $\frac{1}{S}$ and $S_{zz}$, assuming that the chemical concentration is not changing with time (I think this makes sense)
+We find that the concentration of calcium is given by 
+\begin{align}
+\Pe (\frac{\delta}{a}\left(u-\eta_z w\right))\pdv{c}{r} + \delta^3\left(w\pdv{c}{z}-\frac{w r a_z}{a}\pdv{c}{r} \right) = \frac{1}{a^2}\pdv[2]{c}{r} + \delta^2\frac{\eta_z}{a^2}\pdv[2]{c}{r}
+\end{align}
+$\Pe$ is the Peclet Number as defined above. Peclet is roughly $O(\delta^{-1})$. We  note that $u_0 -\eta_z w_0 = 0$, $u_2 = \eta_z w_2$, so the highest order equation is 
+\begin{align}
+\pdv[2]{c_0}{r} = 0\\
+ = Pe(a_0^4 \left(r - \frac{r^2}{2}\right) \pdv{c_0}{z})
+\end{align}
+The boundary conditions are 
+\begin{align}
+D\pdv{c}{r}\eval_{r=0} = \delta^2 F \\
+D\pdv{c}{r}\eval_{r=1} = 0 
+\end{align}
+Where $F$ is the solution to PWP equation/ is equivalent to the speed of growth divided by the molar mass?
+Expanding $c_0$ in powers of $\delta^2$ we find that 
+\begin{align}
+c_0 = c_0(z)\\
+\pdv{c_2}{r} = c_0'(z)\Pe a_0^4(\frac{r^2}{2}-r^3) 
+\end{align}
+For the carbon dioxide, we find that,
+\begin{align}
+\frac{\Pe_1}{\delta}\left(u \pdv{g}{r} + w\pdv{g}{z} \right)  = \pdv[2]{g}{r} + \pdv[2]{g}{z}+\frac{1}{r}\pdv{g}{r} - \delta^2 k_+ g + \delta^4k_-[\ce{HCO3}] 
+\end{align}
+This has the boundary conditions
+\begin{align}
+D\pdv{g}{r}\eval_{r=1} = -\delta^2 F \\
+D\pdv{g}{r}\eval_{r=0} = 0 \\
+g(1) = g_a
+\end{align}
+where $g_a$ is the carbon dioxide of the atmosphere.
+$g_a$ will just satisfy diffusion and will be equal to advection. In the atmosphere, if we model this in cylilndrical polars then the length scale for the radius is much bigger than the length scale for the stalactite.I i.e the air is much longer than the stalactite. So we can nondimesionalise with $\hat z = Lz,\; \hat r = R_1 r$ with $R_1\gg L$, which results in 
+\begin{align}
+\pdv[2]{g_a}{z} = 0 
+\end{align}
+which means
+\begin{align}
+g_a = A z +B
+\end{align}
+here we would need to match the concentrations at the top and bottom of the stalactite.
+This means we find that \begin{align}
+g_0 = \alpha z + \beta
+\end{align}
+which should lead to 
+\begin{align}
+c_0 = 3 \frac{k_+}{\Pe D}\alpha z^2+ \left(\frac{\Pe_1D_1}{\Pe D} \alpha + \frac{3k_+}{\Pe D}\beta\right)z +\gamma
+\end{align}
+\begin{align} 
+c_2 = \frac{1}{D} \left(\frac{r^3}{6} - \frac{r^4}{24} -\frac{1}{3}r\right)\left(D_1\Pe_1\alpha+ 3k_+ (\alpha z +\beta)\right)
+\end{align}
+\section{Chemistry Comments}
+The flux of calcium should appear at $O(\delta^4)$ compared to calcium. Carbon dioxide may be around 10x smaller than calcium, however for this analysis it seems easiest to set the carbon dioxide to be $O(\delta^2)$. Now the carbon dioxide is giving the flux and the calcium gradient.
+\begin{align}
+[\ce{Ca^2+}] = c_0 + \delta^2 c_2(z) + \delta^4 c_4(z)\\
+[\ce{CO2}]= \delta^2 \gamma+\delta^4 g_2(r,z)\\
+[\ce{HCO^3-}]= 2c_0 +\delta^2\left(2 c_1 - \frac{4Kc_0+k_w}{h_0}\right)
+\end{align}
+\begin{align}
+g_2 =\frac{a_0^2k_1}{D_1} \left(1-\frac{2k_2c_0}{k_1\gamma}\right)\frac{r^2}{2} + \hat g(z)
+\end{align}
+We have to decide how the atmospheric \ce{CO2} behaves. The flux F is however
+\begin{align}
+F = a_0\left(2k_2c_0-k_1\gamma\right)
+\end{align}
+Then 
+\begin{align}
+c_2 = -\frac{3a_0^2}{Dc_0\Pe}\left(2k_2 c_0 - k_1\gamma\right)z
+\end{align}
+From this we can work out the 4th order carbon dioxide and look at it's derivative.
+This gives the next order Flux term to be 
+\begin{align}
+F_2 = \frac{1}{6} \left(k_1-2 k_2\right) \left(12 a_2(z)+k_1-6 \eta _0'(z){}^2\right)+\frac{6
+	\gamma  D_1 k_2 \left(2 k_2-k_1\right) z}{c_0 D \text{Pe}}+\frac{k_2 \left(k_w+4
+	K\right)}{h_0}
+\end{align}
+If we look at the non translation driving terms, writing $a_2$ as
+	\begin{align}
+a_2 = \frac{a_0}{3}(2\eta_z^2-\eta -\B \eta_{zzz})
+\end{align}   
+then we find
+we have
+\begin{align}
+\frac{1}{3}(\eta_z^2-2\eta-2\B\eta_{zzz}) 
+\end{align}
+is the main thing driving the shape
+\begin{align}
+F = F_0(1+\delta^2(\frac{1}{3}(\eta_z^2-2\eta-2\eta_{zzz}B)-\alpha z + \beta))
+\end{align}
+How do things react?
+If we say that $F$ is the amount of stuff reacting per second at the boundary
+we maybe want if $F = F_0 + \delta^2 F_2$ then the total stuff reacting is maybe 
+\begin{align}
+ F = F_0 R  + \delta^2(\eta_0 F_0 + F_2)R
+\end{align}
+\bibliographystyle{plain}
+\bibliography{../MRES-Project/Report}
+\end{document}

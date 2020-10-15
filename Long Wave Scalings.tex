@@ -1,0 +1,299 @@
+\documentclass[12pt]{article}
+\newcommand{\rt}{^{\frac{1}{2}}}
+\newcommand{\rtt}{^{\frac{3}{2}}}
+\newcommand{\Pe}{\mathrm{Pe}}
+\input{../Tex/header.tex}
+%\geometry{twoside,bindingoffset = 2cm,left = 15mm, right = 15mm}
+\onehalfspacing
+\renewcommand{\bibname}{References}
+% opening
+\title{Long Wave Scalings}
+\author[1,2]{Samuel Richard Harrison}
+\author[2]{\authorcr Supervisors: Prof. D.T. Papageorgiou}
+
+\affil[1]{ University of Reading}
+\affil[2]{Imperial College London}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We will look at how different scalings affect the long wave cylindrical problem
+\end{abstract}
+\section{Governing Equations}
+Maybe this is silly but here goes: I want a cylinder with radius of a similar length scale to wavelength down it. Fluid much thinner.
+Introduce non dimensional variables
+\begin{align}\tilde r = R_0 R(z,t) + a_0 r, \quad \tilde z = R_0 z, \quad \frac{a_0}{R_0} = \epsilon, \quad \tilde p = \rho g a,\quad (\tilde u,\tilde w) = U(u,w), \\ \tilde S = R_0R(z,t)) + a_0a(z,t), \quad \tilde t =\frac{R_0}{U} \end{align}
+Note this means 
+\begin{align}
+\pdv{\tilde r } = \frac{1}{a_0}\pdv{r}\\
+\pdv{\tilde z} = \frac{1}{a_0}\left(-R_z\pdv{r}+\epsilon\pdv{z}\right)\\
+\pdv[2]{\tilde z}= \frac{1}{a_0^2}\left(R_z^2\pdv[2]{r}-\epsilon\left(2R_z\pdv{}{r}{z}+R_{zz}\pdv{r}\right)\right) +O(\epsilon^2)\\
+\frac{1}{\tilde r} = \epsilon\frac{1}{a_0R}+O(\epsilon^2)\\
+\frac{1}{\tilde r^2} = O(\epsilon^2)
+\end{align}
+Continuity becomes
+\begin{align}
+u_r-R_z w_r + \epsilon\left(\frac{u}{R}+w_z\right) = O(\epsilon^2)
+\end{align}
+Navier Stokes becomes
+\begin{align}
+\Re\left(\epsilon u_t +(u-wR_z)u_r+\epsilon w u_z\right)&=-p_r+u_{rr}(1+R_z^2) + \epsilon\left(\frac{u_r}{R}-2R_zu_{rz}-R_{zz}u_r\right) + O(\epsilon^2)\\
+\Re\left(\epsilon w_t +(u-wR_z)w_r+\epsilon w w_z\right)&=R_zp_r+w_{rr}(1+R_z^2) + 1 + \epsilon\left(\frac{w_r}{R}-2R_zw_{rz}-R_{zz}w_r-p_z\right) + O(\epsilon^2)
+\end{align}
+Boundary conditions become 
+\begin{align}
+u = R_t,\; w = 0\quad \mathrm{at}\: r= 0 
+\end{align}
+Kinematic
+\begin{align}
+u = R_t +R_z w+\epsilon(a_t +a_z w) \quad \mathrm{at}\: r= a
+\end{align}
+Tangential Stress
+\begin{align}
+(1+R_z^2)(R_zu_r+w_r) +\epsilon(2a_z(1+R_z^2) + (1-R_z^2)u_z-2R_zw_z) =O(\epsilon^2)
+\end{align}
+at $r=a$
+Normal Stress
+\begin{align}
+(1+R_z^2) (p-2u_r+2R_zw_r) = \scr{\tilde{B}} \epsilon(\frac{1 + R_z^2}{R} - R_{zz})
+\end{align}
+Note $O(\epsilon)$
+\begin{align}
+2a_zR_zp+2R_z u_z+2a_zR_zu_r+R_z^2w_r-2a_z(1+R_z^2)w_r=\epsilon \scr{\tilde B}\left(\frac{2a_zR_zR_{zz}}{1+R_z^2}-(1+R_z^2 - R_{zz}\frac{a}{R^2}-a_{zz})\right)\end{align}
+where $\scr{\tilde B}= \frac{\gamma}{\rho g a^2}$. Let $\scr{B} = \epsilon \scr{\tilde{B}}$. Let $\Re= O(\epsilon), \scr{B} = O(1) $
+So O(1) equations are
+\begin{align}
+u_r=R_z w_r \\
+u_{rr}(1+R_z^2) = p_r \\
+R_zp_r+w_{rr}(1+R_z^2) + 1 
+\end{align}
+$O(1)$ Equations give
+\begin{align}
+u &= R_t+ \frac{R_z}{(1+R_z^2)^2 }\left(ar-\frac{r^2}{2}\right)\\
+w& =  \frac{1}{(1+R_z^2)^2 }\left(ar-\frac{r^2}{2}\right)\\
+p & = \frac{R_z}{1+R_z^2}(a-r)+ \scr{B}\left(\frac{1}{R} - \frac{R_{zz}}{1+R_z^2}\right)
+\end{align}
+
+Idea let as the crenulation are small compared to radius but amplitude bigger than fluid thickness: Let $R(z) = 1+ \epsilon^{\frac{1}{2}} \eta(z,t)$
+This results in $a_t + a_z a^2 = 0$ i.e no dependence on the wall. Not really what I want. Back to the complicated equations.
+\section{Odd Approach}
+Let $\tilde r = R +\eta_0\eta(z) + a_0 r$, $\tilde z = R z$, calling $\frac{\eta_0}{R} = \delta$ , $\frac{a_0}{R}=\epsilon$. Where $R$ is the mean radius of the stalactite $\sim 10\mathrm{cm}$, $\eta_0$ is the mean amplitude of the crenulation $\sim 2\mathrm{mm}$ , $a_0$ is mean fluid thickness $\sim 10-100\mathrm{\mu m}$. From here on we will say $\epsilon = O(10^-3)$ and $\delta = \epsilon^{\frac{1}{2}}$.
+This can be viewed as
+\begin{align}
+\pdv{\tilde r } = \frac{1}{a_0}\pdv{r}\\
+\pdv{\tilde z} = \frac{\epsilon\rt}{a_0}\left(-\eta_z\pdv{r}+\epsilon\rt\pdv{z}\right)\\
+\pdv[2]{\tilde z}= \frac{1}{a_0^2}\left(\epsilon\eta_z^2\pdv[2]{r}-\epsilon^{\frac{3}{2}}\left(2R_z\pdv{}{r}{z}+R_{zz}\pdv{r}\right)\right) +O(\epsilon^2)\\
+\frac{1}{\tilde r} = \epsilon\frac{1}{a_0}\left(1 -\epsilon\rt\eta\right)+O(\epsilon^2)\\
+\frac{1}{\tilde r^2} = O(\epsilon^2)
+\end{align}
+We are going to scale the velocity to match the gravity. The kinematic viscosity $\nu = 10^{-6} \mathrm{m^2/s}$  i.e $W = \frac{ga_0^2}{\nu} =O( 10^{-3})$ which is in line with Short.
+Looking at the Reynolds number $\Re = \frac{Wa_0}{\nu} = O(10^-2) = \epsilon\rt$. Looking at the kinematic equation we find $U\sim \epsilon\rt W$. The traversal time $t_t= R/W =O(10^2)$. The coefficient of diffusion for calcium $D\sim 10^{-9}$ diffusion time  $t_d=\frac{a_0^2}{D} =O(10^-1)$.The growth time is roughly $10^6$ this is $\frac{a_0}{v}$ where v is the growth speed. This tells us $v = 10^{-11}$. Another non dimensional number that we need to know the size is the modified Bond number $\B = \frac{\gamma}{\rho g a_0^2}= O(10^6). $ We make pressure match the largest term in the normal stress. This is the surface tension term so $P=O(1)$ If we scale all the values so that they are $O(1)$. i.e $\hat{\Re} = \epsilon\rt\Re,\; \hat{\B}= \epsilon^{-2}\B$ 
+\\
+In general...
+$W = \frac{a_0^2 g}{\nu}$, $U=\epsilon\rt W$, $ P = \frac{\rho a_0 g}{\epsilon\rt}$, $T_t =\frac{a_0}{\epsilon W}$, $v = \epsilon^2 U$ ($T_g=\frac{a_0}{\epsilon^{\frac{5}{2}} W}$ )
+
+\begin{align}
+\pdv{u}{r}-\eta_z\pdv{w}{r} +\epsilon\rt\pdv{w}{z}+\epsilon u -\epsilon\rtt\eta u &= O(\epsilon^2)\\
+-\pdv{p}{r}+\epsilon\pdv[2]{u}{r} & = O(\epsilon^2)\\
+\eta_z\pdv{p}{r}+\pdv[2]{w}{r} + 1 -\epsilon\rt\left(\pdv{p}{z}\right)+\epsilon\left(\pdv{w}{r}+\eta_z^2\pdv[2]{w}{r}+\Re\left(\eta_z w-u\right)\pdv{w}{r}\right)&\\
+-\epsilon\rtt\left(\Re\left(\pdv{w}{t}+w\pdv{w}{z}\right)+\eta\pdv{w}{r}+\eta_{zz}\pdv{w}{r}+2\eta_z\pdv{w}{r}{z}\right)& = O(\epsilon^2)
+\end{align}
+	With Boundary conditions 
+	\begin{align}
+	u(0) = \epsilon\rtt\eta_t +O(\epsilon^2)\\
+	w(0) = 0 \\
+	u(1) =w(1)\eta_z +\epsilon\rt(a_z w(1)) +\epsilon\rtt\eta_t O(\epsilon^2)
+	\pdv{w}{r}+\epsilon\left(\eta_z\pdv{u}{r}+\eta_z^2\pdv{w}{r}\right)\\+\epsilon\rtt\left(2a_z\pdv{u}{r}-2\eta_z\pdv{w}{z}+\pdv{u}{z}\right)=O(\epsilon^2)
+	\end{align}
+	
+	These should be at $a(z)$ not 1. So here goes...
+	\section{Complete Bamboozle}
+	Now we set $\tilde{r} = R + \eta_0\eta(z) +a_0a(z) r,\; \tilde{z} = Rz$. which can be written as 
+	$\tilde{r} =a_0(\frac{1}{\epsilon}+\frac{\eta(z)}{\epsilon\rt} + ra(z)) ;, \tilde{z} =\frac{a_0 z}{\epsilon } $
+	\begin{align}
+	\pdv{\tilde r } = \frac{1}{a_0a}\pdv{r}\\
+	\pdv{\tilde z} = \frac{1}{a_0}\left(-\epsilon\rt\frac{\eta_z}{a}\pdv{r}+\epsilon\left(\pdv{z}-\frac{ra_z}{a}\pdv{r}\right)\right)\\
+	\pdv[2]{\tilde z}= \frac{1}{a_0^2}\left(\epsilon\frac{\eta_z^2}{a^2}\pdv[2]{r}+\epsilon\rtt\left(\frac{2\eta_za_z}{a^2}\pdv{r}+2\frac{\eta_za_zr}{a^2}\pdv[2]{r}-2\frac{\eta_z}{a}\pdv{}{r}{z}-\frac{\eta_{zz}}{a}\pdv{r}\right)\right) +O(\epsilon^2)\\
+	\frac{1}{\tilde r} = \frac{1}{a_0}\left(\epsilon-\epsilon\rtt\eta\right)+O(\epsilon^2)\\
+		\frac{1}{\tilde r^2} = O(\epsilon^2)
+	\end{align}
+	As before matching pressure to surface tension and velocity to gravity we find $P=O(1)$, $\frac{\nu W}{a_0} = O(10)$, $\frac{P}{a_0\rho} = O(10^2)$. From matching the highest order terms in $U$ and $W$ in continuity we get $U=\epsilon\rt W$ which means  $\frac{\nu U}{a_0} = O(10^{-1})$ and so $\frac{P}{a_0\rho}$ appears at leading order and $\frac{\nu U}{a_0}$ at $O(\epsilon)$. Note $W = O(10^{-3}).$ So this gives the Reynolds number $\Re = \frac{Ua_0}{\nu} = O(\epsilon\rt)$ So rescaling everything to be order 1, we will find.
+	\begin{align}
+	\frac{1}{a}\pdv{u}{r}-\frac{\eta_z}{a}\pdv{w}{r} +\epsilon\rt\left(\pdv{w}{z}-r\frac{a_z}{a}\pdv{w}{r}\right)+\epsilon u -\epsilon\rtt\eta u &= O(\epsilon^2)\\
+	-\frac{1}{a}\pdv{p}{r}+\epsilon\frac{1}{a^2}\pdv[2]{u}{r} & = O(\epsilon^2)\\
+	\frac{\eta_z}{a}\pdv{p}{r}+\frac{1}{a^2}\pdv[2]{w}{r} + 1 +\epsilon\rt\left(\frac{ra_z}{a}\pdv{p}{r}-\pdv{p}{z}\right)+\epsilon\left(\frac{1}{a}\pdv{w}{r}+\frac{\eta_z^2}{a^2}\pdv[2]{w}{r}+\frac{\Re}{a}\left(\eta_z w-u\right)\pdv{w}{r}\right)&\\
+	-\epsilon\rtt\left(\Re\left(\pdv{w}{t}+w\pdv{w}{z}\right)+\frac{2\eta_za_z}{a^2}\pdv{w}{r}+2\frac{\eta_za_zr}{a^2}\pdv[2]{w}{r}-2\frac{\eta_z}{a}\pdv{w}{r}{z}-\frac{\eta_{zz}}{a}\pdv{w}{r}\right)& = O(\epsilon^2)
+	\end{align}
+	With Boundary conditions 
+	\begin{align}
+	u(0) = \epsilon\rtt\eta_t +O(\epsilon^2)\\
+	w(0) = 0 \\
+	u(1) =w(1)\eta_z +\epsilon\rt(a_z w(1)) +\epsilon\rtt\eta_t +O(\epsilon^2)\\
+	\frac{1}{a}\pdv{w}{r}+\epsilon\left(\eta_z\frac{1}{a}\pdv{u}{r}+\frac{\eta_z^2}{a}\pdv{w}{r}\right)\\
+	+\epsilon\rtt\left(2\frac{a_z}{a}\pdv{u}{r}-2\eta_z\pdv{w}{z}+2\frac{\eta_za_zr}{a}\pdv{w}{r}+\pdv{u}{z}-\frac{a_zr}{a}\pdv{u}{r}\right)=O(\epsilon^2)\\
+	p-\B+\epsilon\rt\B(\eta+\eta_{zz})+\epsilon\left(p\eta^2+\frac{2}{a}\pdv{u}{r}-\frac{\eta_z}{a}\pdv{w}{r}-\B\left(\eta^2-a+\eta_z-a_zz-\frac{1}{2}\eta_z^2\right)\right)\\
+	+\epsilon\rtt\left(2p\eta_za_z-2\frac{a_z}{a}\pdv{w}{r}-\B\left(2\eta-a-\eta\eta_z+\eta_za_z+\frac{1}{2}\eta\eta_z^2+\frac{1}{2}\eta_{zz}\eta_z^2\right)\right)
+	\end{align}
+Let  $(u,w,p)= \sum_{i=0}^{\infty} \epsilon^{\frac{i}{2}}(u_i,w_i,p_i)$ So the index of 0 solve the leading order equations
+	\begin{align}
+	u_0 = \eta_za^2\left(r-\frac{r^2}{2}\right)\\
+	w_0= a^2\left(r-\frac{r^2}{2}\right)\\
+	p_0= \B
+	\end{align}
+	The $O(\epsilon\rt)$ equations are
+	\begin{align}
+	\pdv{p_1}{r} = 0\\
+	\frac{1}{a}\pdv{u_1}{r}-\frac{\eta_z}{a}\pdv{w_1}{r}+ \pdv{w_0}{z}-\frac{r a_z}{a}\pdv{w_0}{r}\\
+	\frac{\eta_z}{a}\pdv{p_1}{r}+ \frac{1}{a^2}\pdv[2]{w_1}{r}+\frac{ra_z}{a}\pdv{p_0}{r}-\pdv{p_0}{z}
+	\end{align}
+	These last 2 equation when we give the values for the 0 indices give
+	\begin{align}
+	\pdv{u_1}{r}-\eta_z\pdv{w_1}{r}+a^2a_z r = 0\\
+	\pdv[2]{w_1}{r} = 0
+	\end{align}
+	Resulting in
+	\begin{align}
+	u_0 =-\frac{a^2a_zr^2}{2}  \\
+	w_1 = 0\\
+	p_1 = -\B(\eta+\eta_{zz})
+	\end{align}
+	The kinematic equation at this order tells us 
+	\begin{align}
+	\pdv{z}a^3 =0
+	\end{align}
+	In other words a is constant...
+	
+\section{Here be Dragons}
+Now also write $(a,\eta)$ as an expansion in powers of $\epsilon\rt$. 
+The $O(\epsilon\rt)$ equations become
+\begin{align}
+	\frac{1}{a_0}\pdv{p_1}{r}-\frac{a_1}{a_0}\pdv{p_0}{r} = 0\\
+\frac{1}{a_0}\pdv{u_1}{r}-\frac{{\eta_0}_z}{a_0}\pdv{w_1}{r}+ \pdv{w_0}{z}-\frac{r {a_0}_z}{a_0}\pdv{w_0}{r}-\frac{a_1}{a_0^2}\pdv{u_0}{r}-\frac{{\eta_{1}}_z}{a_0}\pdv{w_0}{r}+\frac{a_1{\eta_0}_z}{a_0^2}\pdv{w_0}{r}\\
+ \frac{1}{a_0^2}\pdv[2]{w_1}{r}-2\frac{a_1}{a_0^3}\pdv[2]{w_0}{r}=0
+\end{align}
+which reduce down to 
+\begin{align}
+\pdv{p_1}{r}=0\\
+\pdv[2]{w_1}{r}= -2a_0a_1\\
+\frac{1}{a_0}\pdv{u_1}{r}-\frac{{\eta_0}_z}{a_0}\pdv{w_1}{r}+a_0{a_0}_z r-{\eta_1}_za_0(1-r)
+\end{align}
+which gives
+\begin{align}
+p_1 = -\B({\eta_0}+{\eta_0}_{zz})\\
+w_1 = a_1a_0(2r - r^2) \\
+u_1 = \left(2{\eta_0}_za_1a_0+{\eta_1}_za_0^2\right)\left(r-\frac{r^2}{2}\right) -\frac{a_0^2{a_0}_z}{2}r^2
+\end{align}
+The kinematic condition gives $a_0$ is a constant.
+At $O(\epsilon)$ Things will get messy.
+The easy equation
+\begin{align}
+-\pdv{p_2}{r}+\frac{1}{a_0}\pdv[2]{u_0}{r} = 0\\
+p_2 = -{\eta_0}_za_0 r +A
+\end{align}
+\begin{align}
+\pdv[2]{w_2}{r}+a_1^2+2a_0a_2+a_0^3(1-r)-2a_0^2{{\eta_0}_z}^2+ Ba_0^2({\eta_0}_z+{\eta_{0}}_{zzz})\\
+w_2 = f(z)\left(r-\frac{r^2}{2}\right)+\frac{a_0^3}{6}(r^3-3r)
+\end{align}
+where
+\begin{align}
+f(z) =a_1^2+2a_0a_2+a_0^3 -2{a_0}^2{{\eta_0}_{z}}^2+\B a_0^2({\eta_0}_z+{\eta_0}_{zzz})
+\end{align}
+
+Continuity equation is the equation to end all equations....
+This leads to 
+\begin{align}
+u = \left({\eta_0}_zf(z)+2{\eta_1}_za_0a_1+{\eta_2}_za_0^2\right)\left(r-\frac{r^2}{2}\right)+{\eta_0}_z\frac{a_0^3}{2}\left(\frac{r^3}{3} - r\right)-a_0^2{a_1}_zr^2-a_0^3{\eta_0}_z\left(\frac{r^2}{2}-\frac{r^3}{6}\right)
+\end{align}
+
+I think the kinematic equation tells me
+\begin{align}
+a_1  = -\frac{1}{3}a_0\eta_0 +A
+\end{align}
+Constant = 0 because want integral of $a_1$ = 0?
+\section{Let's not go higher just yet...}
+\section{Chemistry}
+For Calcium as the reactions are really quick we just have advection diffusion. The problem being if we are expanding in orders of $\epsilon$ can we be sure less than $O(\epsilon)$ calcium is being produced...
+\begin{align}
+\frac{Dc_1}{Dt} = D\grad^2c_1
+\end{align}
+Diffusion time is 0.1s. This is $t_d=  \frac{a_0^2}{D}$. $D=6\times10^{-10}$. The Peclet Number $\hat\Pe = \frac{Wa_0}{D}= O\left(\frac{1}{\epsilon\rt}\right)$ Rescaling the Pectlet number to be order one we find
+
+\begin{align}
+\frac{a_0^2}{D}\pdv{c_1}{t}+\Pe\left(\frac{u}{a}-\frac{\eta_z}{a}w\right)\pdv{c}{r}-\frac{1}{a^2}\pdv[2]{c}{r}+\epsilon\rt\Pe\left(w\pdv{c}{z}-\frac{wra_z}{a}\pdv{c_1}{r}\right)\\-\epsilon\left(\frac{1}{a}\pdv{c_1}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{c}{r}\right)
+\end{align}
+Depends how we scale t on where the time derivative appears. Concentrations of species
+\begin{table}[H]
+	\begin{tabular}{| c | c|}
+		\hline species& Concentation (mol/m$^3$)\\\hline
+		\ce{[H+]}&$10^-6$\\
+		\ce{[OH^-]}&$10^-2$\\
+		\ce{[Ca^2+]}&$3\times10^{-1}$\\
+		\ce{[CO2]}&$3\times10^{-1}$\\
+		\ce{[HCO3^-]}&$6\times10^{-1}$\\
+		\ce{[CO2^3-]}&$2\times10^{-2}$\\\hline
+		
+	\end{tabular}
+\end{table}
+We will write the non dimensionalised concentrations (dividing by the equilibrium concentration of calcium)
+let
+\begin{align}
+\ce{[H^+]} = \epsilon\rtt(h_0+\epsilon\rt h_1+\epsilon h_2 +\dots)\\
+\ce{[Ca]} =c =  c_0 + \epsilon\rt c_1+\epsilon c_2 +\dots\\
+\ce{[HCO3^-]}= d= d_0 + \epsilon\rt d_1+\epsilon d_2 + \dots\\
+\ce{[CO2]} = g =  g_0 + \epsilon\rt g_1+\epsilon g_2 +\dots\\
+\end{align}
+Now making use of two equilibria 
+\begin{align}
+\ce{[CO3^2-]=\frac{K[HCO3^-]}{[H+]}}\\
+	\ce{[OH^-]=\frac{K_W}{[H^+]}}
+\end{align}
+rescaling the rate constants to be order one we find
+\begin{align}
+\ce{[CO3^2-]}=K\epsilon\rt\left(\frac{d_0}{h_0}+\epsilon\rt\left(\frac{d_1}{h_0}-\frac{d_0h_1}{h_0^2}\right)+\dots\right)\\
+\ce{[OH^-]}=K_W\epsilon\rt\left(\frac{1}{h_0}-\epsilon\rt\frac{h_1}{h_0^2}+\dots\right)\\
+\end{align}
+Making use of the electoneutrality condition
+
+\begin{align}
+\ce{2[Ca^2+] + [H^+]=[HCO3^-] + [OH^-] + 2[CO3^2-]}
+\end{align}
+at orders 1-$\epsilon$ this leads to 
+\begin{align}
+2c_0 &= d_0\\
+2c_1 & = d_1+\frac{2Kd_0+K_W}{h_0}\\
+2c_2& = d_2+\frac{2K(d_1h_0-d_0h_1)-K_Wh_1}{h_0^2}
+\end{align}
+Overall we have 
+We find that
+\begin{align}
+k_+ = \epsilon\rt\left(k_1^+ + \frac{k_2^+K_W}{h_0}-\epsilon\rt \frac{k_2^+K_Wh_1}{h_0}+\dots\right)\\
+k_- = \epsilon\rtt\left(k_1^-h_0+k_2^-\right)
+\end{align}
+\begin{align}
+\frac{a_0^2}{D_1}\pdv{c}{t}+\Pe_1\left(\frac{u}{a}-\frac{\eta_z}{a}w\right)\pdv{c}{r}-\frac{1}{a^2}\pdv[2]{c}{r}+\epsilon\rt\Pe\left(w\pdv{c}{z}-\frac{wra_z}{a}\pdv{c}{r}\right)\\-\epsilon\left(\frac{1}{a}\pdv{c}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{c}{r}\right)\\
+\frac{a_0^2}{D_2}\pdv{g}{t}+\Pe_2\left(\frac{u}{a}-\frac{\eta_z}{a}w\right)\pdv{g}{r}-\frac{1}{a^2}\pdv[2]{g}{r}\\
++\epsilon\rt\left(\Pe_2\left(w\pdv{g}{z}-\frac{wra_z}{a}\pdv{g}{r}\right)+\left(k_1^++\frac{k_2^+K_W}{h_0}\right)g\right)\\
+-\epsilon\left(\frac{1}{a}\pdv{g}{r}+\frac{{\eta_z}^2}{a^2}\pdv[2]{g}{r}-\frac{k2_+K_Wh_1g}{h_0^2}\right)
+\end{align}
+Have similar equation with d.
+
+The boundary conditions come in at ... I'm not sure that they do 
+
+Boundary condition?
+\begin{align}
+c\eta_t = -D\pdv{c}{r}
+\end{align}
+As speed really slow this would be $O(\epsilon^2)$.... Maybe I don't have the mass balance correct. The problem is that the calcium is now calcium carbonate as a solid, which has a much higher "concentration" than that in solution...
+\begin{align}
+-Dv_m\pdv{c}{r} &= \epsilon\rt \eta_t
+\end{align}
+PWP equation
+\begin{align}
+F = K_1(\ce{H+})+K_2((\ce{H2CO3})+(\ce{CO2}))+K_3-k_4\ce{(Ca^2+)(HCO3^-)}
+\end{align}
+
+Looking at this equation all terms are $10^9$ except $K_3$ which is $10^6$
+\end{document}

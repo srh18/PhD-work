@@ -1,0 +1,296 @@
+\documentclass[12pt]{article}
+
+\input{../Tex/header.tex}
+%\geometry{twoside,bindingoffset = 2cm,left = 15mm, right = 15mm}
+\onehalfspacing
+\renewcommand{\bibname}{References}
+% opening
+\title{Flow down a cylinder of large radius and long wave crenulations}
+\author[1,2]{Samuel Richard Harrison}
+\author[2]{\authorcr Supervisors: Prof. D.T. Papageorgiou}
+
+\affil[1]{ University of Reading}
+\affil[2]{Imperial College London}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	
+\end{abstract}
+\section{Introduction}
+Here we are going to look at long wave disturbances to a cylinder, with fluid flowing down it. I will look at different regimes depending on the fluid thickness. We will however aim to keep the pressure so that it retains the reciprocal term as well as the 2nd order at highest order, like what is done by Craster and Matar \cite{CRASTER_2006}. We will also look at looking at the time dependence of the problem. The time dependence comes in from the growing wall and so we will be looking at different scalings for that as well.
+\section{Fluid Equations}
+We start with the dimensional equations
+\begin{align}
+\pdv{\tilde u}{\tilde r}+\frac{\tilde u}{\tilde r}+\pdv{\tilde w}{\tilde z}&=0\\
+\pdv{\tilde u}{\tilde t}+\tilde u\pdv{\tilde u}{\tilde r}+\tilde w\pdv{\tilde u}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde r}+\nu\left(\pdv[2]{\tilde u}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde u}{\tilde r}-\frac{1}{r^2}\tilde u+\pdv[2]{\tilde u}{\tilde z}\right)\\
+\pdv{\tilde w}{\tilde t}+\tilde u\pdv{\tilde w}{\tilde r}+\tilde w\pdv{\tilde w}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde z}+\nu\left(\pdv[2]{\tilde w}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde w}{\tilde r}+\pdv[2]{\tilde w}{\tilde z}\right) + g 
+\end{align}
+With the Boundary conditions, on the surface of the cylinder
+\begin{align}
+\tilde u=\pdv{\tilde R}{\tilde t},\;\tilde  w=0\quad\mathrm{on}\; \tilde r=\tilde R(\tilde z) \\
+\end{align}
+And boudary conditions on the fluid air interface $\tilde r = \tilde S(\tilde z)$
+\begin{align}
+\tilde   u=\pdv{\tilde S}{\tilde t}+\tilde w\pdv{\tilde S}{\tilde z} \\
+2\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde r}-\pdv{\tilde w}{\tilde z}\right)+\left(1-\left(\pdv{\tilde S}{\tilde z}\right)^2\right)\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)&=0\label{tangstress}\\
+\tilde p\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-2\mu\left( \pdv{\tilde u}{\tilde r}-\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)+\left(\pdv{\tilde S}{\tilde z}\right)^2\pdv{\tilde w}{\tilde z}\right)&=\gamma\frac{\left(\frac{1}{\tilde S}\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-\pdv[2]{\tilde S}{\tilde z}\right)}{\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)^{\frac{1}{2}}}\label{normstress}
+\end{align}
+
+We will non dimensionalise as well as changing coordinates by introducing the variables 
+\begin{align}
+\tilde r = \frac{a_0}{\delta}\left(R(t) + \epsilon^2\eta(z,t)+\delta a(z,t)r\right)\\
+\tilde z = \frac{a_0\epsilon}{\delta} z
+\end{align}
+This will lead to the derivatives looking like
+\begin{align}
+\pdv{\tilde r} = \frac{1}{a_0a}\pdv{r}\\
+\pdv{\tilde z} =\frac{1}{a_0}\left(\frac{\delta}{\epsilon}\pdv{z}-\left(\frac{\delta}{\epsilon}\frac{a_zr}{a}+\epsilon\frac{\eta_z}{a}\right)\pdv{r}\right)
+\end{align}
+
+where $a_0$ is the mean fluid thickness, $R_0$ is the mean cylindrical radius, $\lambda_0$ is the mean crenulation wavelenght and $\eta_0$ is the mean crenulation amplitude. The dimensionless parameters $\delta = \frac{a_0}{R_0}$, $\epsilon = \frac{\lambda_0}{R_0} = \frac{\eta_0}{\lambda_0}$ will be considered small. The verctical velocity scale is $W = \frac{a_0^2 g}{\nu}$ with the horizontal velocity being scaled by $U = \epsilon W$ if $\delta\le\epsilon^2$ and $U = \frac{\delta}{\epsilon}W$ if $\delta>\epsilon^2$. Time will be rescaled to $T = \frac{a_0}{W \gamma}$ where $\gamma$ is another small dimensionless parameter that is the ratio between the time scale of growth and that of movement. The Reynolds number is $\Re = \frac{a_0^3  g}{\nu^2}$. For this scaling to make sense we require the viscous terms to dominate, which requires $\Re<1$ we require $a_0< 10^{-\frac{13}{3}} \mathrm{m}$. If the fluid is thicker than this then the advective terms should dominate and we will be required to scale the velocity by $ W = \sqrt{a_0 g}$ which makes the Reynolds number $\Re = \frac{\sqrt{a_0^3 g}}{\nu}$
+
+Keeping with my original idea behind this scaling we require $a(z) \le \epsilon^2$ otherwise its 2nd derivative will be higher order than the reciprocal term.
+
+May also fix the Bond number so that $ p = O(\frac{1}{\epsilon})$. We will need the time derivate to be such that $R'(t)$ is not of higher order than $u$
+\subsection{$\delta = \epsilon^2$}
+As we have in effect perturbed the radius by $\epsilon^2$, it makes sense that everything should be written in powers of $\epsilon^2$ to make the equations reflect this we will write the Reynolds number as $\epsilon\Re$ as it is roughly this small anyway
+Here we will say $\gamma = \epsilon^3$ so that the time derivative is not excessively moving u
+ This results in
+
+\begin{align}
+w_z + \frac{u_r}{a} - \frac{r a_z +\eta_z}{a} w_r+ \epsilon^2 \frac{u}{R}&= O(\epsilon^3)\\
+w_{rr} + a^2 - a^2 p_z +a(ra_z + \eta_z)p_r&=O(\epsilon^2)\\
+-ap_r + \epsilon^2 u_{rr} &= O(\epsilon^3)
+\end{align}
+
+With boundary conditons
+\begin{align}
+u(0,z,t) &= R_t+\epsilon^2\eta_t\\
+w(0,z,t) &= 0 
+\end{align}
+and at the fluid air interface at $r = 1$ we have we make the Bond number $\frac{\B}{\epsilon^3}$ so that the pressure is order $\frac{1}{\epsilon}$ and all the equations vary by $\epsilon^2$
+\begin{align}
+u = R_t + (\eta_z +a_z)w + \epsilon^2(a_t + \eta_t)\\
+w_r = O(\epsilon^2)\\
+p = \B \left(\frac{1}{R}-a_{zz} -\eta_{zz}\right)+ O(\epsilon^2)
+\end{align}
+If we expand everything in powers of $\epsilon^2$ we find at highest order
+\begin{align}
+p_0 = \B\left(\frac{1}{R} - {a_0}_{zz} - {\eta_0}_{zz}\right)\\
+w_0 = a_0^2(1-{p_0}_z)\left(r-\frac{r^2}{2}\right)\\
+u_0 = a_0^2(1-{p_0}_z)\left({\eta_0}_z\left(r-\frac{r^2}{2}\right)-{a_0}_z\frac{r^2}{2})\right)-a_0^3{p_0}_{zz}\left(\frac{r^2}{2}-\frac{r^3}{6}\right)+R_t
+\end{align}
+
+The kinematic equation then leads to
+\begin{align} \pdv{z} (a_0^{3}({p_0}_z-1))=0
+\end{align}
+i.e
+\begin{align}
+a_0^3(1+ B({a_0}_{zzz}+{\eta_0}_{zzz}))=K
+\end{align}
+
+Now looking at $O(\epsilon^2)$ we find from integrating the kinematic equation
+\begin{align}
+u_2 = ({\eta_0}_zw_2+{\eta_2}_zw_0)+ r({a_0}_zw_2+{a_2}_zw_0)+{\eta_0}_t - \int_{0}^{r}{\pdv{z}(a_0w_2+a_2w_0) +\frac{u_0}{R} \dd{\hat r}}
+\end{align}
+comparing this to the kinematic at this order and we find
+\begin{align}
+{a_0}_t+\int_0^1{\pdv{z}(a_0w_2+a_2w_0)+\frac{a_0u_0}{R}\dd{r}}=0
+\end{align}
+In these scheme $p_2$ is quite complicated which in turn makes $w_2$ fairly complicated. 
+ $a_0$ seems to depend on $\log R$
+
+\section{$\delta = \epsilon^3$}
+This makes the terms $\pdv{z}, \; \frac{a_zr}{a}\pdv{r}$ come in at $O(\epsilon^2)$.
+My slight issue with this scheme is that it doesn't make the equations differ by $\epsilon^2$, so I will have to expand things in powers of $\epsilon$ I will make the $\gamma= \epsilon^4$ to again match the order of $u$ and the Bond number will now be $\frac{\B}{\epsilon^4}$ to keep the pressure at $O(\frac{1}{\epsilon})$I will for now keep the Reynolds number at $O(1)$.
+At highest order we get 
+\begin{align}
+p_0 = \frac{1}{R} - {\eta_0}_{zz}\\
+w_0 = a_0^2\left(r-\frac{r^2}{2}\right)\\
+u_0 = {\eta_0}_z w_0 + R_t
+\end{align}
+The kinematic equation is already solved at this order.
+At $O(\epsilon)$ the kinematic equation gives
+\begin{align}
+\frac{1}{3}\pdv{a_0}{z} =0
+\end{align}
+so $a_0 = a_0(t)$
+At $O(\epsilon )$ the kinematic gives
+\begin{align}
+\int_{0}^1{\pdv{z}(a_1 w_0 + a_0 w_1)\dd{r}}=0
+\end{align}
+where $w_1$ satisfies the equation
+\begin{align}
+ {w_1}_{rr} = a_0^2{p_0}_z-2a_0a_1 +a_0^3\Re R_t(1-r) 
+\end{align}
+which results in 
+\begin{align}
+w_1  = (2a_1a_0- a_0^2{p_0}_z)\left(r-\frac{r^2}{2}\right)-a_0^3\frac{1}{2}\Re R_t \left(r-r^2+\frac{r^3}{3}\right)
+\end{align}
+which results in 
+\begin{align}
+a_1 = -\frac{\B a_0}{3}{\eta_0}_{zzz}
+\end{align}
+The Kinematic at $O(\epsilon^3)$ results in
+\begin{align}
+{a_0}_t+\int_{0}^1{\pdv{z}(a_2 w_0 + a_1 w_1+ a_0 w_2) +\frac{a_0u_0}{R}\dd{r}}=0
+\end{align}
+which becomes
+\begin{align}
+{a_0}_t+\frac{ a_0^2}{3} \left(3 {a_2}_z-4 {\eta _0}_z {a_0\eta _0}_{zz}a_0 +\frac{{\eta _0}_{z}}{R}\right)+\frac{2\B^2}{9} a_0 {\eta
+	_0}_{zzz} {\eta _0}_{zzzz}(1 -3a_0)\\+\frac{\B}{3}a_0^3{\eta _1}_{zzzz}+\frac{\B\Re R_t}{24} {\eta _0}_{zzzz} \left(  1-3   a_0^4 +3a_0{}^3 
+\right) = 0 
+\end{align}
+
+\section{$\delta = \epsilon^4$}
+Here we make $\gamma= \epsilon^5$ to not make the $u$ flow occur at higher order, with the Bond number being $\frac{\B}{\epsilon^5}$ to keep the pressure at the same order. Here again we can make the equations alter by $\epsilon^2$ by making the Reynolds number $\epsilon\Re$. From the Kinematic equation at $O(\epsilon^2)$ we find 
+\begin{align}
+a_0 = a_0(t)
+\end{align}
+\begin{align}
+{a_0}_t +\frac{a_0R_t}{R} + a_0^2{a_2}_z + \frac{{a_0}^3{\eta_0}_z}{3R} -\frac{4}{3}a_0^3{\eta_0}_z{\eta_0}_{zz} + \frac{1}{3}\B a_0^3{\eta_0}_{zzzz}
+\end{align}
+
+\section{Constant flow Rate}
+If we say the flow rate doesn't change in time then we would expect as the radius grows the fluid thickness. So 
+\begin{align}
+Q = \int_{R}^{R+a} r w(r)\dd{r}
+\end{align}
+If we assume $a\ll R$ then to highest order
+\begin{align}Q = \frac{1}{3}a^3 R
+\end{align}
+If we use the result of growth from Short \cite{short}, i.e
+\begin{align}
+R_t = a F
+\end{align}
+Then we find that 
+\begin{align}
+R= (R_0^{\frac{4}{3}}+\tfrac{4}{3}FQ^{\frac{1}{3}}t)^{\frac{3}{4}}
+\end{align}
+
+This doesn't however satisfy the kinematic condition if we say that $a$ and $R$ both don't depend on z
+\section{Time dependence}
+Say we are in the regime where we have time dependence
+Let us say the fluid is thin compared to a cylinder which will have a long wave roughly the same as the radius of the cylinder and the time is also long.
+i.e we are saying 
+\begin{align}
+\hat r = \frac{R(z)}{\epsilon} + a(z) r\\
+\hat z  = \frac{z}{\epsilon}\\
+\hat t  = \frac{t}{\epsilon}
+\end{align}
+
+This means that the derivatives are 
+\begin{align}
+\pdv{\hat{r}} = \frac{1}{a}\pdv{r}\\
+\pdv{\hat{t}} = \epsilon\pdv{t}\\
+\pdv{\hat{z}} = -\frac{R_z}{a}\pdv{r} +\epsilon \pdv{z} - \epsilon\frac{a_z r}{a}\pdv{r}
+	\end{align}
+Now as we have a moving wall $u(0) = R_t$
+Note the Bond Number is $O(\epsilon)$ which makes the pressure $O(\epsilon^{-1})$.
+The continuity equation gives us at O(1) 
+\begin{align}
+{u_0}_r = R_z {w_0}_r
+\end{align}
+which means that 
+\begin{align}
+u_0 = R_z w_0 + R_t 
+\end{align}
+from the $u$ momentum equation we find at highest order 
+\begin{align}
+{p_0}_r = 0 
+\end{align}
+so 
+\begin{align}
+p_0 =\frac{1}{B}\left(\frac{1}{R} - R_{zz}\right)
+\end{align} 
+Now at highest order for the $w$ momentum we find
+\begin{align}
+\frac{1}{a^2}(1+ R_z^2) {w_0}_{rr} + 1 - {p_0}_z- \frac{\Re R_t}{a}{w_0}_{r} = 0 
+\end{align}
+which gives
+\begin{align}
+w_0 = \frac{a^2 ( 1 + \left(\frac{R_z}{R^2}+R_{zzz}\right))}{(1+R_z^2)f}\left(r - \frac{e^{fr}-1}{fe^f}\right)
+\end{align}
+where
+\begin{align}
+f = \frac{\Re R_t a}{1+R_z^2}
+\end{align}
+If we let $f\to 0$ then we retrieve the stationary case
+\begin{align}
+w_0 =\frac{a^2 ( 1 + \left(\frac{R_z}{R^2}+R_{zzz}\right))}{(1+R_z^2)}\left(r -\frac{r^2}{2}\right)
+\end{align}
+\section{Truncated Kinematic}
+Here I will be following the steps similar to Frenkel \cite{frenkel1993evolution}
+Lets say we have a long wave disturbance of a similar length-scale to the radius. However the stalactite only fluctuates at a similar order to the fluid thickness. We will change coordinates to make this apparent.
+\begin{align}
+\hat r = \frac{R}{\epsilon} + \eta(z) + r a(z)\\\hat z =\frac{z}{\epsilon}
+\end{align}
+
+As we also expect long times
+\begin{align}
+\hat t = \frac{t}{\epsilon}
+\end{align}
+The Bond number is $O(\epsilon^2)$. So we have $p = \frac{1}{\epsilon \Bo R} + p_0$, $w = w_0 + \epsilon w_1$, $u = \epsilon u_0 + \epsilon^2 u_1$. 
+
+This process is very slow and therefore we will scale $\pdv{\hat t} = \epsilon^3\pdv{t}$. Using the Kinematic Equation truncated at $O(\epsilon)$ such as Camporeale \cite{camporeale_2017} or Tseluiko \cite{tseluiko_blyth_papageorgiou_2013}, we find that 
+\begin{align}
+a_t  +\int_0^1{\pdv{z}(aw_0) +\epsilon( \pdv{z}(aw_1)+\frac{a u_0}{R} )\dd r} \label{intform}
+\end{align}
+We find $w$ from the Navier Stokes equation in the $z$ direction and $u$ from the continuity equation. To first order in $\epsilon$ these are:
+\begin{align}
+\pdv[2]{w}{r} + a^2 +\epsilon\left(\underbrace{\frac{a}{R}\pdv{w}{r}}_{I} \underbrace{-a^2\pdv{p}{z}}_{II}\right) =\underbrace{\epsilon\Re\left(a^2\pdv{w}{t}+a u\pdv{w}{r}+ a^2w\pdv{w}{z}-a\eta_zw\pdv{w}{r}-a_z a r w\pdv{w}{r}\right)}_{III}
+\end{align}
+At leading order this results in
+\begin{align}
+w_0 = a^2\left(r-\frac{r^2}{2}\right)\label{w0}\\
+u_0 = \eta_z a^2\left(r-\frac{r^2}{2}\right) - a^2a_z\frac{r^2}{2} \label{u0}
+\end{align}
+Which from the kinematic gives
+\begin{align}
+a_t + a^2a_z = O(\epsilon) 
+\end{align}
+Note that this will give that
+\begin{align}
+\pdv{w_0}{t} = aa_t(2r- r^2) = - a^3a_z(2r-r^2) +O(\epsilon)
+\end{align}
+At first order
+\begin{align}
+\pdv[2]{w_1}{r} + \underbrace{\frac{a^3}{R}(1-r)}_I -\underbrace{\frac{a^2}{\Bo}\left(-\frac{\eta_z + a_z}{R^2}-\eta_{zzz} - a_{zzz}\right)}_{II}\\ = \underbrace{\Re a^5 a_z\left(-(2r-r^2)+\frac{\eta_z}{a_z}\left(r-\frac{r^2}{2}\right)(1-r)-\frac{r^2 + r^3}{2}+ 2\left(r-\frac{r^2}{2}\right)^2-\frac{\eta_z}{a_z}\left(r-\frac{r^2}{2}\right)(1-r)- (r-r^2)\left(r-\frac{r^2}{2}\right)\right)}_{III}
+\end{align}
+\begin{align}
+\pdv[2]{w_1}{r} + \underbrace{\frac{a^3}{R}(1-r)}_I -\underbrace{\frac{a^2}{\Bo}\left(-\frac{\eta_z + a_z}{R^2}-\eta_{zzz} - a_{zzz}\right)}_{II} = \underbrace{\Re a^5 a_z\left(\frac{3r^2}{2}-2r\right)}_{III}
+\end{align}
+Integrating and applying the tangential stress and no slip $({w_1}_r(1)= 0, w_1(0) = 0)$ gives 
+\begin{align}
+w_1 = \underbrace{\Re a^5a_z\left(\frac{r^4}{8} - \frac{r^3}{3}+\frac{r}{2}\right)}_{III}-\underbrace{\frac{a^2}{\Bo}\left(\frac{\eta_z + a_z}{R^2} + \eta_{zzz} +a_{zzz}\right)\left(\frac{r^2}{2} - r\right)}_{II} + \underbrace{\frac{a^3}{6R}\left( r^3-3r^2+3r\right)}_I \label{w1}
+\end{align}
+ Putting \eqref{w0}, \eqref{u0},  \eqref{w1} into \eqref{intform} and swapping the integral wrt $r$ with the derivative wrt $z$
+\begin{align}
+a_t + a^2a_z+ \epsilon\left(\pdv{z}\left(\underbrace{\frac{a^4}{8R}}_{I}+\underbrace{ \frac{a^3}{3\Bo}\left(\frac{\eta_z + a_z}{R^2} + \eta_{zzz}+ a_{zzz}\right)}_{II}+\underbrace{\frac{23}{120}\Re a^6a_z}_{III}\right)+\frac{a^3\eta_z}{3R}- \frac{a^3 a_z}{6R}\right)
+\end{align}
+This can be rewritten as 
+\begin{align}
+\pdv{t}\left(a + \epsilon\left(\frac{a\eta}{R}+ \frac{a^2}{2R}\right)\right) + \pdv{z}\left(\frac{a^3}{3}+\epsilon\left(\frac{a^4}{3R}+\frac{a^3\eta}{R}+ \frac{a^3}{3\Bo}\left(\frac{\eta_z + a_z}{R^2} + \eta_{zzz}+ a_{zzz}\right)+\frac{23}{120}\Re a^6a_z\right)\right)
+\end{align}
+If we now say that \begin{align}
+\zeta= a + \epsilon\left(\frac{a\eta}{R}+ \frac{a^2}{2R}\right)
+\end{align}
+Then
+\begin{align}
+\pdv{\zeta}{t}+ \pdv{z}\left(\frac{\zeta^3}{3}+\epsilon\left(\frac{\zeta^3}{3\Bo}\left(\frac{\eta_z+\zeta_z}{R^2}+\eta_{zzz}+\zeta_{zzz}\right)-\frac{\zeta^4}{6R}+\frac{23}{120}\Re\zeta^6\zeta_z\right)\right)
+\end{align}
+
+\section{Linear "Stability" Analysis} 
+If we start with these equations in a base state but then we assume when we perturb the wall the ratio between the wall perturbation and the fluid perturbation is that of the ratio between the radius and the fluid. I will also assume the perturbation to be long wave and of similar magnitude to that of the radius. I will assume the Bond number to be around the size of the ratio between the fluid thickness and the radius. I will then assume that this ratio is small. If I then say that the wall disturbance is $e^{i kz}$ then I find that 
+\begin{align}
+a = -\frac{1}{3} + \epsilon\left(\frac{5}{9}- \frac{1}{2}k^2+ i\left(\frac{1}{3\Bo}(k^3-k)-\frac{11}{288}k\Re\right)\right)
+\end{align}
+
+
+\bibliographystyle{plain}
+\bibliography{../MRES-Project/Report}
+\end{document}

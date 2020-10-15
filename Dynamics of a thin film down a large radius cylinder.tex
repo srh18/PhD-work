@@ -1,0 +1,168 @@
+\documentclass[12pt]{article}
+
+\input{../Tex/header.tex}
+%\geometry{twoside,bindingoffset = 2cm,left = 15mm, right = 15mm}
+\onehalfspacing
+\renewcommand{\bibname}{References}
+% opening
+\title{Dynamics of a thin film down a large radius Cylinder}
+\author[1,2]{Samuel Richard Harrison}
+\author[2]{\authorcr Supervisors: Prof. D.T. Papageorgiou}
+
+\affil[1]{ University of Reading}
+\affil[2]{Imperial College London}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	
+\end{abstract}
+\section{Introduction}
+I will be following steps of  Frenkel \cite{frenkel1993evolution} looking how the dynamics differs from the stationary case and also what occurs when the cylinder wall is not flat to begin with.
+\section{Fluid Equation}
+Starting with the Navier Stokes Equation in cylindrical coordinates
+\begin{align}
+\pdv{\tilde u}{\tilde r}+\frac{\tilde u}{\tilde r}+\pdv{\tilde w}{\tilde z}&=0\\
+\pdv{\tilde u}{\tilde t}+\tilde u\pdv{\tilde u}{\tilde r}+\tilde w\pdv{\tilde u}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde r}+\nu\left(\pdv[2]{\tilde u}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde u}{\tilde r}-\frac{1}{r^2}\tilde u+\pdv[2]{\tilde u}{\tilde z}\right)\\
+\pdv{\tilde w}{\tilde t}+\tilde u\pdv{\tilde w}{\tilde r}+\tilde w\pdv{\tilde w}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde z}+\nu\left(\pdv[2]{\tilde w}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde w}{\tilde r}+\pdv[2]{\tilde w}{\tilde z}\right) + g 
+\end{align}
+With the Boundary conditions, on the surface of the cylinder
+\begin{align}
+\tilde u=\pdv{\tilde R}{\tilde t},\;\tilde  w=0\quad\mathrm{on}\; \tilde r=\tilde R(\tilde z) \\
+\end{align}
+And boudary conditions on the fluid air interface $\tilde r = \tilde S(\tilde z)$
+\begin{align}
+\tilde   u=\pdv{\tilde S}{\tilde t}+\tilde w\pdv{\tilde S}{\tilde z} \\
+2\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde r}-\pdv{\tilde w}{\tilde z}\right)+\left(1-\left(\pdv{\tilde S}{\tilde z}\right)^2\right)\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)&=0\label{tangstress}\\
+\tilde p\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-2\mu\left( \pdv{\tilde u}{\tilde r}-\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)+\left(\pdv{\tilde S}{\tilde z}\right)^2\pdv{\tilde w}{\tilde z}\right)&=\gamma\frac{\left(\frac{1}{\tilde S}\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-\pdv[2]{\tilde S}{\tilde z}\right)}{\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)^{\frac{1}{2}}}\label{normstress}
+\end{align}
+\subsection{Flat Wall case}
+
+We will non dimensionalise as well as changing coordinates by introducing the variables 
+\begin{align}
+\tilde r = a_0\left(\frac{R}{\epsilon} +r\right)\\
+\tilde z = a_0\frac{ z}{\epsilon}
+\end{align}
+where $\epsilon\ll 1$ is the ratio between the fluid thickness and the disturbance wavelength. Here we have set the radius of the cylinder to be a similar lenghtscale to wavelenght.
+This will lead to the derivatives looking like
+\begin{align}
+\pdv{\tilde r} = \frac{1}{a_0}\pdv{r}\\
+\pdv{\tilde z} =\frac{1}{a_0}\epsilon\pdv{z}
+\end{align}
+Now we scale the velocity be the gravity so $W = \frac{a_0^2 g}{\nu}$. Time scales like $T = \frac{L}{W} = \frac{1}{\epsilon}\frac{\nu}{a_0 g}$. Pressure scales like $P  =g\rho\frac{a_0}{\epsilon}$. If we look at the normal stress condition the leading order pressure term will be a constant, so $p = \frac{1}{\epsilon \Bo R} + p_0(z)$.From the continuity equation we have $U\sim \epsilon W$
+Looking at the equations up to $O(\epsilon)$ we get.
+\begin{align}
+\pdv{u}{r}+\pdv{w}{z} +\epsilon\frac{u}{R}=0\\
+\pdv[2]{w}{r}+1 +\epsilon\left( \frac{1}{R}\pdv{w}{r}-\pdv{p}{z}-\Re\left(\pdv{w}{t}+u\pdv{w}{r}+w\pdv{w}{z}\right)\right)=0\\
+-\pdv{p}{r}+\epsilon\pdv[2]{u}{r}=0
+\end{align}
+with no slip and no flux at $r=0$  ($u(0) = 0, w(0) = 0$)
+and at $r = a$
+\begin{align}
+u = \pdv{a}{z} w + \pdv{a}{t}
+\pdv{w}{r} = O(\epsilon^2)
+p = -\Bo(\frac{a}{R^2} +a_{zz})
+\end{align}
+Expanding $w = w_0+\epsilon w_1$
+we find at highest order
+\begin{align}
+\pdv[2]{w_0}{r}+ 1 = 0, \;\pdv{w_0}{r}\eval_a  = 0, \; w_0(0) = 0
+\end{align}
+which results in 
+\begin{align}
+w_0 = ar - \frac{r^2}{2}
+\end{align}
+This results in 
+\begin{align}
+\pdv{u_0}{r} + a_z r = 0 
+\end{align}
+\begin{align}
+u_0 = - a_z \frac{r^2}{2}
+\end{align}
+from the kinematic condition we now have
+\begin{align}
+a_t + a_za^2 = 0 
+\end{align}
+This tells us the time derivative of the fluid thickness at $O(1)$
+Looking at $O(\epsilon)$ we find 
+\begin{align}
+\pdv[2]{w_1}{r}& = \Re\left(\pdv{w_0}{t}+ u_0\pdv{w_0}{r}+ w_0\pdv{w_0}{z}\right)- \frac{1}{R}\pdv{w_0}{r} -\frac{1}{Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)\\&
+=\Re aa_z\left(\frac{r^2}{2}- a r\right)+\frac{1}{R}(r-a) -\frac{1}{Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)
+\end{align}
+which results in 
+\begin{align}
+w_1 = \Re a a_z\left(\frac{r^4}{24}- a\frac{r^3}{6}+\frac{a^3}{3}r\right)+ \frac{1}{Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)\left(ar - \frac{r^2}{2}\right)+\frac{1}{R}\left(\frac{r^3}{6}- \frac{ar^2}{2}+ \frac{a^2}{2}r\right)
+\end{align}
+\begin{align}
+u_1 = -\int{\pdv{w_1}{z}+ \frac{u_0}{R}\dd{r}}
+\end{align}
+\begin{align}
+u_1 = -\Re (aa_z)_z\left(\frac{r^5}{120}- a\frac{r^4}{24}+a^3\frac{r^2}{6}\right)- \Re a {a_z}^2\left(a^2\frac{r^2}{2}-\frac{r^4}{24}\right)\\-\frac{1}{\Bo}\left(\frac{a_{zz}}{R^2}+a_{zzzz}\right)\left(a\frac{r^2}{2}- \frac{r^3}{6}\right)-\frac{1}{Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)a_z\frac{r^2}{2}\\
+-\frac{1}{R}\left(-a_z\frac{r^3}{6}+aa_z \frac{r^2}{2}\right)-\frac{a_z}{6R}r^3
+\end{align}
+Which results in the kinematic condition giving 
+\begin{align}
+a_t + a_za^2+\epsilon\left(\frac{5}{24}\Re a^5a_z^2+\frac{a^2a_z}{2\Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)+\frac{a^3a_z}{6R}\right)\\+\epsilon\left(\frac{2}{15}\Re a^5 a_z^2+\frac{2}{15}\Re a^6a_{zz}+\frac{11}{24}\Re a^5 a_z^2+\frac{a^3}{3\Bo}\left(\frac{a_{zz}}{R^2}-a_{zzzz}\right)+\frac{a^2a_z}{2\Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)+\frac{1}{2R}a^3a_z\right)
+\end{align}
+which gives
+\begin{align}
+a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{6R}+\frac{2}{15}\Re a^6a_z+ \frac{a^3}{3\Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)\right)
+\end{align}
+
+
+\section{Bumpy Wall}
+
+If we now say that the cylinder is not smooth but instead is disturbed by some function $\eta$ where $\eta$ is roughly the same thickness as the fluid thickness. So we can rewrite the dimensional parameters as
+\begin{align}
+\tilde r = a_0\left(\frac{R}{\epsilon}+\eta(z) +r\right)\\
+\tilde z = a_0\frac{ z}{\epsilon}
+\end{align}
+For now we are saying that the wall is steady.
+This makes the z derivative
+\begin{align}
+\pdv{\hat{z}} = \epsilon\left(\pdv{z} - \eta_z\pdv{r}\right)
+\end{align}
+This adds some wall terms within the pressure, however as since the rest of the $w$ equations mainly depend on $r$. (The inertial z derivative does not change things as the change is combatted by the change to $u$)
+So overall
+\begin{align}
+\tilde{u_0} = u_0 + \eta_z w_0 \\
+\tilde{u_1} = u_1 + \eta_z w_1 - \eta_z \frac{w_0}{R}
+\end{align}
+The $\eta_z w$ cancel with the bonus terms in the continuity equation however the $\eta_z \frac{w_0}{R}$ remains
+\begin{align}
+a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{6R}+\frac{2}{15}\Re a^6a_z+ \frac{a^3}{3\Bo}\left(\frac{a_z+\eta_z}{R^2}+a_{zzz}+\eta_{zzz}\right)\right) + \epsilon\frac{\eta_z a^3}{3R}\label{walldyn}
+\end{align}
+If we now say that the fluid thickness $a = 1+\epsilon\alpha$ and say the time derivative $\pdv{t} = \pdv{T} + \epsilon\pdv{\tau}$. Then \eqref{walldyn} becomes
+\begin{align}
+\alpha_T + \alpha_z+ \frac{1}{3\Bo}\left(\frac{\eta_{zz}}{R^2}+ \eta_{zzzz}\right)+ \frac{\eta_z}{R}\\
+	\alpha_\tau + 2\alpha_z\alpha+ \frac{2}{3R}\alpha_z + \frac{2}{15}\alpha_{zz}+ \frac{1}{3\Bo}\left(\frac{\alpha_{zz}+ 3\alpha_z\eta_z}{R^2}+\alpha_{zzzz}+3\alpha_z\eta_{zzz} \right)+ \frac{3\alpha\eta_z}{R}
+\end{align}
+
+\section{Conservative form}
+Equation \eqref{walldyn}is not in conservative form. We can transform it into conservative form by finding the mass flux.
+\begin{align}
+m = \int \tilde{r}\dd{\tilde{r}}\\
+m = \int_{0}^{a}{\frac{R}{\epsilon}+\eta+r\dd{r}}\\
+m = \frac{a R}{\epsilon} + a\eta+ \frac{a^2}{2}
+\end{align}
+If we let $h = \frac{\epsilon}{R}m$ and looking at only order 1 and $\epsilon$ terms then we find
+
+\begin{align}
+h_t + \pdv{z}\left(\frac{h^3}{3} +\epsilon\left(\frac{2}{15}\Re h^6 h_z + \frac{h^3}{3\Bo}\left(\frac{h_z+ \eta_z}{R^2} + h_{zzz}+ \eta_{zzz}\right)- \frac{h^4}{12R}- \frac{2}{3R}h^3\eta\right)\right)=0
+\end{align}
+
+The flow rate 
+\begin{align}
+q = \int_{0}^{a}{\left(\frac{R}{\epsilon}+\eta+r\right)(w_0 + \epsilon w_1)\dd{r}}
+\end{align}
+which results in 
+\begin{align}
+\frac{Rq}{\epsilon} = \frac{h^3}{3}+\epsilon\left(\frac{2}{15}\Re h^6h_z + \frac{h^3}{3\Bo}\left(\frac{h_z+\eta_z}{R^2}\right)+h_{zzz} + \eta_{zzz}- \frac{2}{3}h^3\eta-\frac{1}{6}h^4\right)
+\end{align}
+
+\bibliographystyle{plain}
+\bibliography{../MRES-Project/Report}
+\end{document}
