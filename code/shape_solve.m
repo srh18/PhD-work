@@ -52,7 +52,6 @@ classdef shape_solve
         eflag
         out
         jac
-        
         %string of parameters
         params = {'Bo','R','L','Re','\\epsilon','\\delta'}
         % Properties of the fluid
@@ -65,6 +64,11 @@ classdef shape_solve
         maxmindiff % distance between the maximum and the minimum
         minmaxdiff % distance between the minimum and the maximum
         
+        %derivatives of eta to speed things up
+        etaz
+        etazz
+        etazzz
+        etazzzz
         integration {mustBeMember(integration,[0,1,2])} = 0 % 0 is crank Nicholson 1 implicit 2 explicit
     end
     properties(Dependent = true,Hidden)
@@ -109,31 +113,32 @@ classdef shape_solve
             value = obj.a + obj.ep/obj.R*(obj.a.*obj.eta+ obj.a.^2/2);
         end
         function value = get.mass(obj)
-            value = trapz(obj.h,2);
+            value = sum(obj.h,2)/obj.n*obj.L;
         end
         function value = get.h2norm(obj)
-            value = trapz(obj.h.^2,2);
+            value = sum(obj.h.^2,2)/obj.n*obj.L;
         end
         function value = get.a2norm(obj)
-            value = trapz(obj.a.^2,2);
+            value = sum(obj.a.^2,2)/obj.n*obj.L;
         end
         function value = get.amass(obj)
-            value = trapz(obj.a,2);
+            value = sum(obj.a,2)/obj.n*obj.L;
         end
-        function value = get.Q(obj) 
-            hz= 0*obj.h;
-            hzzz = 0 *obj.h;
-            for i = 1:length(obj.h)
-                
-                [hz(i,:),~,hzzz(i,:),~] = obj.getdiv(obj.h(i,:));
-            end
-            [etaz,~,etazzz,~] = obj.getdiv(obj.eta);
-            
-            value = obj.h.^3/3+obj.ep*(2/15*obj.Re*obj.h.^6.*hz+obj.h.^3/(3*obj.Bo)*((hz+etaz)/obj.R^2+hzzz+etazzz)-s/3*obj.h.^3.*obj.eta-1/6*obj.h^4);
-        end
-        function value = get.Qint(obj)
-            value = trapz(obj.Q,2);
-        end
+        %dont work
+%         function value = get.Q(obj) 
+%             hz= 0*obj.h;
+%             hzzz = 0 *obj.h;
+%             for i = 1:length(obj.h)
+%                 
+%                 [hz(i,:),~,hzzz(i,:),~] = obj.getdiv(obj.h(i,:));
+%             end
+%             [etaz,~,etazzz,~] = obj.getdiv(obj.eta);
+%             
+%             value = obj.h.^3/3+obj.ep*(2/15*obj.Re*obj.h.^6.*hz+obj.h.^3/(3*obj.Bo)*((hz+etaz)/obj.R^2+hzzz+etazzz)-s/3*obj.h.^3.*obj.eta-1/6*obj.h^4);
+%         end
+%         function value = get.Qint(obj)
+%             value = trapz(obj.Q,2);
+%         end
             
             
         
@@ -161,6 +166,7 @@ classdef shape_solve
         
         function obj = set.eta(obj,value)
             obj.eta = value;
+            [obj.etaz,obj.etazz,obj.etazzz,obj.etazzzz] = obj.getdiv(value);
             if length(obj.z)~=length(obj.eta)
                 error('Vectors for the wall shape and the domain must be the same length.')
             end
@@ -274,7 +280,7 @@ classdef shape_solve
                 function F = afun(obj,a)
             [az,azz,azzz,azzzz] = obj.getdiv(a);
             [etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
-            F = az.*a.^2 + obj.ep.*(4*az.*a.^3/(6.*obj.R)+2/15.*obj.Re.*(a.^6..*azz+6.*a.^5.*az.^2)+1/(3.*obj.Bo).*(a.^3.*((azz+etazz)/obj.R^2+azzzz+etazzzz)+3*az.*a.^2.*((az+etaz)/obj.R^2+azzz+etazzz))+etaz.*a.^3/(3*obj.R));
+            F = az.*a.^2 + obj.ep.*(4*az.*a.^3/(6.*obj.R)+2/15.*obj.Re.*(a.^6.*azz+6.*a.^5.*az.^2)+1/(3.*obj.Bo).*(a.^3.*((azz+etazz)/obj.R^2+azzzz+etazzzz)+3*az.*a.^2.*((az+etaz)/obj.R^2+azzz+etazzz))+etaz.*a.^3/(3*obj.R));
             
         end
             function [az,azz,azzz,azzzz] = getdiv(obj,a)
@@ -625,9 +631,9 @@ classdef shape_solve
             
                 [~,~,~,azzzz] = obj.getdiv(a);
                 [az,azz,azzz,~] = obj.getdiv(aold);
-                [etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
-                F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((etazz+azz)./obj.R^2+etazzzz)+aold.^2.*az./obj.Bo.*((etaz+az)/obj.R^2+etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+a.^3.*azzzz/(3*obj.Bo))+etaz.*obj.ep.*aold.^3/obj.R;%maybe turn a to aold
-            
+                %[etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
+                F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((obj.etazz+azz)./obj.R^2+obj.etazzzz)+aold.^2.*az./obj.Bo.*((obj.etaz+az)/obj.R^2+obj.etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+a.^3.*azzzz/(3*obj.Bo))+obj.etaz.*obj.ep.*aold.^3/obj.R;%maybe turn a to aold
+                %F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((obj.etazz+azz)./obj.R^2+obj.etazzzz)+aold.^2.*az./obj.Bo.*((obj.etaz+az)/obj.R^2+obj.etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+aold.^3.*azzzz/(3*obj.Bo))+obj.etaz.*obj.ep.*aold.^3/obj.R;
             if nargout>1
                 an2 = a([end-1 end 1:end-2]);
                 an1 = a([end 1:end-1]);
@@ -639,27 +645,7 @@ classdef shape_solve
                 J = A + B;
             end
         end
-        function [F, J] = tfunbad(obj,a,aold)
-            F = zeros(1,obj.n);
-            for i = 1:obj.n
-                [~,~,~,azzzz] = obj.getdiv(a,i);
-                [az,azz,azzz,~] = obj.getdiv(aold,i);
-                [etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta,i);
-                F(i) = (a(i)-aold(i))/obj.delt+aold(i)^2*az+obj.ep*(aold(i)^3/(3*obj.Bo)*(etazz+azz+etazzzz)+aold(i)^2*az/obj.Bo*(etaz+az+etazzz+azzz)-aold(i)^4/6-3/40*obj.Re*aold(i)^6*az+a(i)^3*azzzz/(3*obj.Bo));
-            end
-            if nargout>1
-                an2 = a([end-1 end 1:end-2]);
-                an1 = a([end 1:end-1]);
-                a1 = a([2:end 1]);
-                a2 = a([3:end 1 2]);
-                
-                A = diag(1/obj.delt + obj.ep/obj.Bo*((obj.n)/obj.L)^4.*((an2-4*an1+8*a-4*a1+a2).*a.^2));
-                B = obj.ep/(3*obj.Bo)*((obj.n)/obj.L)^4*((diag(a(1:end-2).^3,-2)+diag(a(end-1:end).^3,obj.n-2))-4*(diag(a(1:end-1).^3,-1)+diag(a(end).^3,obj.n-1))-4*(diag(a(2:end).^3,1)+diag(a(1).^3,1-obj.n))+(diag(a(3:end).^3,2)+diag(a(1:2).^3,2-obj.n)));
-                J = A + B;
-            end
-        end
-        
-        
+
         function obj = dynamics(obj,T,init)
             t = 0: obj.delt:T;
             
@@ -958,5 +944,25 @@ end
 %             end
 %             
 %         end
+%         function [F, J] = tfunbad(obj,a,aold)
+%             F = zeros(1,obj.n);
+%             for i = 1:obj.n
+%                 [~,~,~,azzzz] = obj.getdiv(a,i);
+%                 [az,azz,azzz,~] = obj.getdiv(aold,i);
+%                 [etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta,i);
+%                 F(i) = (a(i)-aold(i))/obj.delt+aold(i)^2*az+obj.ep*(aold(i)^3/(3*obj.Bo)*(etazz+azz+etazzzz)+aold(i)^2*az/obj.Bo*(etaz+az+etazzz+azzz)-aold(i)^4/6-3/40*obj.Re*aold(i)^6*az+a(i)^3*azzzz/(3*obj.Bo));
+%             end
+%             if nargout>1
+%                 an2 = a([end-1 end 1:end-2]);
+%                 an1 = a([end 1:end-1]);
+%                 a1 = a([2:end 1]);
+%                 a2 = a([3:end 1 2]);
+%          com       
+%                 A = diag(1/obj.delt + obj.ep/obj.Bo*((obj.n)/obj.L)^4.*((an2-4*an1+8*a-4*a1+a2).*a.^2));
+%                 B = obj.ep/(3*obj.Bo)*((obj.n)/obj.L)^4*((diag(a(1:end-2).^3,-2)+diag(a(end-1:end).^3,obj.n-2))-4*(diag(a(1:end-1).^3,-1)+diag(a(end).^3,obj.n-1))-4*(diag(a(2:end).^3,1)+diag(a(1).^3,1-obj.n))+(diag(a(3:end).^3,2)+diag(a(1:2).^3,2-obj.n)));
+%                 J = A + B;
+%             end
+%         end
 %         
-        
+%         
+%         
