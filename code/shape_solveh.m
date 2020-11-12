@@ -15,6 +15,7 @@ classdef shape_solveh
         R {mustBeNonnegative} = 1 % Radius of cylinder
         
         q {mustBeNonnegative}= 1/3 % flow rate
+        T {mustBeNonnegative} = 100 %time
         
         %Wall shape parameters
         
@@ -31,6 +32,7 @@ classdef shape_solveh
         %Derived from parameters
         
         z % domain
+        t % time domain
         h % mass conserving fluid thickness
         eta % wall shape
         
@@ -56,6 +58,8 @@ classdef shape_solveh
         params = {'Bo','R','L','Re','\\epsilon','\\delta'}
         % Properties of the fluid
         
+        sol %ode output
+        
         hmax % maximum fluid thickness
         hmin % minimum fluid thickness
         diff % range of fluid thickness
@@ -64,6 +68,8 @@ classdef shape_solveh
         maxmindiff % distance between the maximum and the minimum
         minmaxdiff % distance between the minimum and the maximum
         
+        peakpos
+        peakspeed
         %derivatives of eta to speed things up
         etaz
         etazz
@@ -101,21 +107,22 @@ classdef shape_solveh
             
             obj.delt = 1/obj.n;
             obj = obj.reset;
+            obj.t = 0:obj.delt:obj.T;
             
         end
         %dependent function
         function value = get.S(obj)
-            value = obj.a+ obj.eta;
+            value = obj.h+ obj.eta;
         end
         function value = get.nz(obj)
             value = obj.z/obj.L;
         end
 
         function value = get.mass(obj)
-            value = sum(obj.h,2)/obj.n*obj.L;
+            value = sum(obj.h,2)/obj.n;
         end
         function value = get.h2norm(obj)
-            value = sum(obj.h.^2,2)/obj.n*obj.L;
+            value = sum(obj.h.^2,2)/obj.n;
         end
         function value = get.a2norm(obj)
             value = sum(obj.a.^2,2)/obj.n*obj.L;
@@ -163,6 +170,10 @@ classdef shape_solveh
                 obj = obj.reset;
             end
         end
+        function obj = set.periods(obj,value)
+            obj.periods = value;
+            obj = obj.reset;
+        end
         
         function obj = set.wall_shape(obj,value)
             obj.wall_shape = value;
@@ -171,10 +182,20 @@ classdef shape_solveh
             end
         end
         
+        function obj = set.T(obj,value)
+        obj.T = value;
+        obj.t = 0:obj.delt:obj.T;
+        end
+        function obj = set.delt(obj,value)
+            obj.delt = value;
+            obj.t = 0:obj.delt:obj.T;
+        end
+        
         function obj = reset(obj)
             %realign z, wall if n or L are changed
             obj.z = 0: obj.L/obj.n: obj.periods*obj.L- obj.L/obj.n;
             obj = obj.get_wall;
+            
             
         end
         
@@ -283,6 +304,7 @@ classdef shape_solveh
             end
         
 
+            
         
         function obj = get_h(obj,optionon,hinit)
             %performs fsolve
@@ -358,8 +380,53 @@ classdef shape_solveh
                 obj.minmaxdiff = obj.hmaxloc - obj.hminloc;
                 %                 end
             end
+            obj.hmaxloc = obj.unperiod(obj.hmaxloc);
+            obj.hminloc = obj.unperiod(obj.hminloc);
         end
-        
+        function val = unperiod(obj,val)
+            [~,loc] = findpeaks(val);
+            for i =loc
+                val(i+1:end) = val(i+1:end) +obj.L;
+            end
+        end
+                
+        function obj = peak_speed(obj)
+            obj.peakpos = zeros(1,length(obj.h));
+            k = 1;
+            m = 0;
+            for i = 1:length(obj.h)
+                [~,j] = findpeaks(obj.h(i,:));
+                if length(j) == 1
+                    if j< k
+                        m = m+1;
+                    end
+                    obj.peakpos(i) = obj.z(j)+m*obj.L;
+                    k = j;
+                else
+                    l = 1;
+                    while l<=length(j)
+                        if j(l)>= k
+                            obj.peakpos(i) = obj.z(j(l))+m*obj.L;
+                            k = j(l);
+                            break
+                        end
+                        l = l + 1 ;
+                        if l == length(j) + 1
+                            m = m+1;
+                            obj.peakpos(i) = obj.z(j(1))+m*obj.L;
+                            k = j(1);
+                        end
+                    end
+                end
+            end
+            obj.peakspeed = diff(obj.peakpos)/obj.delt 
+        end
+                            
+                        
+                    
+                
+                
+                
         function plot_minmax(obj,x,param)
             obj.paramtoggle = param;
             max = [];
@@ -438,7 +505,8 @@ classdef shape_solveh
             legend
         end
         function [F, J] = tfun(obj,h,hOld)
-            F = zeros(1,obj.n);
+            m = obj.n*obj.periods;
+            F = zeros(1,m);
             
                 [~,~,~,hzzzz] = obj.getdiv(h);
                 [hz,hzz,hzzz,~] = obj.getdiv(hOld);
@@ -454,16 +522,19 @@ classdef shape_solveh
                 a2 = h([3:end 1 2]);
                 
                 A = diag(1/obj.delt + obj.ep/obj.Bo*((obj.n)/obj.L)^4.*((an2-4*an1+8*h-4*a1+a2).*h.^2));
-                B = obj.ep/(3*obj.Bo)*((obj.n)/obj.L)^4*((diag(h(1:end-2).^3,-2)+diag(h(end-1:end).^3,obj.n-2))-4*(diag(h(1:end-1).^3,-1)+diag(h(end).^3,obj.n-1))-4*(diag(h(2:end).^3,1)+diag(h(1).^3,1-obj.n))+(diag(h(3:end).^3,2)+diag(h(1:2).^3,2-obj.n)));
+                B = obj.ep/(3*obj.Bo)*((obj.n)/obj.L)^4*((diag(h(1:end-2).^3,-2)+diag(h(end-1:end).^3,m-2))-4*(diag(h(1:end-1).^3,-1)+diag(h(end).^3,m-1))-4*(diag(h(2:end).^3,1)+diag(h(1).^3,1-m))+(diag(h(3:end).^3,2)+diag(h(1:2).^3,2-m)));
                 J = A + B;
             end
         end
 
-        function obj = dynamics(obj,T,init)
-            t = 0: obj.delt:T;
+        function obj = dynamics(obj,init,T)
+            if nargin ==3
+                obj.T = T;
+            end
+            t = 0: obj.delt:obj.T;
             
             options = optimoptions('fsolve','Display', 'none','SpecifyObjectiveGradient',true);
-            obj.h = zeros(length(t),obj.n);
+            obj.h = zeros(length(t),obj.n*obj.periods);
             
             [obj.h(1,:),obj.Fval,obj.eflag,obj.out,obj.jac] = fsolve(@(a)obj.tfun(a,init),init,options);
             if obj.eflag < 1
@@ -480,6 +551,35 @@ classdef shape_solveh
                 end
                 
             end
+        end
+        
+        function obj = odedyn(obj,init)
+            opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
+            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
+            
+            obj.t = obj.sol.x;
+            obj.h = obj.sol.y';
+        end
+        function obj = kstest(obj,init)
+            opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
+            obj.sol = ode15s(@obj.ksfun ,[0 obj.T],init,opts);
+            
+            obj.t = obj.sol.x;
+            obj.h = obj.sol.y';
+        end
+        function ht = ksfun(obj,t,h)
+            h = h';
+            [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
+            ht = -h.*hz -0.1*hzz- 0.1*hzzzz;
+            ht = ht';
+            
+        end
+        function ht = odefun(obj,t,h)
+            h = h';
+            [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
+            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+            ht = ht';
+            
         end
         function animate(obj,speed,wall)
 
@@ -515,7 +615,7 @@ classdef shape_solveh
                 plot_minx,plot_maxx
                 %xlim([xmin, xmax])
                 
-                title(sprintf('$t =%g$',obj.delt*i))
+                title(sprintf('$t =%g$',obj.t(i)))
                 pause(0.01)
                 
             end
@@ -542,21 +642,24 @@ classdef shape_solveh
                 plot(t,obj.amax, 'DisplayName',sprintf('$\\delta = %g$',d))
             end
         end
-        function plot_features(obj,T)
+        function plot_features(obj,m)
+            if nargin ==1
+                m= 0;
+            end
             obj = obj.get_fluid_features;
-            figure(10),  hold on, title("Amplitude Changes with time")
-            figure(11),  hold on, title('Position of maxima/minima')
-            figure(12),  hold on , title('Drift of results')
+            figure(10+m),  hold on, title("Amplitude Changes with time")
+            figure(11+m),  hold on, title('Position of maxima/minima')
+            figure(12+m),  hold on , title('Drift of results')
             d = obj.del;
-            t = 0:obj.delt:T;
-            figure(10)
+            t = 0:obj.delt:obj.T;
+            figure(10+m)
             
                 plot(t,obj.diff, 'DisplayName',sprintf('$\\delta = %g$',d))
-                figure(11)
-                plot(t,obj.hmaxloc, 'DisplayName',sprintf('maxima $ \\delta = %g$',d))
+                figure(11+m)
+                plot(t,obj.hmaxloc/obj.L, 'DisplayName',sprintf('maxima $ \\delta = %g$',d))
                 fig = gca;
-                plot(t,obj.hminloc,'--','Color', fig.Children(1).Color, 'DisplayName',sprintf('minima$ \\delta = %g$',d))
-                figure(12)
+                %plot(t,obj.hminloc,'--','Color', fig.Children(1).Color, 'DisplayName',sprintf('minima$ \\delta = %g$',d))
+                figure(12+m)
                 plot(t,obj.hmax, 'DisplayName',sprintf('$\\delta = %g$',d))
         end
         
