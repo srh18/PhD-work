@@ -14,7 +14,7 @@ classdef shape_solveh
         ep {mustBeNonnegative}= 1e-3 % Ratio between the fluid thickness and the radius of the cylinder
         R {mustBeNonnegative} = 1 % Radius of cylinder
         
-        q {mustBeNonnegative}= 1/3 % flow rate
+        q {mustBeNonnegative}= 1 % flow rate
         T {mustBeNonnegative} = 100 %time
         
         %Wall shape parameters
@@ -35,7 +35,7 @@ classdef shape_solveh
         t % time domain
         h % mass conserving fluid thickness
         eta % wall shape
-        
+        h0 %steady state
         %Toggles
         paramtoggle  {mustBeMember(paramtoggle,[1,2,3,4,5,6,7])} = 1 % 1 for Bo, 2 for R, 3 for L, 4 for Re, 5 for ep, 6 for del, 7 for l
         flow {mustBeMember(flow,[0,1])} = 1 % 0 if keeping volume constant - 1 if flow rate is constant
@@ -87,6 +87,7 @@ classdef shape_solveh
         a2norm %integral of a^2
         Q % flow rate
         Qint % integral of flow rate
+        hdiff %differenence from the steady state
     end
     
     
@@ -117,20 +118,17 @@ classdef shape_solveh
         function value = get.nz(obj)
             value = obj.z/obj.L;
         end
-
+        
         function value = get.mass(obj)
             value = sum(obj.h,2)/obj.n;
         end
         function value = get.h2norm(obj)
             value = sum(obj.h.^2,2)/obj.n;
         end
-        function value = get.a2norm(obj)
-            value = sum(obj.a.^2,2)/obj.n*obj.L;
+        
+        function value = get.hdiff(obj)
+            value = obj.h - obj.h0;
         end
-        function value = get.amass(obj)
-            value = sum(obj.a,2)/obj.n*obj.L;
-        end
-
         %Functions which also change other parameters when changed
         function obj = set.L(obj,value)
             obj.L = value;
@@ -183,8 +181,8 @@ classdef shape_solveh
         end
         
         function obj = set.T(obj,value)
-        obj.T = value;
-        obj.t = 0:obj.delt:obj.T;
+            obj.T = value;
+            obj.t = 0:obj.delt:obj.T;
         end
         function obj = set.delt(obj,value)
             obj.delt = value;
@@ -216,7 +214,8 @@ classdef shape_solveh
                 obj.l = value;
             end
         end
-                function value = getp(obj)
+        
+        function value = getp(obj)
             if obj.paramtoggle == 1
                 value = obj.Bo ;
             elseif obj.paramtoggle == 2
@@ -233,7 +232,7 @@ classdef shape_solveh
                 value = obj.l;
             end
         end
-
+        
         
         
         function obj = get_wall(obj)
@@ -280,31 +279,34 @@ classdef shape_solveh
             a = 1 - obj.ep/3*obj.del*(cos(2*pi/obj.L*obj.z)+1/obj.Bo*(-2*pi/obj.L+8*pi^3/obj.L^3)*sin(2*pi/obj.L*obj.z));
         end
         
-                function F = hfun(obj,h)
+        function F = hfun(obj,h)
             [hz,hzz,hzzz,hzzzz] = obj.getdiv(h);
-            
-            F = hz.*h.^2 + obj.ep.*(-4*hz.*h.^3/(12.*obj.R)+2/15.*obj.Re.*(h.^6.*hzz+6.*h.^5.*hz.^2)+1/(3.*obj.Bo).*(h.^3.*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+3*hz.*h.^2.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz))-2*obj.etaz.*h.^3/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R);
-            
-                end
-                        function F = hfunflux(obj,h)
+            if obj.flow == 1
+                F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(12*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - obj.q*obj.R/obj.ep;
+            else
+                
+                F = hz.*h.^2 + obj.ep.*(-4*hz.*h.^3/(12.*obj.R)+2/15.*obj.Re.*(h.^6.*hzz+6.*h.^5.*hz.^2)+1/(3.*obj.Bo).*(h.^3.*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+3*hz.*h.^2.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz))-2*obj.etaz.*h.^3/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R);
+            end
+        end
+        function F = hfunflux(obj,h)
             [hz,hzz,hzzz,hzzzz] = obj.getdiv(h);
             
             F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(12*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - obj.q;
         end
-            function [az,azz,azzz,azzzz] = getdiv(obj,a)
-                
-             an2 = a([end-1 end 1:end-2]);
-                an1 = a([end 1:end-1]);
-                a1 = a([2:end 1]);
-                a2 = a([3:end 1 2]);
-                az = obj.n/obj.L*(-1/2*an1+1/2*a1);
-                azz =(obj.n/obj.L)^2*(an1-2*a+ a1);
-                azzz= (obj.n/obj.L)^3*(-1/2*an2+an1-a1+1/2*a2);
-                azzzz =(obj.n/obj.L)^4 *(an2-4*an1+6*a-4*a1+a2);
-            end
-        
-
+        function [az,azz,azzz,azzzz] = getdiv(obj,a)
             
+            an2 = a([end-1 end 1:end-2]);
+            an1 = a([end 1:end-1]);
+            a1 = a([2:end 1]);
+            a2 = a([3:end 1 2]);
+            az = obj.n/obj.L*(-1/2*an1+1/2*a1);
+            azz =(obj.n/obj.L)^2*(an1-2*a+ a1);
+            azzz= (obj.n/obj.L)^3*(-1/2*an2+an1-a1+1/2*a2);
+            azzzz =(obj.n/obj.L)^4 *(an2-4*an1+6*a-4*a1+a2);
+        end
+        
+        
+        
         
         function obj = get_h(obj,optionon,hinit)
             %performs fsolve
@@ -319,7 +321,7 @@ classdef shape_solveh
                 end
             end
             
-            [obj.h,obj.Fval,obj.eflag,obj.out,obj.jac] = fsolve(@obj.hfun,hinit,options);
+            [obj.h0,obj.Fval,obj.eflag,obj.out,obj.jac] = fsolve(@obj.hfun,hinit,options);
             
         end
         function plot_param(obj, values, param,etatoggle)
@@ -340,7 +342,7 @@ classdef shape_solveh
                 if obj.eflag < 1
                     warning('No solution found for %s = %g\n',obj.params{obj.paramtoggle},val)
                 else
-                    plot(obj.h+etatoggle*obj.eta,obj.nz,'DisplayName',sprintf('$%s = %g$',obj.params{obj.paramtoggle},val))
+                    plot(obj.h0+etatoggle*obj.eta,obj.nz,'DisplayName',sprintf('$%s = %g$',obj.params{obj.paramtoggle},val))
                 end
             end
             if etatoggle ==1
@@ -350,10 +352,10 @@ classdef shape_solveh
             flip_y
         end
         
-
         
-      
-    
+        
+        
+        
         
         
         
@@ -389,7 +391,7 @@ classdef shape_solveh
                 val(i+1:end) = val(i+1:end) +obj.L;
             end
         end
-                
+        
         function obj = peak_speed(obj)
             obj.peakpos = zeros(1,length(obj.h));
             k = 1;
@@ -419,14 +421,14 @@ classdef shape_solveh
                     end
                 end
             end
-            obj.peakspeed = diff(obj.peakpos)/obj.delt 
+            obj.peakspeed = diff(obj.peakpos)/obj.delt
         end
-                            
-                        
-                    
-                
-                
-                
+        
+        
+        
+        
+        
+        
         function plot_minmax(obj,x,param)
             obj.paramtoggle = param;
             max = [];
@@ -508,13 +510,13 @@ classdef shape_solveh
             m = obj.n*obj.periods;
             F = zeros(1,m);
             
-                [~,~,~,hzzzz] = obj.getdiv(h);
-                [hz,hzz,hzzz,~] = obj.getdiv(hOld);
-                %[etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
-                F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
-                %F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
-
-                %F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((obj.etazz+azz)./obj.R^2+obj.etazzzz)+aold.^2.*az./obj.Bo.*((obj.etaz+az)/obj.R^2+obj.etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+aold.^3.*azzzz/(3*obj.Bo))+obj.etaz.*obj.ep.*aold.^3/obj.R;
+            [~,~,~,hzzzz] = obj.getdiv(h);
+            [hz,hzz,hzzz,~] = obj.getdiv(hOld);
+            %[etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
+            F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
+            %F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
+            
+            %F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((obj.etazz+azz)./obj.R^2+obj.etazzzz)+aold.^2.*az./obj.Bo.*((obj.etaz+az)/obj.R^2+obj.etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+aold.^3.*azzzz/(3*obj.Bo))+obj.etaz.*obj.ep.*aold.^3/obj.R;
             if nargout>1
                 an2 = h([end-1 end 1:end-2]);
                 an1 = h([end 1:end-1]);
@@ -526,7 +528,7 @@ classdef shape_solveh
                 J = A + B;
             end
         end
-
+        
         function obj = dynamics(obj,init,T)
             if nargin ==3
                 obj.T = T;
@@ -554,8 +556,12 @@ classdef shape_solveh
         end
         
         function obj = odedyn(obj,init)
+            if nargin == 1
+                obj = obj.get_h;
+                init = obj.h0 + 0.1*sin(obj.z);
+            end
             opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
-            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
+            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
             
             obj.t = obj.sol.x;
             obj.h = obj.sol.y';
@@ -577,16 +583,19 @@ classdef shape_solveh
         function ht = odefun(obj,t,h)
             h = h';
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
-            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             ht = ht';
             
         end
-        function animate(obj,speed,wall)
-
+        function animate(obj,speed,wall,diff)
+            if nargin <= 3
+                diff = 0;
+            end
             if nargin <= 2
                 wall = 1;
+                
             end
-            data = obj.h;
+            data = obj.h-diff*obj.h0;
             if iscell(data)
                 l = length(data{1});
                 m = length(data);
@@ -599,7 +608,7 @@ classdef shape_solveh
             % xmin = min(min(data));
             for i = 1:speed:l
                 clf, hold on
-                flip_y
+                %flip_y
                 if (obj.wall_shape ~= 3 && wall ~=0)
                     plot(obj.eta,obj.z)
                 end
@@ -611,8 +620,8 @@ classdef shape_solveh
                         plot(data{j}(i,:),obj.z)
                     end
                 end
-                plot_n_periods
-                plot_minx,plot_maxx
+                %plot_n_periods
+                %plot_minx,plot_maxx
                 %xlim([xmin, xmax])
                 
                 title(sprintf('$t =%g$',obj.t(i)))
@@ -651,16 +660,16 @@ classdef shape_solveh
             figure(11+m),  hold on, title('Position of maxima/minima')
             figure(12+m),  hold on , title('Drift of results')
             d = obj.del;
-            t = 0:obj.delt:obj.T;
+            
             figure(10+m)
             
-                plot(t,obj.diff, 'DisplayName',sprintf('$\\delta = %g$',d))
-                figure(11+m)
-                plot(t,obj.hmaxloc/obj.L, 'DisplayName',sprintf('maxima $ \\delta = %g$',d))
-                fig = gca;
-                %plot(t,obj.hminloc,'--','Color', fig.Children(1).Color, 'DisplayName',sprintf('minima$ \\delta = %g$',d))
-                figure(12+m)
-                plot(t,obj.hmax, 'DisplayName',sprintf('$\\delta = %g$',d))
+            plot(obj.t,obj.diff, 'DisplayName',sprintf('$\\delta = %g$',d))
+            figure(11+m)
+            plot(obj.t,obj.hmaxloc/obj.L, 'DisplayName',sprintf('maxima $ \\delta = %g$',d))
+            fig = gca;
+            %plot(t,obj.hminloc,'--','Color', fig.Children(1).Color, 'DisplayName',sprintf('minima$ \\delta = %g$',d))
+            figure(12+m)
+            plot(obj.t,obj.hmax, 'DisplayName',sprintf('$\\delta = %g$',d))
         end
         
         function big_wall_effect(obj,Bo,R)
@@ -668,24 +677,24 @@ classdef shape_solveh
                 Bo = obj.Bo;
                 R = obj.R;
             end
-            clf, hold on 
+            clf, hold on
             plot(obj.eta,obj.z,'DisplayName','Wall')
             for b = Bo
                 for r = R
-            for i =1:obj.n
-            [etaz,etazz,~,etazzzz] = obj.getdiv(obj.eta,i);
-            wall(i) = 1/(3*b)*(etazz/r^2 +etazzzz) +etaz/r;
-            end
-            plot(wall,obj.z, 'DisplayName',sprintf('R = %g, Bo = %g',r,b))
-
+                    for i =1:obj.n
+                        [etaz,etazz,~,etazzzz] = obj.getdiv(obj.eta,i);
+                        wall(i) = 1/(3*b)*(etazz/r^2 +etazzzz) +etaz/r;
+                    end
+                    plot(wall,obj.z, 'DisplayName',sprintf('R = %g, Bo = %g',r,b))
+                    
                 end
             end
             legend
         end
         function [F,J] = small_fluid_disturbance_fun(obj,a,aold)
-  
+            
             F = zeros(1,obj.n);
-
+            
             for i = 1:obj.n
                 [az,azz,~,azzzz] = obj.getdiv(a,i);
                 [aoz,aozz,~,aozzzz] = obj.getdiv(a,i);
@@ -709,7 +718,7 @@ classdef shape_solveh
                 B = 1/2*((1/(3*obj.Bo)*(obj.n/obj.L)^4)*((diag(ones(1,obj.n-2),-2)+diag([1,1],obj.n-2))+((-a-1/(3*obj.R)-1/(2*obj.Bo*obj.R^2)*etaz-1/(2*obj.Bo)*etazzz)*(obj.n/obj.L)+(2*obj.Re/15+1/(3*obj.Bo*obj.R^2))*(obj.n/obj.L)^2)*(diag(ones(1,obj.n-1),-1)+diag(1,obj.n-1))+((a+1/(3*obj.R)+1/(2*obj.Bo*obj.R^2)*etaz+1/(2*obj.Bo)*etazzz)*(obj.n/obj.L)+(2*obj.Re/15+1/(3*obj.Bo*obj.R^2))*(obj.n/obj.L)^2)*(diag(ones(1,obj.n-1),1)+diag(1,1-obj.n))+(1/(3*obj.Bo)*(obj.n/obj.L)^4)*(diag(ones(1,obj.n-2),2)+diag([1,1],2-obj.n))));
                 J = A + B;
             end
-
+            
         end
         function obj = small_dynamics(obj,T,init)
             t = 0: obj.delt:T;
@@ -732,12 +741,12 @@ classdef shape_solveh
                 end
                 
             end
-        
+            
         end
         
-
-            
-            function obj = new_get_a(obj,optionon,ainit)
+        
+        
+        function obj = new_get_a(obj,optionon,ainit)
             %performs fsolve
             options = optimoptions('fsolve','Display', 'none');
             if nargin <=2
@@ -760,21 +769,21 @@ classdef shape_solveh
 end
 %% Old Code
 
-        %         INCORPORATED INTO get_wall
-        %                 function obj = make_wall_step(obj,l,del2)
-        %             obj.eta = obj.del/2*(tanh((obj.z-l/2*obj.L)/del2) - tanh((obj.L*(l/2-1)+obj.z)/del2));
-        %         end
-        %         function obj = make_wall_saw(obj,l,del2)
-        %             obj.eta = (obj.z-l/2*obj.L).*obj.del./2.*(tanh((obj.z-l/2*obj.L)/del2) - tanh((obj.L*(l/2-1)+obj.z)/del2));
-        %         end
+%         INCORPORATED INTO get_wall
+%                 function obj = make_wall_step(obj,l,del2)
+%             obj.eta = obj.del/2*(tanh((obj.z-l/2*obj.L)/del2) - tanh((obj.L*(l/2-1)+obj.z)/del2));
+%         end
+%         function obj = make_wall_saw(obj,l,del2)
+%             obj.eta = (obj.z-l/2*obj.L).*obj.del./2.*(tanh((obj.z-l/2*obj.L)/del2) - tanh((obj.L*(l/2-1)+obj.z)/del2));
+%         end
 
 %         function F = afun(obj,a)
-%             
+%
 %             %The system of equations for fsolve to solve
 %             %Not really set up for flow = 0
-%             
+%
 %             F = 0*(1:obj.n);
-%             
+%
 %             if obj.boundary == 1
 %                 F(1) = a(1)-1;
 %                 F(obj.n) = a(obj.n)-1;
@@ -784,31 +793,31 @@ end
 %             for m = 2*obj.boundary+1:obj.n-obj.boundary*2
 %                 [az,azz,azzz,azzzz] = obj.getdiv(a,m);
 %                 if obj.wall_shape >0
-%                     
+%
 %                     [etaz,~,etazzz,~] = obj.getdiv(obj.eta,m);
 %                 else
 %                     etaz = -obj.del*2*pi/obj.L*sin(2*pi/obj.L*obj.z(m));
 %                     etazzz = obj.del*8*pi^3/obj.L^3*sin(2*pi/obj.L*obj.z(m));
 %                 end
-%                 
+%
 %                 if obj.flow ==1
 %                     F(m) = a(m)^3/3+obj.ep*(a(m)^4/3+a(m)^3*obj.eta(m)+a(m)^3/(3*obj.Bo)*(az+azzz+etaz+ etazzz)-3/40*obj.Re*a(m)^6*az)-obj.q;
 %                 else
-%                     
+%
 %                     F(m) = a(m)^2*az + obj.ep*(4/3*a(m)^3*az+3*a(m)^2*az*obj.del*cos(2*pi/obj.L*obj.z(m))-2*pi/obj.L*obj.del*sin(2*pi/obj.L*obj.z(m))*a(m)^3+a(m)^2*az/obj.Bo*(az+azzz+(8*pi^3/obj.L^3-2*pi/obj.L)*obj.del*sin(2*pi/obj.L*obj.z(m)))+a(m)^3/(3*obj.Bo)*(azz+azzzz+(16*pi^4/obj.L^4 - 4*pi^2/obj.L^2)*obj.del*cos(2*pi/obj.L*obj.z(m)))-3/40*obj.Re*(a(m)^6*azz+6*a(m)^5*az^2));
 %                     F(obj.n+1+obj.flow*(m-1))  = F(obj.n+1+obj.flow*(m-1))  + (1-obj.flow)*(a(m) + obj.ep*(a(m)^2/2 + a(m)*obj.del* cos(2*pi/obj.L*obj.z(m))))*obj.L/obj.n+obj.flow*(a(m)^3 + obj.ep*(a(m)^4/3+a(m)^3*obj.del*cos(2*pi/obj.L*obj.z(m))+a(m)^3/(3*obj.Bo)*(az+azzz-2*pi/obj.L*obj.del*sin(obj.z(m)*2*pi/obj.L)+8*pi^3/obj.L^3*obj.del*sin(2*pi/obj.L*obj.z(m))-3/40*obj.Re*a(m)^6*az))-obj.q);
-%                     
+%
 %                 end
 %             end
-%             
+%
 %             if obj.flow == 0
-%                 
+%
 %                 F(obj.n+1) = F(obj.n+1)  - (1-obj.flow)*(1+obj.ep/2)*obj.L;
 %                 %F = F(obj.n+1:2*obj.n);
 %             end
-%             
+%
 %         end
-%         
+%
 %         function [az,azz,azzz,azzzz] = getdiv(obj,a,m)
 %             %gets the derivatives for afun to use
 %             if m ==1
@@ -858,7 +867,7 @@ end
 %             else
 %                 plot(obj.a, obj.z)
 %             end
-%             
+%
 %         end
 %         function [F, J] = tfunbad(obj,a,aold)
 %             F = zeros(1,obj.n);
@@ -873,12 +882,12 @@ end
 %                 an1 = a([end 1:end-1]);
 %                 a1 = a([2:end 1]);
 %                 a2 = a([3:end 1 2]);
-%          com       
+%          com
 %                 A = diag(1/obj.delt + obj.ep/obj.Bo*((obj.n)/obj.L)^4.*((an2-4*an1+8*a-4*a1+a2).*a.^2));
 %                 B = obj.ep/(3*obj.Bo)*((obj.n)/obj.L)^4*((diag(a(1:end-2).^3,-2)+diag(a(end-1:end).^3,obj.n-2))-4*(diag(a(1:end-1).^3,-1)+diag(a(end).^3,obj.n-1))-4*(diag(a(2:end).^3,1)+diag(a(1).^3,1-obj.n))+(diag(a(3:end).^3,2)+diag(a(1:2).^3,2-obj.n)));
 %                 J = A + B;
 %             end
 %         end
-%         
-%         
-%         
+%
+%
+%
