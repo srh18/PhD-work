@@ -554,14 +554,14 @@ classdef shape_solveh
         end
         
         function obj = odedyn(obj,init)
-            opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
+            opts = odeset('RelTol',1e-4,'AbsTol',1e-6);
             obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
             
             obj.t = obj.sol.x;
             obj.h = obj.sol.y';
         end
         function obj = kstest(obj,init)
-            opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
+            opts = odeset('RelTol',1e-4,'AbsTol',1e-6);
             obj.sol = ode15s(@obj.ksfun ,[0 obj.T],init,opts);
             
             obj.t = obj.sol.x;
@@ -577,7 +577,7 @@ classdef shape_solveh
         function ht = odefun(obj,t,h)
             h = h';
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
-            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             ht = ht';
             
         end
