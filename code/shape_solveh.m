@@ -441,7 +441,7 @@ classdef shape_solveh
                     end
                 end
             end
-            obj.peakspeed = diff(obj.peakpos)/obj.delt
+            obj.peakspeed = diff(obj.peakpos)/obj.delt;
         end
         
         
@@ -781,7 +781,24 @@ classdef shape_solveh
             l = length(h2);
             plot(del(1:l),h2)
         end
-                
+        function plot_h2varyamp(obj,vals,param)
+            if nargin ==3
+                obj.paramtoggle =param;
+            end
+            clf, hold on 
+            i = 1;
+            for val = vals
+                obj = obj.setp(val);
+                obj.h2varyamp;
+                text{i} = sprintf('$%s = %g$',obj.params{obj.paramtoggle},val);
+                i = i+1; 
+            end
+            xlabel('Amplitude')
+            ylabel('$||h||_2$')
+            title(sprintf('$||h||_2$ as increasing amplitude for different %s',obj.params{obj.paramtoggle}))
+            
+            legend(text)
+        end
         
         function obj = new_get_a(obj,optionon,ainit)
             %performs fsolve
