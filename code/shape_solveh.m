@@ -4,7 +4,7 @@ classdef shape_solveh
     %wavelength
     
     properties
-        n {mustBeInteger,mustBePositive}= 400  %number of grid points INT
+        n {mustBeInteger,mustBePositive}= 200  %number of grid points INT
         
         % Fluid properties Parameters
         
@@ -39,7 +39,7 @@ classdef shape_solveh
         h0 %steady state
         %Toggles
         paramtoggle  {mustBeMember(paramtoggle,[1,2,3,4,5,6,7])} = 1 % 1 for Bo, 2 for R, 3 for L, 4 for Re, 5 for ep, 6 for del, 7 for l
-        flow {mustBeMember(flow,[0,1])} = 1 % 0 if keeping volume constant - 1 if flow rate is constant
+        flow {mustBeMember(flow,[0,1])} = 0 % 0 if keeping volume constant - 1 if flow rate is constant
         fdo {mustBeMember(fdo,[2,4])}= 2 % Order of the finite difference scheme used (may add later)
         wall_shape {mustBeMember(wall_shape,[0,1,2,3,4])} = 0 % 0 for cosine, 1 step, 2 sawtooth, 3 for flat, 4 user input
         boundary {mustBeMember(boundary,[0,1])} = 0 % 0 for periodic boundary conditions, 1 for not
@@ -310,10 +310,19 @@ classdef shape_solveh
             an1 = a([end 1:end-1]);
             a1 = a([2:end 1]);
             a2 = a([3:end 1 2]);
-            az = obj.n/obj.L*(-1/2*an1+1/2*a1);
-            azz =(obj.n/obj.L)^2*(an1-2*a+ a1);
-            azzz= (obj.n/obj.L)^3*(-1/2*an2+an1-a1+1/2*a2);
-            azzzz =(obj.n/obj.L)^4 *(an2-4*an1+6*a-4*a1+a2);
+           % if obj.fdo ==2
+                az = obj.n/obj.L*(-1/2*an1+1/2*a1);
+                azz =(obj.n/obj.L)^2*(an1-2*a+ a1);
+                azzz= (obj.n/obj.L)^3*(-1/2*an2+an1-a1+1/2*a2);
+                azzzz =(obj.n/obj.L)^4 *(an2-4*an1+6*a-4*a1+a2);
+%             elseif obj.fdo == 4
+%                 an3 = a([end-2 end-1 end 1:end-3]);
+%                 a3 = a([4:end 1 2 3]);
+%                 az = (obj.n/obj.L)*(1/12*an2-2/3*an1+2/3*a1-1/12*a2);
+%                 azz = (obj.n/obj.L)^2*(-1/12*an2+4/3*an1-5/2*a+4/3*a1-1/12*a2);
+%                 azzz = (obj.n/obj.L)^3*(1/8*an3-an2+13/8*an1-13/8*a1+a2-1/8*a3);
+%                 azzzz = (obj.n/obj.L)^4*(-1/6*an3+2*an2-13/2*an1+28/3*a-13/2*a1+2*a2-1/6*a3);
+%             end
         end
         
         
@@ -580,11 +589,22 @@ classdef shape_solveh
                 obj = obj.get_h;
                 init = obj.h0 + 0.1*sin(obj.z);
             end
-            opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
-            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
+            opts = odeset('RelTol',1e-4,'AbsTol',1e-6);
+%             if obj.flow == 0 
+%                 M = diag([ones(obj.n,1) 0]);
+%                 init = [init 0];
+%                 
+%                 opts = odeset('Mass',M,'RelTol',1e-8,'AbsTol',1e-10);
+%             end
+            
+            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
             
             obj.t = obj.sol.x;
+            %if obj.flow == 0 
+              %  obj.sol.y = obj.sol.y(1:end-1,:);
+             %end
             obj.h = obj.sol.y';
+            
         end
         function obj = kstest(obj,init)
             opts = odeset('RelTol',1e-8,'AbsTol',1e-10);
@@ -601,10 +621,16 @@ classdef shape_solveh
             
         end
         function ht = odefun(obj,t,h)
+%             if obj.flow == 0 
+%                 l = length(h);
+%                 H = h;
+%                 h = h(1:end-1);
+%             end
             h = h';
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
             ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             ht = ht';
+            
             
         end
         function animate(obj,speed,wall,diff)
@@ -859,6 +885,16 @@ classdef shape_solveh
             [hz,hzz,hzzz,hzzzz] = obj.getdiv(obj.h0);
             F1 = obj.h0.^3/3 + obj.ep*(2/15*obj.Re*obj.h0.^6.*hz+obj.h0.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-obj.h0.^4/(12*obj.R)-2/(3*obj.R)*obj.h0.^3.*obj.eta);
             F2 =   hz.*obj.h0.^2 + obj.ep.*(-4*hz.*obj.h0.^3/(12.*obj.R)+2/15.*obj.Re.*(obj.h0.^6.*hzz+6.*obj.h0.^5.*hz.^2)+1/(3.*obj.Bo).*(obj.h0.^3.*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+3*hz.*obj.h0.^2.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz))-2*obj.etaz.*obj.h0.^3/(3*obj.R)-2*hz.*obj.h0.^2.*obj.eta/obj.R);
+        end
+        function ploth2(obj,diff)
+            if nargin == 1 
+                diff = 0;
+            end
+            if diff == 0 
+                plot(obj.t,obj.h2norm)
+            else
+                plot(obj.t,sum(obj.hdiff.^2/obj.n,2))
+            end
         end
     
     end
