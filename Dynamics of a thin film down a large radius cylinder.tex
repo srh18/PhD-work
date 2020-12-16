@@ -101,7 +101,7 @@ u_1 = -\int{\pdv{w_1}{z}+ \frac{u_0}{R}\dd{r}}
 \end{align}
 \begin{align}
 u_1 = -\Re (aa_z)_z\left(\frac{r^5}{120}- a\frac{r^4}{24}+a^3\frac{r^2}{6}\right)- \Re a {a_z}^2\left(a^2\frac{r^2}{2}-\frac{r^4}{24}\right)\\-\frac{1}{\Bo}\left(\frac{a_{zz}}{R^2}+a_{zzzz}\right)\left(a\frac{r^2}{2}- \frac{r^3}{6}\right)-\frac{1}{Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)a_z\frac{r^2}{2}\\
--\frac{1}{R}\left(-a_z\frac{r^3}{6}+aa_z \frac{r^2}{2}\right)-\frac{a_z}{6R}r^3
+-\frac{1}{R}\left(-a_z\frac{r^3}{6}+aa_z \frac{r^2}{2}\right)+\frac{a_z}{6R}r^3
 \end{align}
 Which results in the kinematic condition giving 
 \begin{align}
@@ -109,7 +109,7 @@ a_t + a_za^2+\epsilon\left(\frac{5}{24}\Re a^5a_z^2+\frac{a^2a_z}{2\Bo}\left(\fr
 \end{align}
 which gives
 \begin{align}
-a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{6R}+\frac{2}{15}\Re a^6a_z+ \frac{a^3}{3\Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)\right)
+a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{12R}+\frac{2}{15}\Re a^6a_z+ \frac{a^3}{3\Bo}\left(\frac{a_z}{R^2}+a_{zzz}\right)\right)
 \end{align}
 
 
@@ -133,7 +133,7 @@ So overall
 \end{align}
 The $\eta_z w$ cancel with the bonus terms in the continuity equation however the $\eta_z \frac{w_0}{R}$ remains
 \begin{align}
-a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{6R}+\frac{2}{15}\Re a^6a_z+ \frac{a^3}{3\Bo}\left(\frac{a_z+\eta_z}{R^2}+a_{zzz}+\eta_{zzz}\right)\right) + \epsilon\frac{\eta_z a^3}{3R}\label{walldyn}
+a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{12R}+\frac{2}{15}\Re a^6a_z+ \frac{a^3}{3\Bo}\left(\frac{a_z+\eta_z}{R^2}+a_{zzz}+\eta_{zzz}\right)\right) + \epsilon\frac{\eta_z a^3}{3R}\label{walldyn}
 \end{align}
 If we now say that the fluid thickness $a = 1+\epsilon\alpha$ and say the time derivative $\pdv{t} = \pdv{T} + \epsilon\pdv{\tau}$. Then \eqref{walldyn} becomes
 \begin{align}
@@ -151,7 +151,7 @@ m = \frac{a R}{\epsilon} + a\eta+ \frac{a^2}{2}
 If we let $h = \frac{\epsilon}{R}m$ and looking at only order 1 and $\epsilon$ terms then we find
 
 \begin{align}
-h_t + \pdv{z}\left(\frac{h^3}{3} +\epsilon\left(\frac{2}{15}\Re h^6 h_z + \frac{h^3}{3\Bo}\left(\frac{h_z+ \eta_z}{R^2} + h_{zzz}+ \eta_{zzz}\right)- \frac{h^4}{12R}- \frac{2}{3R}h^3\eta\right)\right)=0
+h_t + \pdv{z}\left(\frac{h^3}{3} +\epsilon\left(\frac{2}{15}\Re h^6 h_z + \frac{h^3}{3\Bo}\left(\frac{h_z+ \eta_z}{R^2} + h_{zzz}+ \eta_{zzz}\right)- \frac{h^4}{6R}- \frac{2}{3R}h^3\eta\right)\right)=0
 \end{align}
 
 The flow rate 
@@ -160,7 +160,7 @@ q = \int_{0}^{a}{\left(\frac{R}{\epsilon}+\eta+r\right)(w_0 + \epsilon w_1)\dd{r
 \end{align}
 which results in 
 \begin{align}
-\frac{Rq}{\epsilon} = \frac{h^3}{3}+\epsilon\left(\frac{2}{15}\Re h^6h_z + \frac{h^3}{3\Bo}\left(\frac{h_z+\eta_z}{R^2}\right)+h_{zzz} + \eta_{zzz}- \frac{2}{3}h^3\eta-\frac{1}{6}h^4\right)
+\frac{Rq}{\epsilon} = \frac{h^3}{3}+\epsilon\left(\frac{2}{15}\Re h^6h_z + \frac{h^3}{3\Bo}\left(\frac{h_z+\eta_z}{R^2}\right)+h_{zzz} + \eta_{zzz}- \frac{2}{3R}h^3\eta-\frac{1}{6R}h^4\right)
 \end{align}
 
 

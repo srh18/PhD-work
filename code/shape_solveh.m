@@ -60,7 +60,8 @@ classdef shape_solveh
         % Properties of the fluid
         
         sol %ode output
-        
+        reltol = 1e-6 %relative tolerance for ode15s
+        abstol = 1e-8 %absolute tolerance for ode15s
         hmax % maximum fluid thickness
         hmin % minimum fluid thickness
         diff % range of fluid thickness
@@ -109,7 +110,7 @@ classdef shape_solveh
             
             obj.delt = 1/obj.n;
             obj = obj.reset;
-            obj.t = 0:obj.delt:obj.T;
+            
             
         end
         %dependent function
@@ -285,24 +286,24 @@ classdef shape_solveh
             
             if obj.flow == 1
                 [hz,~,hzzz,~] = obj.getdiv(h);
-                F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(12*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - obj.q;
+                F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(6*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - obj.q;
             else
                 l = length(h);
                 [hz,~,hzzz,~] = obj.getdiv(h(1:l-1));
                 H = h(1:l-1);
                 h(l);
-                F = H.^3/3 + obj.ep*(2/15*obj.Re*H.^6.*hz+H.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-H.^4/(12*obj.R)-2/(3*obj.R)*H.^3.*obj.eta) - h(l);
+                F = H.^3/3 + obj.ep*(2/15*obj.Re*H.^6.*hz+H.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-H.^4/(6*obj.R)-2/(3*obj.R)*H.^3.*obj.eta) - h(l);
                 F(l) = sum(H)/obj.n - obj.mass0;
                 %F = hz.*h.^2 + obj.ep.*(-4*hz.*h.^3/(12.*obj.R)+2/15.*obj.Re.*(h.^6.*hzz+6.*h.^5.*hz.^2)+1/(3.*obj.Bo).*(h.^3.*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+3*hz.*h.^2.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz))-2*obj.etaz.*h.^3/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R);
             end
         end
-        function F = hfunflux(obj,h,q)
-            [hz,hzz,hzzz,hzzzz] = obj.getdiv(h);
-            
-            F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(12*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - q;
-        end
-        
-       
+%         function F = hfunflux(obj,h,q)
+%             [hz,hzz,hzzz,hzzzz] = obj.getdiv(h);
+%             
+%             F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(12*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - q;
+%         end
+%         
+%        
         
         function [az,azz,azzz,azzzz] = getdiv(obj,a)
             
@@ -542,7 +543,7 @@ classdef shape_solveh
             [~,~,~,hzzzz] = obj.getdiv(h);
             [hz,hzz,hzzz,~] = obj.getdiv(hOld);
             %[etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
-            F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
+            F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
             %F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
             
             %F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((obj.etazz+azz)./obj.R^2+obj.etazzzz)+aold.^2.*az./obj.Bo.*((obj.etaz+az)/obj.R^2+obj.etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+aold.^3.*azzzz/(3*obj.Bo))+obj.etaz.*obj.ep.*aold.^3/obj.R;
@@ -589,7 +590,7 @@ classdef shape_solveh
                 obj = obj.get_h;
                 init = obj.h0 + 0.1*sin(obj.z);
             end
-            opts = odeset('RelTol',1e-4,'AbsTol',1e-6);
+            opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol);
 %             if obj.flow == 0 
 %                 M = diag([ones(obj.n,1) 0]);
 %                 init = [init 0];
@@ -628,7 +629,7 @@ classdef shape_solveh
 %             end
             h = h';
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
-            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             ht = ht';
             
             
