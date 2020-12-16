@@ -19,7 +19,7 @@ for R = [1/4,1/2,2/3,3/4 ,1, 1.25]
     value.R = R;
     value = value.odedyn;
 
-    save(erase(sprintf('outputs/R%gBo1del%g',R,del),'.'),'value')
+    save(erase(sprintf('R%gBo1del%g',R,del),'.'),'value')
             
 end
 end
