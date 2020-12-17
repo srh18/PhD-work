@@ -1,11 +1,11 @@
 value = shape_solveh;
-value.n = 200;
+value.n = 400;
 
 value.ep = 0.1;
 
-value.T = 1000;
-value.reltol = 1e-8;
-value.abstol = 1e-10;
+value.T = 400;
+value.reltol = 1e-7;
+value.abstol = 1e-9;
 
 
 for del = [0.1 1 0]
@@ -19,7 +19,7 @@ for R = [1/4,1/2,2/3,3/4 ,1, 1.25]
     value.R = R;
     value = value.odedyn;
 
-    save(erase(sprintf('R%gBo1del%g',R,del),'.'),'value')
+    save(erase(sprintf('n400R%gBo1del%g',R,del),'.'),'value')
             
 end
 end
