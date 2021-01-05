@@ -588,7 +588,7 @@ classdef shape_solveh
         function obj = odedyn(obj,init)
             if nargin == 1
                 obj = obj.get_h;
-                init = obj.h0 + 0.1*sin(obj.nz);
+                init = obj.h0 + 0.1*sin(2*pi*obj.periods*obj.nz);
             end
             opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol);
 %             if obj.flow == 0 
