@@ -26,11 +26,11 @@ for L = 1:4
     figure(1)
     title(sprintf('Energy for $L = %g \\pi, R = %g$ with different wall amplitudes',L,R))
     ylabel('$\int|h^2|$')
-    saveas(figure(1),erase(sprintf('Energy L%gpi R%g sine amplitudes',L,R),'epsc'),'.')
+    saveas(figure(1),erase(sprintf('Energy L%gpi R%g sine amplitudes',L,R),'.'),'epsc')
     figure(2)
     title(sprintf('Energy difference from steady state for $L = %g \\pi, R = %g$ with different wall amplitudes',L,R))
     ylabel('$\int|(h-h_0)^2|$')
-    saveas(figure(2),erase(sprintf('Energy diff L%gpi R%g sine amplitudes',L,R),'epsc'),'.')
+    saveas(figure(2),erase(sprintf('Energy diff L%gpi R%g sine amplitudes',L,R),'.'),'epsc')
 
 
 end
@@ -56,11 +56,11 @@ for del = [0 0.1 1 ]
     figure(1)
     title(sprintf('Energy for $\\delta = %g , R = %g$ with different wall amplitudes',del,R))
     ylabel('$\int|h^2|$')
-    saveas(figure(1),erase(sprintf('Energy delta%g R%g sine wavelengths',del,R),'epsc'),'.')
+    saveas(figure(1),erase(sprintf('Energy delta%g R%g sine wavelengths',del,R),'.'),'epsc')
     figure(2)
     title(sprintf('Energy difference from steady state for $\\delta = %g, R = %g $ with different wall amplitudes',del,R))
     ylabel('$\int|(h-h_0)^2|$')
-    saveas(figure(2),erase(sprintf('Energy diff delta%g R%g sine amplitudes',del,R),'epsc'),'.')
+    saveas(figure(2),erase(sprintf('Energy diff delta%g R%g sine amplitudes',del,R),'.'),'epsc')
     
 end
 end
@@ -87,11 +87,11 @@ for L = 1:4
     figure(1)
     title(sprintf('Energy for $\\delta = %g , L = %g$ with different radii',del,L))
     ylabel('$\int|h^2|$')
-    saveas(figure(1),erase(sprintf('Energy delta%g L%g radii',del,L),'epsc'),'.')
+    saveas(figure(1),erase(sprintf('Energy delta%g L%g radii',del,L),'.'),'epsc')
     figure(2)
     title(sprintf('Energy difference from steady state for $\\delta = %g, L = %g $ with different radii',del,L))
     ylabel('$\int|(h-h_0)^2|$')
-    saveas(figure(2),erase(sprintf('Energy diff delta%g L%g radii',del,L),'epsc'),'.')
+    saveas(figure(2),erase(sprintf('Energy diff delta%g L%g radii',del,L),'.'),'epsc'))
     
     end
 end
