@@ -1,4 +1,8 @@
 function makegraphs()
+set(groot, 'defaultAxesTickLabelInterpreter','latex');
+set(groot ,'defaulttextInterpreter','latex')
+set(groot, 'defaultLegendInterpreter','latex');
+set(groot,'defaultColorbarTickLabelInterpreter','latex');
 R = 0.75;
 for L = 1:4
     for i = 1:4
