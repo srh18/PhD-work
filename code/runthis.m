@@ -18,7 +18,7 @@ for del = [0.1 0.5 1 2 0]
         value.wall_shape = 0;
         value.del = del;
     end
-for L = 1:4
+for L = [1.25 1.5 1.75]
     value.L = L*pi;
     value = value.odedyn;
 

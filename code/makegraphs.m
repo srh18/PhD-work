@@ -91,7 +91,7 @@ for L = 1:4
     figure(2)
     title(sprintf('Energy difference from steady state for $\\delta = %g, L = %g $ with different radii',del,L))
     ylabel('$\int|(h-h_0)^2|$')
-    saveas(figure(2),erase(sprintf('Energy diff delta%g L%g radii',del,L),'.'),'epsc'))
+    saveas(figure(2),erase(sprintf('Energy diff delta%g L%g radii',del,L),'.'),'epsc')
     
     end
 end

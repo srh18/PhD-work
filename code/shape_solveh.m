@@ -182,14 +182,14 @@ classdef shape_solveh
             end
         end
         
-        function obj = set.T(obj,value)
-            obj.T = value;
-            obj.t = 0:obj.delt:obj.T;
-        end
-        function obj = set.delt(obj,value)
-            obj.delt = value;
-            obj.t = 0:obj.delt:obj.T;
-        end
+%         function obj = set.T(obj,value)
+%             obj.T = value;
+%             obj.t = 0:obj.delt:obj.T;
+%         end
+%         function obj = set.delt(obj,value)
+%             obj.delt = value;
+%             obj.t = 0:obj.delt:obj.T;
+%         end
         
         function obj = reset(obj)
             %realign z, wall if n or L are changed
