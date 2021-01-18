@@ -69,6 +69,8 @@ classdef shape_solveh
         hminloc % location of the minimum
         maxmindiff % distance between the maximum and the minimum
         minmaxdiff % distance between the minimum and the maximum
+        notol = 0 %whether to use default tolerances
+        npks %number of peaks
         
         peakpos
         peakspeed
@@ -597,8 +599,11 @@ classdef shape_solveh
 %                 
 %                 opts = odeset('Mass',M,'RelTol',1e-8,'AbsTol',1e-10);
 %             end
-            
-            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
+            if obj.notol == 0
+                obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
+            else
+            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
+            end
             
             obj.t = obj.sol.x;
             %if obj.flow == 0 
@@ -826,7 +831,13 @@ classdef shape_solveh
             
             legend(text)
         end
-        
+        function obj = find_n_peaks(obj)
+            for i = 1:length(obj.t)
+                pks = findpeaks(obj.h(i,:));
+                obj.npks(i) = length(pks);
+            end
+        end
+                
         function obj = new_get_a(obj,optionon,ainit)
             %performs fsolve
             options = optimoptions('fsolve','Display', 'none');
