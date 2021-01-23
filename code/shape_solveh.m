@@ -600,16 +600,18 @@ classdef shape_solveh
 %                 opts = odeset('Mass',M,'RelTol',1e-8,'AbsTol',1e-10);
 %             end
             if obj.notol == 0
-                obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
+                %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
+                 [obj.t,obj.h]= ode15s(@obj.odefun ,[0 obj.T],init,opts);
             else
-            obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
+            %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
+            [obj.t, obj.h] = ode15s(@obj.odefun ,[0 obj.T],init);
             end
             
-            obj.t = obj.sol.x;
+            %obj.t = obj.sol.x;
             %if obj.flow == 0 
               %  obj.sol.y = obj.sol.y(1:end-1,:);
              %end
-            obj.h = obj.sol.y';
+            %obj.h = obj.sol.y';
             
         end
         function obj = kstest(obj,init)
