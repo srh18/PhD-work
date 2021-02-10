@@ -936,9 +936,9 @@ classdef shape_solveh
         function phaseplot(obj,m1,m2,npeak)
             if nargin ==3
                 hold on 
-                plot(obj.h(floor(3/4*end):end,obj.n/4*m1+1),obj.h(floor(3/4*end):end,obj.n/4*m2+1))
                 plot(obj.h(1:floor(3/4*end),obj.n/4*m1+1),obj.h(1:floor(3/4*end),obj.n/4*m2+1),'--','Color',[0.8 0.8 0.8])
-                
+                plot(obj.h(floor(3/4*end):end,obj.n/4*m1+1),obj.h(floor(3/4*end):end,obj.n/4*m2+1),'Color',[0 0.4470 0.7410])
+
                 hold off
                 xlabel('$z_{max}$')
                 ylabel('$z_{min}$')
