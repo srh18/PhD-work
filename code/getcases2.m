@@ -1,22 +1,29 @@
 function getcases2 
 value = shape_solveh;
-value.n = 200;
+value.n = 500;
 
 value.ep = 0.1;
 
 value.T = 600;
-value.reltol = 1e-6;
-value.abstol = 1e-10;
+value.reltol = 1e-5;
+value.abstol = 1e-8;
 
 value.R = 0.75;
-L = [1 1.25 1.35 3*sqrt(10)/7 1.36 1.5 1.8 2 2.2 2.5 3 3.5 4 4.5 5 5.5 6 7 8 9 10];
-for del = [0.1 0.5 1 1.5 2]
+for L = 1:0.25:2.75
+for del = [ 0 0.1 0.5 1 1.5 2]
     value.del = del;
+    if del ==0 
+        value.wall_shape = 3;
+    else
+    
+        value.wall_shape = 0;
+    end
 for l = L
     value.L = l*pi;
     value = value.odedyn;
 
-    save(erase(sprintf('Casesdel%gL%gpi',del,l),'.'),'value')
+    save(erase(sprintf('outputs/n500/Casesn500del%gL%gpi',del,l),'.'),'value')
 end
+
 end
 end

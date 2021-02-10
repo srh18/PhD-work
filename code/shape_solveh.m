@@ -17,7 +17,7 @@ classdef shape_solveh
         q = 1/3 % flow rate
         T {mustBeNonnegative} = 100 %time
         mass0 = 1 %initial mass
-        
+        peakloc {mustBeMember(peakloc,[0,1,2,3])} = 0 
         %Wall shape parameters
         
         del {mustBeNonnegative}= 1 % Disturbance amplitude
@@ -37,6 +37,16 @@ classdef shape_solveh
         h % mass conserving fluid thickness
         eta % wall shape
         h0 %steady state
+        
+        pks
+        loc
+        W
+        P
+        goodP
+        
+        class
+        notes
+        
         %Toggles
         paramtoggle  {mustBeMember(paramtoggle,[1,2,3,4,5,6,7])} = 1 % 1 for Bo, 2 for R, 3 for L, 4 for Re, 5 for ep, 6 for del, 7 for l
         flow {mustBeMember(flow,[0,1])} = 0 % 0 if keeping volume constant - 1 if flow rate is constant
@@ -910,7 +920,64 @@ classdef shape_solveh
                 plot(obj.t,sum(obj.hdiff.^2/obj.n,2))
             end
         end
-    
+        
+        function plotz0(obj,m)
+            % m = [0 1 2 3 10] plots the position at the maixima, 0 minima and 0
+            if nargin ==1
+                m = 10;
+            end
+            if m == 10
+                plot(obj.t,mean(obj.h,2))
+            else
+            plot(obj.t, obj.h(:,obj.n/4*m+1))
+            end
+        end
+        
+        function phaseplot(obj,m1,m2,npeak)
+            if nargin ==3
+                hold on 
+                plot(obj.h(floor(3/4*end):end,obj.n/4*m1+1),obj.h(floor(3/4*end):end,obj.n/4*m2+1))
+                plot(obj.h(1:floor(3/4*end),obj.n/4*m1+1),obj.h(1:floor(3/4*end),obj.n/4*m2+1),'--','Color',[0.8 0.8 0.8])
+                
+                hold off
+                xlabel('$z_{max}$')
+                ylabel('$z_{min}$')
+                title(sprintf('Trajectory over the maximum vs minimum for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+            else
+            lasttrajects = obj.loc(obj.goodP);
+            plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1),obj.h(lasttrajects(npeak):end,obj.n/4*m2+1))
+           % plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1)./obj.mass(lasttrajects(npeak):end),obj.h(lasttrajects(npeak):end,obj.n/4*m2+1)./obj.mass(lasttrajects(npeak):end))
+            end
+        end
+        function peakpoints(obj,m)
+            if nargin == 1 
+                m = 0;
+            end
+            [pks,loc,W, P ]  = findpeaks(obj.h(:,m*obj.n/4+1));
+            hold on 
+            %plot(obj.t(loc),pks);
+            %plot(obj.t(loc),W)
+            %plot(obj.t(loc),P)
+            meanP = mean(P);
+            goodP = P>meanP;
+            plot(obj.t(loc(goodP)),pks(goodP))
+            goodloc = loc(goodP);
+            
+            
+            
+            %plot(obj.t(goodloc(1:end-1)),diff(obj.t(loc(goodP))))
+            periods = diff(obj.t(loc(goodP)));
+            %lper = mean(periods(end-10:end));
+        end
+        function obj = get_peak_data(obj)
+
+            
+            [obj.pks,obj.loc,obj.W, obj.P ]  = findpeaks(obj.h(:,obj.peakloc*obj.n/4+1));
+            meanP = mean(obj.P);
+            
+            obj.goodP = obj.P>meanP;
+        end
+            
     end
 end
 %% Old Code
