@@ -988,6 +988,16 @@ classdef shape_solveh
                 ylabel('$h_{min}$')
                 title(sprintf('Normalised postion of the maximum vs minimum for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
         end
+        function followhminmax(obj)
+            hmax = max(obj.h,[],2);
+            hmin = min(obj.h,[],2);
+            hold on 
+            plot(hmax(1:floor(3/4*end)),hmin(1:floor(3/4*end)),'--','Color',[0.8 0.8 0.8])
+            plot(hmax(floor(3/4*end):end),hmin(floor(3/4*end):end),'Color',[0 0.4470 0.7410])
+            xlabel('$h_{max}$')
+                ylabel('$h_{min}$')
+                title(sprintf('Normalised postion of the maximum vs minimum for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+        end
     end
 end
 %% Old Code
