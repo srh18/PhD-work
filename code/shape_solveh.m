@@ -978,6 +978,16 @@ classdef shape_solveh
             obj.goodP = obj.P>meanP;
         end
             
+        function followminmax(obj)
+            [~,imax] = max(obj.h,[],2);
+            [~,imin] = min(obj.h,[],2);
+            hold on 
+            plot(obj.nz(imax(1:floor(3/4*end))),obj.nz(imin(1:floor(3/4*end))),'--','Color',[0.8 0.8 0.8])
+            plot(obj.nz(imax(floor(3/4*end):end)),obj.nz(imin(floor(3/4*end):end)),'Color',[0 0.4470 0.7410])
+            xlabel('$h_{max}$')
+                ylabel('$h_{min}$')
+                title(sprintf('Normalised postion of the maximum vs minimum for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+        end
     end
 end
 %% Old Code
