@@ -82,6 +82,7 @@ classdef shape_solveh
         notol = 0 %whether to use default tolerances
         npks %number of peaks
         
+        equation = 0 %which equation to use
         peakpos
         peakspeed
         %derivatives of eta to speed things up
@@ -646,7 +647,11 @@ classdef shape_solveh
 %             end
             h = h';
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
+            if obj.equation == 1
+                ht = -hz.*h.^2 -(h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz));
+            else
             ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+            end
             ht = ht';
             
             
@@ -998,6 +1003,21 @@ classdef shape_solveh
                 ylabel('$h_{min}$')
                 title(sprintf('Normalised postion of the maximum vs minimum for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
         end
+        function pkl = peaklength(obj)
+            mid = (max(obj.h(:,1)) + min(obj.h(:,1)))/2;
+            toppeaks = obj.pks > mid;
+
+            tpos = obj.t(obj.loc(toppeaks));
+            try 
+                pkl = mean(diff(tpos(floor(end/2):end)));
+            catch
+                obj = obj.get_peak_data;
+                saven500(obj)
+                pkl = obj.peaklength;
+            end
+                
+        end
+            
     end
 end
 %% Old Code
@@ -1124,3 +1144,5 @@ end
 %
 %
 %
+
+
