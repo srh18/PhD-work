@@ -47,6 +47,9 @@ classdef shape_solveh
         class
         notes
         
+        zpos
+        speed
+        
         %Toggles
         paramtoggle  {mustBeMember(paramtoggle,[1,2,3,4,5,6,7])} = 1 % 1 for Bo, 2 for R, 3 for L, 4 for Re, 5 for ep, 6 for del, 7 for l
         flow {mustBeMember(flow,[0,1])} = 0 % 0 if keeping volume constant - 1 if flow rate is constant
@@ -133,7 +136,7 @@ classdef shape_solveh
         function value = get.nz(obj)
             value = obj.z/obj.L;
         end
-        
+       
         function value = get.mass(obj)
             value = sum(obj.h,2)/obj.n;
         end
@@ -148,6 +151,13 @@ classdef shape_solveh
         function obj = set.L(obj,value)
             obj.L = value;
             obj = obj.reset;
+        end
+        
+        function obj = set.equation(obj,value) 
+            obj.equation = value;
+            if value == 2 
+                obj.wall_shape = 3;
+            end
         end
         
         function obj = set.n(obj,value)
@@ -556,7 +566,11 @@ classdef shape_solveh
             [~,~,~,hzzzz] = obj.getdiv(h);
             [hz,hzz,hzzz,~] = obj.getdiv(hOld);
             %[etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
-            F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
+            if obj.equation == 2
+                F = (h-hOld)./obj.delt+3*hOld.^2.*hz+(hOld.^3.*(hzz)*obj.R)+3*hOld.^2.*hz.*((hz)*obj.R+hzzz)+h.^3.*hzzzz;
+            else
+            F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));
+            end%maybe turn a to aold
             %F = (h-hOld)./obj.delt+hOld.^2.*hz+obj.ep.*(hOld.^3./(3*obj.Bo).*((obj.etazz+hzz)./obj.R^2+obj.etazzzz)+hOld.^2.*hz./obj.Bo.*((obj.etaz+hz)/obj.R^2+obj.etazzz+hzzz)-2*hOld.^3.*hz/(3*obj.R)+2/15*obj.Re*(hOld.^6.*hzz+hOld.^5.*hz.^2)+h.^3.*hzzzz/(3*obj.Bo)-2/3*obj.R*(hOld.^3.*obj.etaz+3*hOld.^2.*hz.*obj.eta));%maybe turn a to aold
             
             %F = (a-aold)./obj.delt+aold.^2.*az+obj.ep.*(aold.^3./(3*obj.Bo).*((obj.etazz+azz)./obj.R^2+obj.etazzzz)+aold.^2.*az./obj.Bo.*((obj.etaz+az)/obj.R^2+obj.etazzz+azzz)+2*aold.^3.*az/(3*obj.R)+2/15*obj.Re*(aold.^6.*azz+aold.^5.*az.^2)+aold.^3.*azzzz/(3*obj.Bo))+obj.etaz.*obj.ep.*aold.^3/obj.R;
@@ -578,7 +592,7 @@ classdef shape_solveh
             end
             t = 0: obj.delt:obj.T;
             
-            options = optimoptions('fsolve','Display', 'none','SpecifyObjectiveGradient',true);
+            options = optimoptions('fsolve','Display', 'none','SpecifyObjectiveGradient',false);
             obj.h = zeros(length(t),obj.n*obj.periods);
             
             [obj.h(1,:),obj.Fval,obj.eflag,obj.out,obj.jac] = fsolve(@(a)obj.tfun(a,init),init,options);
@@ -649,10 +663,20 @@ classdef shape_solveh
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
             if obj.equation == 1
                 ht = -hz.*h.^2 -(h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz));
+            elseif obj.equation == 2
+                    ht = -3*hz.*h.^2 -(h.^3.*((hzz)*obj.R+hzzzz)+3*hz.*h.^2.*(hz*obj.R+hzzz));
+            elseif obj.equation ==4
+                ht = -h.*hz +obj.R*hzz;
+            elseif obj.equation == 5
+                ht = -hzz-obj.R*hzzzz-h.*hz;
+            elseif obj.equation == 6
+                ht = -3*h.^2.*hz.^2 - h.^3.*hzz - hz.*hzzz-h.*hzzzz;
             else
+               
+                    
             ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             end
-            ht = ht';
+          ht = ht';
             
             
         end
@@ -678,15 +702,17 @@ classdef shape_solveh
             %
             xmax = max(max(data));
             xmin = min(min(data));
+            obj = obj.follow_peak;
             for i = 1:speed:l
                 clf, hold on
-                flip_y
+                
                 if (obj.wall_shape ~= 3 && wall ~=0)
                     plot(obj.eta,obj.z)
                 end
                 if m==0
                     
                     plot(data(i,:)+wall*obj.eta,obj.z)
+                    plot(1,mod(obj.zpos(i),obj.L),'>')
                 else
                     for j = 1:m
                         plot(data{j}(i,:),obj.z)
@@ -694,10 +720,14 @@ classdef shape_solveh
                 end
                 plot_n_periods
                 plot_minx,plot_maxx
+                flip_y
                 %xlim([xmin, xmax])
                 
                 title(sprintf('$t =%g$',obj.t(i)))
+               
+             
                 pause(0.01)
+                
                 
             end
         end
@@ -817,7 +847,7 @@ classdef shape_solveh
         end
         
         function h2varyamp(obj)
-            del = 0.05:0.05:10;
+            del = 0.05:0.05:2;
             for i = 1:length(del)
                 obj.del = del(i);
                 obj = obj.get_h;
@@ -834,7 +864,7 @@ classdef shape_solveh
             if nargin ==3
                 obj.paramtoggle =param;
             end
-            clf, hold on 
+             hold on 
             i = 1;
             for val = vals
                 obj = obj.setp(val);
@@ -931,11 +961,15 @@ classdef shape_solveh
             if nargin ==1
                 m = 10;
             end
+         
             if m == 10
                 plot(obj.t,mean(obj.h,2))
             else
-            plot(obj.t, obj.h(:,obj.n/4*m+1))
+            plot(obj.t(floor(3/4*end):end), obj.h(floor(3/4*end):end,obj.n/4*m+1))
             end
+            xlabel('$t$')
+            ylabel('$h$')
+            title('Fluid thickness over the maximum')
         end
         
         function phaseplot(obj,m1,m2,npeak)
@@ -1015,6 +1049,78 @@ classdef shape_solveh
                 saven500(obj)
                 pkl = obj.peaklength;
             end
+                
+        end
+        function plot_trajectories(obj,t0, tint,tend,m)
+            if nargin < 3
+                tint = 1;
+                tend = t0+10;
+                m = 0.2;
+            end
+            tvec = [];
+            hold on,flip_y
+            for t = t0:tint:tend
+                [tval,i] = min(abs(obj.t-t));
+                
+                plot(obj.h(i,:)+m*(t-t0)/tint,obj.z)
+            
+            end
+           
+        end
+        
+        function obj = follow_peak(obj,t,zreset,region)
+            if nargin == 1 
+                t = 0;
+                zreset = 0;
+                region = 10
+            end
+            [ba,i2] = min(abs(obj.t -t));
+            l = length(obj.t(1:end));
+            
+            m = 0 ;
+            [~, k ] = max(obj.h(i2,:));
+            
+            z0 = obj.z(k)
+            obj.zpos(1) = 0;
+            for i = 1:l-i2
+                if k+region<=500 && k-region>0
+                    [~, j ] = max(obj.h(i+i2,k-region:k+region));
+                    k = k-region + j - 1;
+                elseif k+region>500
+                    [a, j ] = max(obj.h(i+i2,k-region:500));
+                    
+                        [b,j2] = max(obj.h(i+i2,1:k+region-500));
+                        if a>b
+                            k = k-region+j-1;
+                        else
+                            k = j2;
+                            m= m+1;
+                        end
+                    
+                    
+                elseif k-20<1
+                    [a, j ] = max(obj.h(i+i2,k-region+500:500));
+                    [b,j2] = max(obj.h(i+i2,1:k+region));
+                    if a > b
+                        m= m-1;
+                        k = k-region+500+j-1;
+                    else
+                        k = j2;
+                    end
+                    
+                end
+                
+                    
+                obj.zpos(i+1) = obj.z(k) + m*obj.L-zreset*z0;
+                if k ==1
+                    plot(obj.t(i+i2),obj.zpos(i+1),'kx')
+                elseif k== 251
+                     plot(obj.t(i+i2),obj.zpos(i+1),'ko')
+                end
+                obj.speed(i) = (obj.zpos(i+1) - obj.zpos(i))/(obj.t(i2+i)-obj.t(i2+i-1));
+            end
+            
+            plot(obj.t(i2:end),obj.zpos)          
                 
         end
             
