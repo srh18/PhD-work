@@ -38,6 +38,7 @@ classdef shape_solveh
         eta % wall shape
         h0 %steady state
         
+        
         pks
         loc
         W
@@ -130,8 +131,12 @@ classdef shape_solveh
             
         end
         %dependent function
+        
+        function value = get.a(obj) 
+            value = (sqrt(2*obj.h*obj.R/obj.ep+  (obj.eta+obj.R/obj.ep).^2)-(obj.R/obj.ep+ obj.eta));
+        end
         function value = get.S(obj)
-            value = obj.h+ obj.eta;
+            value = obj.a+ obj.eta;
         end
         function value = get.nz(obj)
             value = obj.z/obj.L;
@@ -395,7 +400,8 @@ classdef shape_solveh
                 if obj.eflag < 1
                     warning('No solution found for %s = %g\n',obj.params{obj.paramtoggle},val)
                 else
-                    plot(obj.h0+etatoggle*obj.eta,obj.nz,'DisplayName',sprintf('$%s = %g$',obj.params{obj.paramtoggle},val))
+                    obj.h = obj.h0;
+                    plot(obj.a+etatoggle*obj.eta,obj.nz,'DisplayName',sprintf('$%s = %g$',obj.params{obj.paramtoggle},val))
                 end
             end
             if etatoggle ==1
@@ -718,10 +724,10 @@ classdef shape_solveh
                         plot(data{j}(i,:),obj.z)
                     end
                 end
-                plot_n_periods
+                
                 plot_minx,plot_maxx
                 flip_y
-                %xlim([xmin, xmax])
+                xlim([0 2])
                 
                 title(sprintf('$t =%g$',obj.t(i)))
                
@@ -1058,13 +1064,16 @@ classdef shape_solveh
                 m = 0.2;
             end
             tvec = [];
-            hold on,flip_y
+            hold on,
             for t = t0:tint:tend
                 [tval,i] = min(abs(obj.t-t));
                 
-                plot(obj.h(i,:)+m*(t-t0)/tint,obj.z)
+                plot(obj.z,obj.h(i,:)+m*(t-t0)/tint)
             
             end
+            ylabel('$t$')
+xlabel('$z$')
+title('fluid thickness as time progresses') 
            
         end
         
@@ -1080,7 +1089,7 @@ classdef shape_solveh
             m = 0 ;
             [~, k ] = max(obj.h(i2,:));
             
-            z0 = obj.z(k)
+            z0 = obj.z(k);
             obj.zpos(1) = 0;
             for i = 1:l-i2
                 if k+region<=500 && k-region>0
@@ -1112,11 +1121,11 @@ classdef shape_solveh
                 
                     
                 obj.zpos(i+1) = obj.z(k) + m*obj.L-zreset*z0;
-                if k ==1
-                    plot(obj.t(i+i2),obj.zpos(i+1),'kx')
-                elseif k== 251
-                     plot(obj.t(i+i2),obj.zpos(i+1),'ko')
-                end
+%                 if k ==1
+%                     plot(obj.t(i+i2),obj.zpos(i+1),'kx')
+%                 elseif k== 251
+%                      plot(obj.t(i+i2),obj.zpos(i+1),'ko')
+%                 end
                 obj.speed(i) = (obj.zpos(i+1) - obj.zpos(i))/(obj.t(i2+i)-obj.t(i2+i-1));
             end
             
