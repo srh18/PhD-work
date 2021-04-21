@@ -119,10 +119,10 @@ classdef shape_solve
             value = sum(obj.h.^2,2)/obj.n*obj.L;
         end
         function value = get.a2norm(obj)
-            value = sum(obj.a.^2,2)/obj.n*obj.L;
+            value = sum(obj.a.^2,2)/obj.n;
         end
         function value = get.amass(obj)
-            value = sum(obj.a,2)/obj.n*obj.L;
+            value = sum(obj.a,2)/obj.n;
         end
         %dont work
 %         function value = get.Q(obj) 
@@ -259,16 +259,19 @@ classdef shape_solve
             %analytic solution to first order of a disturbance
             %del*cos(2*pi/L) (where del<<1) used as a initial guess for
             %fsolve
-            A = -(2*pi/obj.L)^3+(1-9*obj.Bo*obj.Re/40)*2*pi/obj.L;
-            B = 4*obj.Bo + 3*obj.Bo/obj.ep;
-            g1 = - 3*obj.Bo;
-            g2 = 2*pi/obj.L*(1 - (2*pi/obj.L)^2) ;
             
-            a = 1/(A^2+B^2)*(A*g1+B*g2);
-            b = 1/(A^2+B^2)*(B*g1 - A* g2);
+            Rep = obj.R/obj.ep;
+            k = 2*pi/obj.L;
             
+            a0 = 1;
+            A = -(a0^2*k  +obj.ep*(a0^3*k/(3*obj.R)));
+            B = obj.ep*(-2/15*obj.Re*a0^6*k^2+a0^3/(3*obj.Bo)*(-k^2/obj.R^2+k^4));
+            C = -obj.ep*(a0^3/(3*obj.R)*k);
+            D = (obj.ep*a0^3/(3*obj.Bo)*(-k^2/obj.R^2+k^4));
+            a = -(A*C+B*D)/(A^2+B^2);
+            b = (D*A-B*C)/(A^2+B^2);
             
-            ainit = 1+ a*obj.del*sin(2*pi/obj.L*obj.z)+b*obj.del*cos(2*pi/obj.L*obj.z);
+            ainit = a0+ b*obj.del*sin(2*pi/obj.L*obj.z)+a*obj.del*cos(2*pi/obj.L*obj.z);
             
         end
         
@@ -280,7 +283,7 @@ classdef shape_solve
                 function F = afun(obj,a)
             [az,azz,azzz,azzzz] = obj.getdiv(a);
             [etaz,etazz,etazzz,etazzzz] = obj.getdiv(obj.eta);
-            F = az.*a.^2 + obj.ep.*(4*az.*a.^3/(6.*obj.R)+2/15.*obj.Re.*(a.^6.*azz+6.*a.^5.*az.^2)+1/(3.*obj.Bo).*(a.^3.*((azz+etazz)/obj.R^2+azzzz+etazzzz)+3*az.*a.^2.*((az+etaz)/obj.R^2+azzz+etazzz))+etaz.*a.^3/(3*obj.R));
+            F = az.*a.^2 + obj.ep.*(4*az.*a.^3/(12.*obj.R)+2/15.*obj.Re.*(a.^6.*azz+6.*a.^5.*az.^2)+1/(3.*obj.Bo).*(a.^3.*((azz+etazz)/obj.R^2+azzzz+etazzzz)+3*az.*a.^2.*((az+etaz)/obj.R^2+azzz+etazzz))+etaz.*a.^3/(3*obj.R));
             
         end
             function [az,azz,azzz,azzzz] = getdiv(obj,a)

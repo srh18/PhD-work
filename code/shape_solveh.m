@@ -70,7 +70,7 @@ classdef shape_solveh
         out
         jac
         %string of parameters
-        params = {'Bo','R','L','Re','\\epsilon','\\delta'}
+        params = {'Bo','R','L','Re','\epsilon','\delta'}
         % Properties of the fluid
         
         sol %ode output
@@ -144,6 +144,9 @@ classdef shape_solveh
        
         function value = get.mass(obj)
             value = sum(obj.h,2)/obj.n;
+        end
+        function value = get.amass(obj)
+            value = sum(obj.a,2)/obj.n;
         end
         function value = get.h2norm(obj)
             value = sum(obj.h.^2,2)/obj.n;
@@ -228,6 +231,10 @@ classdef shape_solveh
             
         end
         
+        function obj = makeascale(obj)
+            obj.mass0 = 1+obj.ep/(obj.R*2);
+        end
+        
         function obj = setp(obj,value)
             if obj.paramtoggle == 1
                 obj.Bo = value;
@@ -292,17 +299,39 @@ classdef shape_solveh
             %analytic solution to first order of a disturbance
             %del*cos(2*pi/L) (where del<<1) used as a initial guess for
             %fsolve
-            A = -(2*pi/obj.L)^3+(1-9*obj.Bo*obj.Re/40)*2*pi/obj.L;
-            B = 4*obj.Bo + 3*obj.Bo/obj.ep;
-            g1 = - 3*obj.Bo;
-            g2 = 2*pi/obj.L*(1 - (2*pi/obj.L)^2) ;
+            a0 = 1;
+            k = 2*pi/obj.L;
+            A = -(k  -obj.ep*(4*k/(6*obj.R)));
+            B = obj.ep*(-2/15*obj.Re*k^2+1/(3*obj.Bo)*(-k^2/obj.R^2+k^4));
+            C = obj.ep*(2/(3*obj.R));
+            D = -(obj.ep/(3*obj.Bo)*(-k^2/obj.R^2+k^4));
+            a = -(A*C+B*D)/(A^2+B^2);
+            b = -(B*C-D*A)/(A^2+B^2);
             
-            a = 1/(A^2+B^2)*(A*g1+B*g2);
-            b = 1/(A^2+B^2)*(B*g1 - A* g2);
+            hinit = 1+ a*obj.del*cos(2*pi/obj.L*obj.z)+b*obj.del*sin(2*pi/obj.L*obj.z);
+            
+        end
+        function ainit = linear_shapea(obj)
+            % warning uses old equation may be incorrect.
+            %analytic solution to first order of a disturbance
+            %del*cos(2*pi/L) (where del<<1) used as a initial guess for
+            %fsolve
             
             
-            hinit = 1+ a*obj.del*sin(2*pi/obj.L*obj.z)+b*obj.del*cos(2*pi/obj.L*obj.z);
+            Rep = obj.R/obj.ep;
+            k = 2*pi/obj.L;
             
+            a0 = -Rep +sqrt(Rep^2+2*Rep*obj.mass0);
+            
+            
+            A = -(a0^2*k  +obj.ep*(a0^3*k/(3*obj.R)));
+            B = obj.ep*(-2/15*obj.Re*a0^6*k^2+a0^3/(3*obj.Bo)*(-k^2/obj.R^2+k^4));
+            C = -obj.ep*(a0^3/(3*obj.R)*k);
+            D = (obj.ep*a0^3/(3*obj.Bo)*(-k^2/obj.R^2+k^4));
+            a = -(A*C+B*D)/(A^2+B^2);
+            b = (D*A-B*C)/(A^2+B^2);
+            
+            ainit = a0+ b*obj.del*sin(2*pi/obj.L*obj.z)+a*obj.del*cos(2*pi/obj.L*obj.z);
         end
         
         function a = small_ep_shape(obj)
@@ -320,7 +349,12 @@ classdef shape_solveh
                 [hz,~,hzzz,~] = obj.getdiv(h(1:l-1));
                 H = h(1:l-1);
                 h(l);
-                F = H.^3/3 + obj.ep*(2/15*obj.Re*H.^6.*hz+H.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-H.^4/(6*obj.R)-2/(3*obj.R)*H.^3.*obj.eta) - h(l);
+                if obj.equation == 0
+                
+                    F = H.^3/3 + obj.ep*(2/15*obj.Re*H.^6.*hz+H.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-H.^4/(6*obj.R)-2/(3*obj.R)*H.^3.*obj.eta) - h(l);
+                elseif obj.equation ==1
+                    F = H.^3/3+H.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz) - h(l);
+                end
                 F(l) = sum(H)/obj.n - obj.mass0;
                 %F = hz.*h.^2 + obj.ep.*(-4*hz.*h.^3/(12.*obj.R)+2/15.*obj.Re.*(h.^6.*hzz+6.*h.^5.*hz.^2)+1/(3.*obj.Bo).*(h.^3.*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+3*hz.*h.^2.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz))-2*obj.etaz.*h.^3/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R);
             end
@@ -385,7 +419,7 @@ classdef shape_solveh
         function plot_param(obj, values, param,etatoggle)
             %Vary the amplitude of the disturbance
             obj.paramtoggle = param;
-            clf, hold on
+             hold on
             if nargin <4
                 etatoggle = 0;
                 if nargin ==1
@@ -409,6 +443,8 @@ classdef shape_solveh
             end
             legend
             flip_y
+            xlabel('$a$')
+            ylabel('$\frac{z}{L}$')
         end
         
         
@@ -677,10 +713,12 @@ classdef shape_solveh
                 ht = -hzz-obj.R*hzzzz-h.*hz;
             elseif obj.equation == 6
                 ht = -3*h.^2.*hz.^2 - h.^3.*hzz - hz.*hzzz-h.*hzzzz;
+            elseif obj.equation == 10
+                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             else
                
                     
-            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+h.^3.*hz/(3*obj.R)+obj.etaz.*h.^3/(3*obj.R));
             end
           ht = ht';
             
@@ -991,6 +1029,22 @@ classdef shape_solveh
             else
             lasttrajects = obj.loc(obj.goodP);
             plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1),obj.h(lasttrajects(npeak):end,obj.n/4*m2+1))
+           % plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1)./obj.mass(lasttrajects(npeak):end),obj.h(lasttrajects(npeak):end,obj.n/4*m2+1)./obj.mass(lasttrajects(npeak):end))
+            end
+        end
+                function phaseplota(obj,m1,m2,npeak)
+            if nargin ==3
+                hold on 
+                plot(obj.a(1:floor(3/4*end),obj.n/4*m1+1),obj.a(1:floor(3/4*end),obj.n/4*m2+1),'--','Color',[0.8 0.8 0.8])
+                plot(obj.a(floor(3/4*end):end,obj.n/4*m1+1),obj.a(floor(3/4*end):end,obj.n/4*m2+1),'Color',[0 0.4470 0.7410])
+
+                hold off
+                xlabel('$z_{max}$')
+                ylabel('$z_{min}$')
+                title(sprintf('Trajectory over the maximum vs minimum for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+            else
+            lasttrajects = obj.loc(obj.goodP);
+            plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1),obj.a(lasttrajects(npeak):end,obj.n/4*m2+1))
            % plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1)./obj.mass(lasttrajects(npeak):end),obj.h(lasttrajects(npeak):end,obj.n/4*m2+1)./obj.mass(lasttrajects(npeak):end))
             end
         end
