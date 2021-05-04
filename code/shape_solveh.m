@@ -133,7 +133,11 @@ classdef shape_solveh
         %dependent function
         
         function value = get.a(obj) 
+            if obj.equation == 0 
             value = (sqrt(2*obj.h*obj.R/obj.ep+  (obj.eta+obj.R/obj.ep).^2)-(obj.R/obj.ep+ obj.eta));
+            else
+               value = obj.h;
+            end
         end
         function value = get.S(obj)
             value = obj.a+ obj.eta;
@@ -143,7 +147,11 @@ classdef shape_solveh
         end
        
         function value = get.mass(obj)
+            if obj.equation == 10
+                value = sum(obj.h+ obj.ep/obj.R*(obj.h.*obj.eta+obj.h.^2/2),2)/obj.n;
+            else
             value = sum(obj.h,2)/obj.n;
+            end
         end
         function value = get.amass(obj)
             value = sum(obj.a,2)/obj.n;
@@ -704,8 +712,10 @@ classdef shape_solveh
             h = h';
             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
             if obj.equation == 1
+                %small Bond 
                 ht = -hz.*h.^2 -(h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz));
             elseif obj.equation == 2
+                %
                     ht = -3*hz.*h.^2 -(h.^3.*((hzz)*obj.R+hzzzz)+3*hz.*h.^2.*(hz*obj.R+hzzz));
             elseif obj.equation ==4
                 ht = -h.*hz +obj.R*hzz;
@@ -714,11 +724,12 @@ classdef shape_solveh
             elseif obj.equation == 6
                 ht = -3*h.^2.*hz.^2 - h.^3.*hzz - hz.*hzzz-h.*hzzzz;
             elseif obj.equation == 10
-                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+                %a equation
+                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+h.^3.*hz/(3*obj.R) + h.^3.*obj.etaz/(3*obj.R));
             else
                
-                    
-            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+h.^3.*hz/(3*obj.R)+obj.etaz.*h.^3/(3*obj.R));
+               %main equation     
+            ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
             end
           ht = ht';
             
@@ -765,7 +776,7 @@ classdef shape_solveh
                 
                 plot_minx,plot_maxx
                 flip_y
-                xlim([0 2])
+                
                 
                 title(sprintf('$t =%g$',obj.t(i)))
                
@@ -1122,7 +1133,7 @@ classdef shape_solveh
             for t = t0:tint:tend
                 [tval,i] = min(abs(obj.t-t));
                 
-                plot(obj.z,obj.h(i,:)+m*(t-t0)/tint)
+                plot(obj.z,obj.a(i,:)+m*(t-t0)/tint)
             
             end
             ylabel('$t$')
