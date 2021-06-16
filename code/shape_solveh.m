@@ -1294,30 +1294,27 @@ classdef shape_solveh
         end
         
         function surfdata(obj)
-            obj = obj.follow_peak(400,0,10)
-            c = mean(obj.speed);
-            phi = mod((obj.z-c*obj.t),obj.L);
+            obj = obj.follow_peak;
+            c = polyfit(obj.t(floor(0.2*end):end),obj.zpos(floor(0.2*end):end),1);
+            phi = mod((obj.z-c(1)*obj.t),obj.L);
              [phi,I] = sort(phi,2);
             for j = 1:length(obj.t)
                 a(j,:) = obj.a(j,I(j,:));
             end
-            figure
+            H = figure;
             pcolor(phi,obj.t,a)
-            
-             c = mean(obj.speed);
-            phi = (obj.z-c*obj.t);
+          
              
           
-%             figure
-%             pcolor(phi,obj.t,obj.a)
-%             
+
             shading interp
             
             colorbar
             xlabel('$z-ct$')
             ylabel('$t$')
-            title(sprintf('Fluid Thickness for wall amplitude = %g',value.del))
-            name = sprintf('colorplot/ColourL%gdel%g',value.L/pi,value.del);
+            del = erase(string(obj.del),'.');
+            title(sprintf('Fluid Thickness for wall amplitude = %g',obj.del))
+            name = sprintf('../plots/colour/ColourL%gdel%s',obj.L/pi,del);
             savefig(name)
             saveas(gcf,name,'epsc')
             
