@@ -567,8 +567,8 @@ classdef shape_solveh
             %                 obj.minmaxdiff = 0;
             %                 obj.maxmindiff = 0;
             %             else
-            [obj.hmax,i] = max(obj.h,[],2);
-            [obj.hmin,j] = min(obj.h,[],2);
+            [obj.hmax,i] = max(obj.a,[],2);
+            [obj.hmin,j] = min(obj.a,[],2);
             obj.diff = obj.hmax-obj.hmin;
             obj.hmaxloc = obj.z(i);
             obj.hminloc = obj.z(j);
@@ -584,9 +584,9 @@ classdef shape_solveh
             obj.hminloc = obj.unperiod(obj.hminloc);
         end
         function val = unperiod(obj,val)
-            [~,loc] = findpeaks(val);
+            [~,loc] = findpeaks(-val);
             for i =loc
-                val(i+1:end) = val(i+1:end) +obj.L;
+                val(i:end) = val(i:end) +obj.L;
             end
         end
         
@@ -1293,16 +1293,18 @@ classdef shape_solveh
             
         end
         
-        function surfdata(obj)
+        function surfdata(obj,c)
+            if nargin ==1
             obj = obj.follow_peak;
             c = polyfit(obj.t(floor(0.2*end):end),obj.zpos(floor(0.2*end):end),1);
+            end
             phi = mod((obj.z-c(1)*obj.t),obj.L);
              [phi,I] = sort(phi,2);
-            for j = 1:length(obj.t)
-                a(j,:) = obj.a(j,I(j,:));
+            for j = 1:length(obj.t)/100
+                a(100*j,:) = obj.a(100*j,I(j,:));
             end
             H = figure;
-            pcolor(phi,obj.t,a)
+            pcolor(phi,obj.t(100:100:end),a)
           
              
           
