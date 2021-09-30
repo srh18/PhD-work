@@ -40,6 +40,9 @@ classdef shape_solveh
         h0 %steady state
         
         
+        c %peak speed
+        ac %wall moving at peak speed
+        
         pks
         loc
         W
@@ -95,7 +98,16 @@ classdef shape_solveh
         etazz
         etazzz
         etazzzz
+        
+        %save time with the Jacobian if these are already calculated
+        hz
+        hzz
+        hzzz
+        hzzzz
+        
         integration {mustBeMember(integration,[0,1,2])} = 0 % 0 is crank Nicholson 1 implicit 2 explicit
+        
+        usejac = 0 %whether to use a jacobian
     end
     properties(Dependent = true,Hidden)
         S %position from origin
@@ -111,6 +123,7 @@ classdef shape_solveh
         hdiff %differenence from the steady state
         at %time derivative of amass
         a
+        
     end
     
     
@@ -317,6 +330,18 @@ classdef shape_solveh
                 warning('Wall Shape may no longer match coordinates')
             end
             
+        end
+        
+        function obj = get_ac(obj,c)
+            if nargin == 2
+                obj.c = c;
+            end
+            
+            phi = mod((obj.z-obj.c*obj.t),obj.L);
+            [~,I] = sort(phi,2);
+            I = I + obj.n*(0:length(I)-1)';
+            ac = obj.a';
+            obj.ac = ac(I);
         end
         
         
@@ -762,7 +787,14 @@ classdef shape_solveh
                 obj = obj.get_h;
                 init = obj.h0 + 0.1*sin(2*pi*obj.periods*obj.nz);
             end
-            opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol);
+            if obj.usejac == 1
+                %opts = odeset('Stats','on','Jacobian',@obj.get_Jac);
+                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Jacobian',@obj.get_Jac);
+            else
+                
+                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on');
+            end
+            %opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Vectorized','on');
             %             if obj.flow == 0
             %                 M = diag([ones(obj.n,1) 0]);
             %                 init = [init 0];
@@ -771,10 +803,12 @@ classdef shape_solveh
             %             end
             if obj.notol == 0
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
-                [obj.t,obj.h]= ode15s(@obj.odefun ,[0 obj.T],init,opts);
+                %[obj.t,obj.h]= ode15s(@obj.odefun ,0:0.05:obj.T,init,opts);
+                [obj.t,obj.h]= ode15s(@obj.odefun ,[0,obj.T],init,opts);
             else
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
-                [obj.t, obj.h] = ode15s(@obj.odefun ,[0 obj.T],init);
+                %[obj.t, obj.h] = ode15s(@obj.odefun ,0:0.05:obj.T,init);
+                [obj.t, obj.h] = ode15s(@obj.odefun ,[0,obj.T],init);
             end
             
             %obj.t = obj.sol.x;
@@ -805,34 +839,58 @@ classdef shape_solveh
             %                 h = h(1:end-1);
             %             end
             h = h';
-            [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
+            
+            [obj.hz,obj.hzz,obj.hzzz,obj.hzzzz ] = obj.getdiv(h);
             if obj.equation == 1
                 %small Bond
-                ht = -hz.*h.^2 -(h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz));
+                ht = -obj.hz.*h.^2 -(h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz));
             elseif obj.equation == 2
                 %
-                ht = -3*hz.*h.^2 -(h.^3.*((hzz)*obj.R+hzzzz)+3*hz.*h.^2.*(hz*obj.R+hzzz));
+                ht = -3*obj.hz.*h.^2 -(h.^3.*((obj.hzz)*obj.R+obj.hzzzz)+3*obj.hz.*h.^2.*(obj.hz*obj.R+obj.hzzz));
             elseif obj.equation ==4
-                ht = -h.*hz +obj.R*hzz;
+                ht = -h.*obj.hz +obj.R*obj.hzz;
             elseif obj.equation == 5
-                ht = -hzz-obj.R*hzzzz-h.*hz;
+                ht = -obj.hzz-obj.R*obj.hzzzz-h.*obj.hz;
             elseif obj.equation == 6
-                ht = -3*h.^2.*hz.^2 - h.^3.*hzz - hz.*hzzz-h.*hzzzz;
+                ht = -3*h.^2.*obj.hz.^2 - h.^3.*obj.hzz - obj.hz.*obj.hzzz-h.*obj.hzzzz;
             elseif obj.equation == 10
                 %a equation
-                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+h.^3.*hz/(3*obj.R) + h.^3.*obj.etaz/(3*obj.R));
+                ht = -obj.hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*obj.hzz+6*h.^5.*obj.hz.^2)+h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz)+h.^3.*obj.hz/(3*obj.R) + h.^3.*obj.etaz/(3*obj.R));
             else
                 
                 %main equation
-                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+                ht = -obj.hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*obj.hzz+6*h.^5.*obj.hz.^2)+h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz)-2*h.^3.*obj.hz/(3*obj.R)-2*obj.hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+                
             end
             ht = ht';
             
             
         end
-        function animate(obj,speed,wall,diff)
+        function Jac = get_Jac(obj,t,h)
+            
+             h = h';
+            
+            [hz,hzz,hzzz,hzzzz] = obj.getdiv(h);
+            ddh = -2*hz.*h -obj.ep*(2/15*obj.Re*(6*h.^5.*hzz+30*h.^4.*hz.^2) +h.^2/(obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+2*hz.*h/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^2.*hz/(obj.R)-4*hz.*h.*obj.eta/obj.R - 2*h.^2.*obj.etaz/(obj.R));
+            ddhz = -h.^2 -obj.ep*(2/15*obj.Re*(12*h.^5.*hz)+h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+hz.*h.^2/obj.Bo.*(1/obj.R^2)-2*h.^3/(3*obj.R)-2*h.^2.*obj.eta/obj.R);
+            ddhzz =  -obj.ep*(2/15*obj.Re*(h.^6)+h.^3/(3*obj.Bo).*((1)/obj.R^2));
+            ddhzzz =  -obj.ep*(hz.*h.^2/obj.Bo);
+            ddhzzzz = -obj.ep*(h.^3/(3*obj.Bo));
+            d0 = ddh - 2*(obj.n/obj.L)^2*ddhzz+6*(obj.n/obj.L)^4*ddhzzzz;
+            dn1 = -1/2*(obj.n/obj.L)*ddhz + (obj.n/obj.L)^2*ddhzz + (obj.n/obj.L)^3*ddhzzz - 4*(obj.n/obj.L)^4*ddhzzzz;
+            dn2 = -1/2*(obj.n/obj.L)^3*ddhzzz + (obj.n/obj.L)^4*ddhzzzz;
+            d1 = 1/2*(obj.n/obj.L)*ddhz+ (obj.n/obj.L)*ddhzz-(obj.n/obj.L)^3*ddhzzz - 4*(obj.n/obj.L)^4*ddhzzzz;
+            d2 = 1/2*(obj.n/obj.L)^3*ddhzzz+(obj.n/obj.L)^4*ddhzzzz;
+            Jac = diag(d0)+ diag(d1(1:end-1),1)+ diag(d2(1:end-2),2)+diag(dn1(2:end),-1)+diag(dn2(3:end),-2) + diag(d1(end),1-obj.n) + diag(d2(end-1:end),2-obj.n) + diag(dn1(1),obj.n-1) + diag(dn2(1:2),obj.n-2);
+            
+        end
+        
+        function animate(obj,speed,wall,c,clearf)
+            if nargin <= 4
+                clearf = 0 ;
+            end
             if nargin <= 3
-                diff = 0;
+                c = 0;
             end
             if nargin <= 2
                 wall = 1;
@@ -841,44 +899,51 @@ classdef shape_solveh
             if nargin <=1
                 speed = 1;
             end
-            data = obj.a-diff*obj.h0;
-            if iscell(data)
-                l = length(data{1});
-                m = length(data);
-            else
-                l = length(data(:,1));
-                m= 0;
-            end
+            data = obj.a;
+            l = length(data(:,1));
             %
-            xmax = max(max(data));
-            xmin = min(min(data));
-            obj = obj.follow_peak;
+            eta = repmat(obj.eta,length(obj.t),1);
+            if c~= 0
+                phi = mod((obj.z-c*obj.t),obj.L);
+                [~,I] = sort(phi,2);
+                I = I + obj.n*(0:length(I)-1)';
+                data = data';
+                data = data(I);
+                
+                eta = eta';
+                eta = eta(I);
+                
+            end
+                
+            %obj = obj.follow_peak;
+                   
+                grid
             for i = 1:speed:l
-                clf, hold on
+                if clearf == 0
+                   clf
+                end
+                hold on
                 
                 if (obj.wall_shape ~= 3 && wall ~=0)
-                    plot(obj.eta,obj.z)
-                end
-                if m==0
-                    
-                    plot(data(i,:)+wall*obj.eta,obj.z)
-                    plot(1,mod(obj.zpos(i),obj.L),'>')
-                else
-                    for j = 1:m
-                        plot(data{j}(i,:),obj.z)
-                    end
+                    plot(obj.z,eta(i,:))
                 end
                 
-                plot_minx,plot_maxx
-                flip_y
+                    
+                plot(obj.z,data(i,:)+wall*eta(i,:))
+                %plot(1,mod(obj.zpos(i),obj.L),'>')
+                
+                
+                
+                
                 
                 
                 title(sprintf('$t =%g$',obj.t(i)))
                 
-                
+                %ylim([wall*-obj.del+(1-wall)*0.5,1.5+wall*obj.del])
+                if clearf ==0
                 pause(0.01)
-                
-                
+                end
+                pause(0.01)
             end
         end
         
@@ -1158,7 +1223,7 @@ classdef shape_solveh
             if nargin == 1
                 m = 0;
             end
-            [pks,loc,W, P ]  = findpeaks(obj.h(:,m*obj.n/4+1));
+            [pks,loc,W, P ]  = findpeaks(obj.a(:,m*obj.n/4+1));
             hold on
             %plot(obj.t(loc),pks);
             %plot(obj.t(loc),W)
@@ -1177,7 +1242,7 @@ classdef shape_solveh
         function obj = get_peak_data(obj)
             
             
-            [obj.pks,obj.loc,obj.W, obj.P ]  = findpeaks(obj.h(:,obj.peakloc*obj.n/4+1));
+            [obj.pks,obj.loc,obj.W, obj.P ]  = findpeaks(obj.a(:,obj.peakloc*obj.n/4+1));
             meanP = mean(obj.P);
             
             obj.goodP = obj.P>meanP;
@@ -1292,19 +1357,32 @@ classdef shape_solveh
             plot(obj.t(i2:end),obj.zpos)
             
         end
-        
+        function c = get_c(obj,method)
+            if method == 0
+                obj = obj.follow_peak;
+                c = polyfit(obj.t(floor(0.4*end):end),obj.zpos(floor(0.4*end):end),1);
+                c = c(1);
+            else
+                obj = obj.get_peak_data;
+                goodpeaks  = obj.loc(floor(0.4*end):end);
+                c = obj.L *(length(goodpeaks)-1)/(obj.t(goodpeaks(end))- obj.t(goodpeaks(1)));
+            end
+        end
         function surfdata(obj,c)
             if nargin ==1
             obj = obj.follow_peak;
             c = polyfit(obj.t(floor(0.2*end):end),obj.zpos(floor(0.2*end):end),1);
             end
             phi = mod((obj.z-c(1)*obj.t),obj.L);
-             [phi,I] = sort(phi,2);
-            for j = 1:length(obj.t)/100
-                a(100*j,:) = obj.a(100*j,I(j,:));
-            end
-            H = figure;
-            pcolor(phi,obj.t(100:100:end),a)
+            [phi,I] = sort(phi,2);
+            I = I + obj.n*(0:length(I)-1)';
+%             for j = 1:length(obj.t)/100
+%                 a(100*j,:) = obj.a(100*j,I(j,:));
+%             end
+            
+            clf
+            a = obj.a';
+            pcolor(phi,obj.t,a(I))
           
              
           
@@ -1315,11 +1393,11 @@ classdef shape_solveh
             xlabel('$z-ct$')
             ylabel('$t$')
             del = erase(string(obj.del),'.');
-            title(sprintf('Fluid Thickness for wall amplitude = %g',obj.del))
+            title(sprintf('Fluid Thickness for wall amplitude = %g, c = %g',obj.del, c(1)))
             name = sprintf('../plots/colour/ColourL%gdel%s',obj.L/pi,del);
-            savefig(name)
-            saveas(gcf,name,'epsc')
-            
+%             savefig(name)
+%             saveas(gcf,name,'epsc')
+%             
         end
         
         

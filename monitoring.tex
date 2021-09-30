@@ -62,7 +62,7 @@ Several papers attempt to couple these equations \cite{short,camporeale_2017}. H
 
 
 
-\subsection{Thin Film Equation approach}
+\subsection{Thin Film Equation}
 Many papers that want to model a thin film come up with a thin film equation. I decided to try and incorporate the thin film down a cylinder from the paper with Frenkel \cite{Frenkel_1992} with the thin film over topography done by Tseluiko \cite{tseluiko_blyth_papageorgiou_2013}
 This resulted in an equation for the film thickness.
 
@@ -72,12 +72,15 @@ a_t + a_z a^2  +\epsilon\pdv{z}\left(\frac{a^4}{6R}+\frac{2}{15}\Re a^6a_z+ \fra
 where $a$ is the film thickness; $\epsilon$ is the ratio between the film thickness and the wavelength of the crenulation, a small parameter; $R$ is the ratio between the radius of the stalactites and wavelength of the crenulations; is the Reynold's number;  is the Bond number; $\eta$ is the shape of the crenulation.
 Using this equation I wanted to see how changing the parameters effected the dynamics. I have made simulations using finite-difference methods to see how water will flow over topography based on this equation. I have simulated varying the amplitude and wavelength and shape of the crenulation, as well as varying the size of the radius, the Bond number and the Reynold's number. My results suggest that the fluid generally follows the topography of the surface however a small wave flows down the "stalactite" and gradually steepens. This equation can be recast into conservative form by considering the mass flux. 
 
-\section{Additional Work}
-During the autumn term I helped out with teaching of Calculus. I have also helped out with the marking of Differential Equation and Vector Calculus coursework. I have some more marking lined up. I have been attending the Imperial College Fluid Dynamics seminar series, as well as the Reading SIAM PhD seminars. I attended the Droplet Dynamics, and the Non-linear Waves and Interfacial Dynamics Special interest groups meeting before lockdown and attended the virtual SIAM/CAIMS Annual Meeting.
+\section{Teaching}
+I worked as a teaching assistant for year 1 calculus at Imperial College. This involved going through example sheets questions that were set by the lecturer to help with the course. In addition I helped to mark their coursework and mock tests. Additional I marked Vector Calculus for University of Reading.
 
-\section{Future Work}
+\section{Met Office Internship}
+Over the summer I was working with the Met Office to see whether the impacts from volcanic eruptions would increase or decrease in likelihood according to their climate projections. This was done by looking at the climate through 30 weather patterns that had been derived using k-mean clustering to get a view of different regimes based off their mean sea level pressure. This was then matched to the wind data from 1950-2020, in order to see which regimes would bring ash flow from Iceland. Stream plots were then created to show the mean wind fields of these regimes as an indications of which British airspace the ash would likely impact. The impact was also split into lower level ash flow, to highlight to risk to take off and landing, and higher level ash flow, which affects aeroplanes that would be cruising through these sectors. This was done using python.
+\section{Plan for the Year}
 
-Using equation \eqref{walldyn}, by varying the parameters I am hoping to see how the shape of the wall will affect the stability of the flow. This will be done by taking a small perturbation from the steady state and integrating the equation to see what happens after some time. I will see how the parameters also affect the stability and utilise some cases that can be worked out asymptotically. We are hoping to write a paper based off these findings. In the longer term I would like to look into moving boundary problems based on the how the shape of the wall will change as calcium is deposited onto it.
+Finish writing the paper about the flow down a cylinder with topography. 
+Understand the instabilities that occur. See the difference of the higher pressure regime. Better link the results with the chemistry to properly model stalactites.
 \appendix
 \section{Equations}
 \subsection{Navier Stokes Equation in Cylindrical Coordinates \label{eqs}}
