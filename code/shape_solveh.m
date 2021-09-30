@@ -24,7 +24,7 @@ classdef shape_solveh
         L {mustBeNonnegative}= 2*pi % wavelength of disturbance
         l {mustBeNonnegative,mustBeLessThanOrEqual(l,1)} = 0.5 %width of the step
         del2 {mustBeNonnegative} = 0.1 % steepness of the step
-        
+        dir {mustBeMember(del,[-1,1])} = 1 %direction of slope
         
         % Asthetic features
         
@@ -320,7 +320,7 @@ classdef shape_solveh
                 obj.eta = obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z/obj.L - (1+obj.l)/2)/obj.del2));
                 
             elseif  obj.wall_shape ==2
-                obj.eta = (obj.z/obj.L-(1-obj.l)/2)/(obj.l*obj.L).*(obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z-obj.L*(1+obj.l)/2)/obj.del2)));
+                obj.eta = (obj.z/obj.L-(1-obj.l)/2)/(obj.l).*(obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z-obj.L*(1+obj.l)/2)/obj.del2)));
             elseif obj.wall_shape == 0
                 
                 obj.eta = obj.del*cos(2*pi/obj.L*obj.z);
