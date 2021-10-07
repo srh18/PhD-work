@@ -24,8 +24,8 @@ classdef shape_solveh
         L {mustBeNonnegative}= 2*pi % wavelength of disturbance
         l {mustBeNonnegative,mustBeLessThanOrEqual(l,1)} = 0.5 %width of the step
         del2 {mustBeNonnegative} = 0.1 % steepness of the step
-        dir {mustBeMember(del,[-1,1])} = 1 %direction of slope
-        
+        dir {mustBeMember(dir,[-1,1])} = 1 %direction of slope
+        ps  = 0;
         % Asthetic features
         
         periods {mustBePositive,mustBeInteger} = 1 % number of periods to plot INT - ignored for now
@@ -54,6 +54,7 @@ classdef shape_solveh
         
         zpos
         speed
+        integration_time
         
         %Toggle
         paramtoggle  {mustBeMember(paramtoggle,[1,2,3,4,5,6,7])} = 1 % 1 for Bo, 2 for R, 3 for L, 4 for Re, 5 for ep, 6 for del, 7 for l
@@ -209,6 +210,7 @@ classdef shape_solveh
             end
         end
         
+   
         function obj = set.n(obj,value)
             obj.n = value;
             obj = obj.reset;
@@ -485,38 +487,75 @@ classdef shape_solveh
         %
         %
         
-        function [az,azz,azzz,azzzz] = getdiv(obj,a)
-            dim = size(a);
-            if dim(1) == 1
-                
-                an2 = a([end-1 end 1:end-2]);
-                an1 = a([end 1:end-1]);
-                a1 = a([2:end 1]);
-                a2 = a([3:end 1 2]);
-            else
-                
-                an2 = a([end-1 end 1:end-2],:);
-                an1 = a([end 1:end-1],:);
-                a1 = a([2:end 1],:);
-                a2 = a([3:end 1 2],:);
+            function [az,azz,azzz,azzzz] = getdiv(obj,a)
+                dim = size(a);
+                if obj.ps ==1
+                    %DIFF_PSEUDO_SPECTRAL Uses the pseudo-spectral method to differentiate
+                    %   Detailed explanation goes here
+                    
+                    suppression = 1e-13;
+                    
+                    
+                    % Transform into fourier space
+                    yF = fft(a);
+                    
+                    N = obj.n/2;
+                    
+                    % Determine k in matlab form
+                    %k = fftshift([0,-N+1:N-1])';
+                    k = [0:N-1, 0, 1-N:-1] * 2*pi/obj.L;
+                    
+                    % Prior suppression
+                    yF(abs(yF)<suppression) = 0;
+                    
+                    % Apply pseudo-spectral differentiation
+                    
+                    
+                    % Posterior suppression
+                    % dyF(abs(dyF) < suppression*N*2) = 0 ;
+                    % dyF(abs(dyF) < suppression*max(abs(dyF))) = 0 ;
+                    
+                    % Transform back into real space
+                    dyF = (1i*k).^1.*yF;
+                    az = real(ifft(dyF));
+                    dyF = (1i*k).^2.*yF;
+                    azz = real(ifft(dyF));
+                    dyF = (1i*k).^3.*yF;
+                    azzz = real(ifft(dyF));
+                    dyF = (1i*k).^4.*yF;
+                    azzzz = real(ifft(dyF));
+                else
+                    if dim(1) == 1
+                        
+                        an2 = a([end-1 end 1:end-2]);
+                        an1 = a([end 1:end-1]);
+                        a1 = a([2:end 1]);
+                        a2 = a([3:end 1 2]);
+                    else
+                        
+                        an2 = a([end-1 end 1:end-2],:);
+                        an1 = a([end 1:end-1],:);
+                        a1 = a([2:end 1],:);
+                        a2 = a([3:end 1 2],:);
+                    end
+                    
+                    % if obj.fdo ==2
+                    az = obj.n/obj.L*(-1/2*an1+1/2*a1);
+                    azz =(obj.n/obj.L)^2*(an1-2*a+ a1);
+                    azzz= (obj.n/obj.L)^3*(-1/2*an2+an1-a1+1/2*a2);
+                    azzzz =(obj.n/obj.L)^4 *(an2-4*an1+6*a-4*a1+a2);
+                    %             elseif obj.fdo == 4
+                    %                 an3 = a([end-2 end-1 end 1:end-3]);
+                    %                 a3 = a([4:end 1 2 3]);
+                    %                 az = (obj.n/obj.L)*(1/12*an2-2/3*an1+2/3*a1-1/12*a2);
+                    %                 azz = (obj.n/obj.L)^2*(-1/12*an2+4/3*an1-5/2*a+4/3*a1-1/12*a2);
+                    %                 azzz = (obj.n/obj.L)^3*(1/8*an3-an2+13/8*an1-13/8*a1+a2-1/8*a3);
+                    %                 azzzz = (obj.n/obj.L)^4*(-1/6*an3+2*an2-13/2*an1+28/3*a-13/2*a1+2*a2-1/6*a3);
+                    %             end
+                end
             end
-
-            % if obj.fdo ==2
-            az = obj.n/obj.L*(-1/2*an1+1/2*a1);
-            azz =(obj.n/obj.L)^2*(an1-2*a+ a1);
-            azzz= (obj.n/obj.L)^3*(-1/2*an2+an1-a1+1/2*a2);
-            azzzz =(obj.n/obj.L)^4 *(an2-4*an1+6*a-4*a1+a2);
-            %             elseif obj.fdo == 4
-            %                 an3 = a([end-2 end-1 end 1:end-3]);
-            %                 a3 = a([4:end 1 2 3]);
-            %                 az = (obj.n/obj.L)*(1/12*an2-2/3*an1+2/3*a1-1/12*a2);
-            %                 azz = (obj.n/obj.L)^2*(-1/12*an2+4/3*an1-5/2*a+4/3*a1-1/12*a2);
-            %                 azzz = (obj.n/obj.L)^3*(1/8*an3-an2+13/8*an1-13/8*a1+a2-1/8*a3);
-            %                 azzzz = (obj.n/obj.L)^4*(-1/6*an3+2*an2-13/2*an1+28/3*a-13/2*a1+2*a2-1/6*a3);
-            %             end
-        end
-        
-        
+            
+            
         
         
         function obj = get_h(obj,optionon,hinit)
@@ -783,13 +822,15 @@ classdef shape_solveh
         end
         
         function obj = odedyn(obj,init)
+            tic
             if nargin == 1
                 obj = obj.get_h;
                 init = obj.h0 + 0.1*sin(2*pi*obj.periods*obj.nz);
             end
             if obj.usejac == 1
                 %opts = odeset('Stats','on','Jacobian',@obj.get_Jac);
-                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Jacobian',@obj.get_Jac);
+                sparse = diag(ones(obj.n,1))+ diag(ones(obj.n -1,1),1)+ diag(ones(obj.n -2,1),2)+diag(ones(obj.n-1,1),-1)+diag(ones(obj.n-2,1),-2) + diag(1,1-obj.n) + diag([1,1],2-obj.n) + diag(1,obj.n-1) + diag([1,1],obj.n-2);
+                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Jacobian',@obj.get_Jac,'JPattern',sparse);
             else
                 
                 opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on');
@@ -803,8 +844,9 @@ classdef shape_solveh
             %             end
             if obj.notol == 0
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
-                %[obj.t,obj.h]= ode15s(@obj.odefun ,0:0.05:obj.T,init,opts);
-                [obj.t,obj.h]= ode15s(@obj.odefun ,[0,obj.T],init,opts);
+                [obj.t,obj.h]= ode15s(@obj.odefun ,0:0.05:obj.T,init,opts);
+                %[obj.t,obj.h]= ode15s(@obj.odefun ,[0, obj.T],init,opts);
+                %[obj.t,obj.h]= ode23s(@obj.odefun ,[0,obj.T],init,opts);
             else
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
                 %[obj.t, obj.h] = ode15s(@obj.odefun ,0:0.05:obj.T,init);
@@ -816,6 +858,7 @@ classdef shape_solveh
             %  obj.sol.y = obj.sol.y(1:end-1,:);
             %end
             %obj.h = obj.sol.y';
+            obj.integration_time = toc;
             
         end
         function obj = kstest(obj,init)
