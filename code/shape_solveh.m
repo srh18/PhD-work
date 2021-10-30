@@ -4,28 +4,28 @@ classdef shape_solveh
     %wavelength
     
     properties
-        n {mustBeInteger,mustBePositive}= 200  %number of grid points INT
+        n {mustBeInteger,mustBePositive} = 256  %number of grid points INT
         
         % Fluid properties Parameters
         
-        
         Bo {mustBeNonnegative} = 1 % Bond number
-        Re {mustBeNonnegative}= 1 % Reynolds number
-        ep {mustBeNonnegative}= 1e-3 % Ratio between the fluid thickness and the radius of the cylinder
+        Re {mustBeNonnegative} = 1 % Reynolds number
+        ep {mustBeNonnegative} = 1e-1 % Ratio between the fluid thickness and the radius of the cylinder
         R {mustBeNonnegative} = 1 % Radius of cylinder
         
         q = 1/3 % flow rate
         T {mustBeNonnegative} = 100 %time
+        delt  {mustBePositive} = 0.05 % Time step
         mass0 = 1 %initial mass
-        peakloc {mustBeMember(peakloc,[0,1,2,3])} = 0
+        
         %Wall shape parameters
         
-        del {mustBeNonnegative}= 1 % Disturbance amplitude
-        L {mustBeNonnegative}= 2*pi % wavelength of disturbance
+        del {mustBeNonnegative} = 1 % Disturbance amplitude
+        L {mustBeNonnegative} = 2*pi % wavelength of disturbance
         l {mustBeNonnegative,mustBeLessThanOrEqual(l,1)} = 0.5 %width of the step
         del2 {mustBeNonnegative} = 0.1 % steepness of the step
         dir {mustBeMember(dir,[-1,1])} = 1 %direction of slope
-        ps  = 0;
+        ps {mustBeMember(ps,[0,1])} = 0; %whether to use Psuedo spectral differentiation rather than finite differences
         % Asthetic features
         
         periods {mustBePositive,mustBeInteger} = 1 % number of periods to plot INT - ignored for now
@@ -40,31 +40,22 @@ classdef shape_solveh
         h0 %steady state
         
         
-        c %peak speed
-        ac %wall moving at peak speed
         
-        pks
-        loc
-        W
-        P
-        goodP
+        % Info about code
         
-        class
-        notes
-        
-        zpos
-        speed
         integration_time
+        init_condition 
         
         %Toggle
+        equation = 0 %which equation to use 0 for Benny like, 1 for surface tension dominating 10 for not in conservative form.
         paramtoggle  {mustBeMember(paramtoggle,[1,2,3,4,5,6,7])} = 1 % 1 for Bo, 2 for R, 3 for L, 4 for Re, 5 for ep, 6 for del, 7 for l
         flow {mustBeMember(flow,[0,1])} = 0 % 0 if keeping volume constant - 1 if flow rate is constant
         fdo {mustBeMember(fdo,[2,4])}= 2 % Order of the finite difference scheme used (may add later)
         wall_shape {mustBeMember(wall_shape,[0,1,2,3,4])} = 0 % 0 for cosine, 1 step, 2 sawtooth, 3 for flat, 4 user input
         boundary {mustBeMember(boundary,[0,1])} = 0 % 0 for periodic boundary conditions, 1 for not
-        
-        %dynamic parameters
-        delt {mustBePositive}  % Time step
+        force_mass {mustBeMember(force_mass,[0,1])}= 0 %force mass conservation on integration
+        usejac = 0 %whether to use a jacobian
+        suppression = 1e-12 %remove noise from fft
         
     end
     
@@ -74,12 +65,27 @@ classdef shape_solveh
         eflag
         out
         jac
+        
+        c %peak speed
+        ac %wall moving at peak speed
+        
+        pks
+        loc
+        W
+        P
+        goodP
+        
+
+        
+        zpos
+        speed
+        
         %string of parameters
         params = {'Bo','R','L','Re','\epsilon','\delta'}
         % Properties of the fluid
         
         sol %ode output
-        reltol = 1e-6 %relative tolerance for ode15s
+        reltol = 1e-5 %relative tolerance for ode15s
         abstol = 1e-8 %absolute tolerance for ode15s
         hmax % maximum fluid thickness
         hmin % minimum fluid thickness
@@ -91,9 +97,12 @@ classdef shape_solveh
         notol = 0 %whether to use default tolerances
         npks %number of peaks
         
-        equation = 0 %which equation to use
+        peakloc {mustBeMember(peakloc,[0,1,2,3])} = 0
         peakpos
         peakspeed
+        
+        class
+        notes
         %derivatives of eta to speed things up
         etaz
         etazz
@@ -108,7 +117,7 @@ classdef shape_solveh
         
         integration {mustBeMember(integration,[0,1,2])} = 0 % 0 is crank Nicholson 1 implicit 2 explicit
         
-        usejac = 0 %whether to use a jacobian
+        
     end
     properties(Dependent = true,Hidden)
         S %position from origin
@@ -175,8 +184,11 @@ classdef shape_solveh
         end
         function value = get.Q(obj)
             [hz,~,hzzz,~] = obj.getdiv(obj.h);
-            value = obj.h.^3+ obj.ep*(2/15*obj.Re*obj.h.^6.*hz + obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-2/3/obj.R*obj.h.^3.*obj.eta - 1/6/obj.R*obj.h.^4);
-            
+            if obj.equation == 0
+                value = obj.h.^3/3+ obj.ep*(2/15*obj.Re*obj.h.^6.*hz + obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-2/3/obj.R*obj.h.^3.*obj.eta - 1/6/obj.R*obj.h.^4);
+            elseif obj.equation == 1
+                value  = obj.h.^3/3 +  obj.ep*(obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz));
+            end
             
         end
         function value = get.Qint(obj)
@@ -493,7 +505,7 @@ classdef shape_solveh
                     %DIFF_PSEUDO_SPECTRAL Uses the pseudo-spectral method to differentiate
                     %   Detailed explanation goes here
                     
-                    suppression = 1e-13;
+                    suppression = 1e-12;
                     
                     
                     % Transform into fourier space
@@ -506,7 +518,7 @@ classdef shape_solveh
                     k = [0:N-1, 0, 1-N:-1] * 2*pi/obj.L;
                     
                     % Prior suppression
-                    yF(abs(yF)<suppression) = 0;
+                    yF(abs(yF)<obj.suppression) = 0;
                     
                     % Apply pseudo-spectral differentiation
                     
@@ -562,7 +574,8 @@ classdef shape_solveh
             %performs fsolve
             options = optimoptions('fsolve','Display', 'none');
             if nargin <=2
-                hinit = obj.linear_shape;
+                %hinit = obj.linear_shape;
+                hinit = 1+0*obj.z;
                 
             end
             if nargin >1
@@ -686,7 +699,11 @@ classdef shape_solveh
             obj.peakspeed = diff(obj.peakpos)/obj.delt;
         end
         
-        
+        function plot_mass(obj)
+            plot(obj.t,obj.mass)
+            xlabel('time')
+            ylabel('mass')
+        end
         
         
         
@@ -844,7 +861,7 @@ classdef shape_solveh
             %             end
             if obj.notol == 0
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
-                [obj.t,obj.h]= ode15s(@obj.odefun ,0:0.05:obj.T,init,opts);
+                [obj.t,obj.h]= ode15s(@obj.odefun ,0:obj.delt:obj.T,init,opts);
                 %[obj.t,obj.h]= ode15s(@obj.odefun ,[0, obj.T],init,opts);
                 %[obj.t,obj.h]= ode23s(@obj.odefun ,[0,obj.T],init,opts);
             else
@@ -882,6 +899,11 @@ classdef shape_solveh
             %                 h = h(1:end-1);
             %             end
             h = h';
+            if obj.force_mass == 1
+                Fh = fft(h);
+                Fh(1) = obj.n;
+                h = ifft(Fh);
+            end
             
             [obj.hz,obj.hzz,obj.hzzz,obj.hzzzz ] = obj.getdiv(h);
             if obj.equation == 1
@@ -1233,7 +1255,7 @@ classdef shape_solveh
         function phaseplot(obj,m1,m2,npeak)
             if nargin ==3
                 hold on
-                plot(obj.h(1:floor(3/4*end),obj.n/4*m1+1),obj.h(1:floor(3/4*end),obj.n/4*m2+1),'--','Color',[0.8 0.8 0.8])
+                %plot(obj.h(1:floor(3/4*end),obj.n/4*m1+1),obj.h(1:floor(3/4*end),obj.n/4*m2+1),'--','Color',[0.8 0.8 0.8])
                 plot(obj.h(floor(3/4*end):end,obj.n/4*m1+1),obj.h(floor(3/4*end):end,obj.n/4*m2+1),'Color',[0 0.4470 0.7410])
                 
                 hold off
