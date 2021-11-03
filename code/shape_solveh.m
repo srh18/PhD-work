@@ -226,7 +226,7 @@ classdef shape_solveh
         function obj = set.n(obj,value)
             obj.n = value;
             obj = obj.reset;
-            obj.delt = 1/value;
+            
         end
         
         function obj = set.del(obj,value)
@@ -505,7 +505,7 @@ classdef shape_solveh
                     %DIFF_PSEUDO_SPECTRAL Uses the pseudo-spectral method to differentiate
                     %   Detailed explanation goes here
                     
-                    suppression = 1e-12;
+                    %suppression = 1e-12;
                     
                     
                     % Transform into fourier space
@@ -515,11 +515,11 @@ classdef shape_solveh
                     
                     % Determine k in matlab form
                     %k = fftshift([0,-N+1:N-1])';
-                    k = [0:N-1, 0, 1-N:-1] * 2*pi/obj.L;
+                    k = [0:N-1, 0, 1-N:-1,zeros(1,3*obj.n)] * 2*pi/obj.L;
                     
                     % Prior suppression
                     yF(abs(yF)<obj.suppression) = 0;
-                    
+                    yF = [yF,zeros(1,3*obj.n)]*4;
                     % Apply pseudo-spectral differentiation
                     
                     
@@ -530,12 +530,16 @@ classdef shape_solveh
                     % Transform back into real space
                     dyF = (1i*k).^1.*yF;
                     az = real(ifft(dyF));
+                    az = az(1:4:end);
                     dyF = (1i*k).^2.*yF;
                     azz = real(ifft(dyF));
+                    azz = azz(1:4:end);
                     dyF = (1i*k).^3.*yF;
                     azzz = real(ifft(dyF));
+                    azzz = azzz(1:4:end);
                     dyF = (1i*k).^4.*yF;
                     azzzz = real(ifft(dyF));
+                    azzzz = azzzz(1:4:end);
                 else
                     if dim(1) == 1
                         
