@@ -855,7 +855,7 @@ classdef shape_solveh
                 obj = obj.get_h;
                 init = obj.h0 + 0.1*sin(2*pi*obj.periods*obj.nz);
                 Fh = fft(init);
-                Fh(value.n/2+1) = 0;
+                Fh(obj.n/2+1) = 0;
                 Fh(abs(Fh)<obj.suppression) = 0;
                 init = ifft(Fh);
                 
