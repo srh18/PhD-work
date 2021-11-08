@@ -56,7 +56,7 @@ classdef shape_solveh
         force_mass {mustBeMember(force_mass,[0,1])}= 0 %force mass conservation on integration
         usejac = 0 %whether to use a jacobian
         suppression = 1e-12 %remove noise from fft
-        
+        pad = 4
     end
     
     properties(Hidden)
@@ -515,14 +515,16 @@ classdef shape_solveh
                     
                     % Determine k in matlab form
                     %k = fftshift([0,-N+1:N-1])';
-                    k = [0:N-1, 0, 1-N:-1,zeros(1,3*obj.n)] * 2*pi/obj.L;
+                    
                     
                     % Prior suppression
                     yF(abs(yF)<obj.suppression) = 0;
-                    yF = [yF,zeros(1,3*obj.n)]*4;
+                    %yF = [yF,zeros(1,3*obj.n)]*4;
                     % Apply pseudo-spectral differentiation
+                    padzeros = zeros(1,(obj.pad-1)*obj.n);
                     
-                    
+                    yF = [yF(1:N),padzeros, yF(N+1:obj.n)]*obj.pad;
+                    k = [0:N-1,padzeros, 0, 1-N:-1] * 2*pi/obj.L;
                     % Posterior suppression
                     % dyF(abs(dyF) < suppression*N*2) = 0 ;
                     % dyF(abs(dyF) < suppression*max(abs(dyF))) = 0 ;
@@ -530,16 +532,21 @@ classdef shape_solveh
                     % Transform back into real space
                     dyF = (1i*k).^1.*yF;
                     az = real(ifft(dyF));
-                    az = az(1:4:end);
+                    %az = real(ifft(dyF,obj.n*obj.pad));
+                    az = az(1:obj.pad:end);
                     dyF = (1i*k).^2.*yF;
                     azz = real(ifft(dyF));
-                    azz = azz(1:4:end);
+                    %azz = real(ifft(dyF,obj.n*obj.pad));
+                    azz = azz(1:obj.pad:end);
                     dyF = (1i*k).^3.*yF;
+                    
+                    %azzz = real(ifft(dyF,obj.n*obj.pad));
                     azzz = real(ifft(dyF));
-                    azzz = azzz(1:4:end);
+                    azzz = azzz(1:obj.pad:end);
                     dyF = (1i*k).^4.*yF;
                     azzzz = real(ifft(dyF));
-                    azzzz = azzzz(1:4:end);
+                    %azzzz = real(ifft(dyF,obj.n*obj.pad));
+                    azzzz = azzzz(1:obj.pad:end);
                 else
                     if dim(1) == 1
                         
@@ -847,6 +854,11 @@ classdef shape_solveh
             if nargin == 1
                 obj = obj.get_h;
                 init = obj.h0 + 0.1*sin(2*pi*obj.periods*obj.nz);
+                Fh = fft(init);
+                Fh(value.n/2+1) = 0;
+                Fh(abs(Fh)<obj.suppression) = 0;
+                init = ifft(Fh);
+                
             end
             if obj.usejac == 1
                 %opts = odeset('Stats','on','Jacobian',@obj.get_Jac);
@@ -902,7 +914,11 @@ classdef shape_solveh
             %                 H = h;
             %                 h = h(1:end-1);
             %             end
-            h = h';
+            h  =h';
+            Fh = fft(h);
+            Fh(obj.n/2+1) = 0;
+            Fh(abs(Fh)<obj.suppression) = 0;
+            h = ifft(Fh);
             if obj.force_mass == 1
                 Fh = fft(h);
                 Fh(1) = obj.n;
@@ -910,6 +926,7 @@ classdef shape_solveh
             end
             
             [obj.hz,obj.hzz,obj.hzzz,obj.hzzzz ] = obj.getdiv(h);
+
             if obj.equation == 1
                 %small Bond
                 ht = -obj.hz.*h.^2 -(h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz));
@@ -1470,6 +1487,12 @@ classdef shape_solveh
         end
         
         
+        function obj = eliminate_noise(obj):
+            
+        Fh = fft(obj.h,[],2);
+        Fh(obj.n/2+1) = 0;
+        obj.h = real(ifft(Fh,[],2));
+        end
     end
 end
 %% Old Code
