@@ -1487,7 +1487,7 @@ classdef shape_solveh
         end
         
         
-        function obj = eliminate_noise(obj):
+        function obj = eliminate_noise(obj)
             
         Fh = fft(obj.h,[],2);
         Fh(obj.n/2+1) = 0;
