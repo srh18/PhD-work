@@ -25,7 +25,7 @@ classdef shape_solveh
         l {mustBeNonnegative,mustBeLessThanOrEqual(l,1)} = 0.5 %width of the step
         del2 {mustBeNonnegative} = 0.1 % steepness of the step
         dir {mustBeMember(dir,[-1,1])} = 1 %direction of slope
-        ps {mustBeMember(ps,[0,1])} = 0; %whether to use Psuedo spectral differentiation rather than finite differences
+        ps {mustBeMember(ps,[0,1])} = 1; %whether to use Psuedo spectral differentiation rather than finite differences
         % Asthetic features
         
         periods {mustBePositive,mustBeInteger} = 1 % number of periods to plot INT - ignored for now
@@ -57,6 +57,7 @@ classdef shape_solveh
         usejac = 0 %whether to use a jacobian
         suppression = 1e-12 %remove noise from fft
         pad = 4
+        filter_oscillation = 1
     end
     
     properties(Hidden)
@@ -152,7 +153,7 @@ classdef shape_solveh
                 
             end
             
-            obj.delt = 1/obj.n;
+            
             obj = obj.reset;
             
             
@@ -187,7 +188,7 @@ classdef shape_solveh
             if obj.equation == 0
                 value = obj.h.^3/3+ obj.ep*(2/15*obj.Re*obj.h.^6.*hz + obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-2/3/obj.R*obj.h.^3.*obj.eta - 1/6/obj.R*obj.h.^4);
             elseif obj.equation == 1
-                value  = obj.h.^3/3 +  obj.ep*(obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz));
+                value  = obj.h.^3/3 +  (obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz));
             end
             
         end
@@ -866,7 +867,8 @@ classdef shape_solveh
                 opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Jacobian',@obj.get_Jac,'JPattern',sparse);
             else
                 
-                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on');
+                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Vectorized','on',...
+        'BDF','on');
             end
             %opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Vectorized','on');
             %             if obj.flow == 0
@@ -877,13 +879,13 @@ classdef shape_solveh
             %             end
             if obj.notol == 0
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init,opts);
-                [obj.t,obj.h]= ode15s(@obj.odefun ,0:obj.delt:obj.T,init,opts);
+                [obj.t,obj.h]= ode15s(@(t,h) obj.odefun(t,h) ,0:obj.delt:obj.T,init,opts);
                 %[obj.t,obj.h]= ode15s(@obj.odefun ,[0, obj.T],init,opts);
                 %[obj.t,obj.h]= ode23s(@obj.odefun ,[0,obj.T],init,opts);
             else
                 %obj.sol = ode15s(@obj.odefun ,[0 obj.T],init);
                 %[obj.t, obj.h] = ode15s(@obj.odefun ,0:0.05:obj.T,init);
-                [obj.t, obj.h] = ode15s(@obj.odefun ,[0,obj.T],init);
+                [obj.t, obj.h] = ode15s(@(t,h) obj.odefun(t,h) ,[0,obj.T],init);
             end
             
             %obj.t = obj.sol.x;
@@ -915,37 +917,45 @@ classdef shape_solveh
             %                 h = h(1:end-1);
             %             end
             h  =h';
-            Fh = fft(h);
-            Fh(obj.n/2+1) = 0;
-            Fh(abs(Fh)<obj.suppression) = 0;
-            h = ifft(Fh);
-            if obj.force_mass == 1
+%             if obj.force_mass == 1
+%                 mass = h(end);
+%                 h = h(1:end-1);
+%             end
+            if obj.filter_oscillation == 1
                 Fh = fft(h);
-                Fh(1) = obj.n;
+                Fh(obj.n/2+1) = 0;
+                Fh(abs(Fh)<obj.suppression) = 0;
                 h = ifft(Fh);
             end
             
-            [obj.hz,obj.hzz,obj.hzzz,obj.hzzzz ] = obj.getdiv(h);
+            
+                
+
+            
+            [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
 
             if obj.equation == 1
                 %small Bond
-                ht = -obj.hz.*h.^2 -(h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz));
+                ht = -hz.*h.^2 -(h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz));
             elseif obj.equation == 2
                 %
-                ht = -3*obj.hz.*h.^2 -(h.^3.*((obj.hzz)*obj.R+obj.hzzzz)+3*obj.hz.*h.^2.*(obj.hz*obj.R+obj.hzzz));
+                ht = -3*hz.*h.^2 -(h.^3.*((hzz)*obj.R+hzzzz)+3*hz.*h.^2.*(hz*obj.R+hzzz));
             elseif obj.equation ==4
-                ht = -h.*obj.hz +obj.R*obj.hzz;
+                ht = -h.*hz +obj.R*hzz;
             elseif obj.equation == 5
-                ht = -obj.hzz-obj.R*obj.hzzzz-h.*obj.hz;
+                ht = -hzz-obj.R*hzzzz-h.*hz;
             elseif obj.equation == 6
-                ht = -3*h.^2.*obj.hz.^2 - h.^3.*obj.hzz - obj.hz.*obj.hzzz-h.*obj.hzzzz;
+                ht = -3*h.^2.*hz.^2 - h.^3.*hzz - hz.*hzzz-h.*hzzzz;
             elseif obj.equation == 10
                 %a equation
-                ht = -obj.hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*obj.hzz+6*h.^5.*obj.hz.^2)+h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz)+h.^3.*obj.hz/(3*obj.R) + h.^3.*obj.etaz/(3*obj.R));
+                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+h.^3.*hz/(3*obj.R) + h.^3.*obj.etaz/(3*obj.R));
+            elseif obj.equation == 20
+                
+                ht = -0.1*hz.*h.^2;
             else
                 
                 %main equation
-                ht = -obj.hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*obj.hzz+6*h.^5.*obj.hz.^2)+h.^3/(3*obj.Bo).*((obj.hzz+obj.etazz)/obj.R^2+obj.hzzzz+obj.etazzzz)+obj.hz.*h.^2/obj.Bo.*((obj.hz+obj.etaz)/obj.R^2+obj.hzzz+obj.etazzz)-2*h.^3.*obj.hz/(3*obj.R)-2*obj.hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
                 
             end
             ht = ht';
@@ -1490,8 +1500,16 @@ classdef shape_solveh
         function obj = eliminate_noise(obj)
             
         Fh = fft(obj.h,[],2);
-        Fh(obj.n/2+1) = 0;
+        Fh(:,obj.n/2+1) = 0;
+        
+        Fh(abs(Fh)<obj.suppression) = 0;
+        %yF = [yF,zeros(1,3*obj.n)]*4;
+        % Apply pseudo-spectral differentiation
+        
+        
+        
         obj.h = real(ifft(Fh,[],2));
+        
         end
     end
 end
