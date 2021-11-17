@@ -476,7 +476,11 @@ classdef shape_solveh
             
             if obj.flow == 1
                 [hz,~,hzzz,~] = obj.getdiv(h);
-                F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(6*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - obj.q;
+                if obj.equation ==0
+                    F = h.^3/3 + obj.ep*(2/15*obj.Re*h.^6.*hz+h.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-h.^4/(6*obj.R)-2/(3*obj.R)*h.^3.*obj.eta) - obj.q;
+                elseif obj.equation ==1
+                    F = h.^3/3.*(1 + 1/obj.Bo*((hz+obj.etaz)/obj.R^2 + hzzz  + obj.etazzz))-obj.q;
+                end
             else
                 l = length(h);
                 [hz,~,hzzz,~] = obj.getdiv(h(1:l-1));
@@ -583,6 +587,33 @@ classdef shape_solveh
         
         
         function obj = get_h(obj,optionon,hinit)
+            %performs fsolve
+            options = optimoptions('fsolve','Display', 'none');
+            if nargin <=2
+                %hinit = obj.linear_shape;
+                hinit = 1+0*obj.z;
+                
+            end
+            if nargin >1
+                if optionon ==1
+                    options = optimoptions('fsolve','Display', 'iter','PlotFcn',@optimplotfirstorderopt);
+                end
+            end
+            if obj.flow == 0
+                hinit = [hinit obj.q];
+            end
+            [obj.h0,obj.Fval,obj.eflag,obj.out,obj.jac] = fsolve(@obj.hfun,hinit,options);
+            if obj.eflag <= 0
+                warning('no steady state solution found')
+            end
+            if obj.flow == 0
+                obj.q = obj.h0(end);
+                obj.h0 = obj.h0(1:end-1);
+            end
+            
+        end
+        
+        function obj = new_get_h(obj,optionon,hinit)
             %performs fsolve
             options = optimoptions('fsolve','Display', 'none');
             if nargin <=2
@@ -867,8 +898,7 @@ classdef shape_solveh
                 opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Jacobian',@obj.get_Jac,'JPattern',sparse);
             else
                 
-                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','Vectorized','on',...
-        'BDF','on');
+                opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on');
             end
             %opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Vectorized','on');
             %             if obj.flow == 0
@@ -957,6 +987,11 @@ classdef shape_solveh
                 %main equation
                 ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
                 
+            end
+            if obj.force_mass ==1
+                Fht = fft(ht);
+                Fht(1) = 0;
+                ht = real(ifft(Fht));
             end
             ht = ht';
             
