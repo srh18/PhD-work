@@ -332,7 +332,7 @@ classdef shape_solveh
         function obj = get_wall(obj)
             %Function to create the wall depending on the wall shape
             if obj.wall_shape == 1
-                obj.eta = obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z/obj.L - (1+obj.l)/2)/obj.del2));
+                obj.eta = obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z/obj.L - (1+obj.l)/2)/obj.del2))-obj.del/2;
                 
             elseif  obj.wall_shape ==2
                 obj.eta = (obj.z/obj.L-(1-obj.l)/2)/(obj.l).*(obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z-obj.L*(1+obj.l)/2)/obj.del2)));
@@ -588,7 +588,8 @@ classdef shape_solveh
         
         function obj = get_h(obj,optionon,hinit)
             %performs fsolve
-            options = optimoptions('fsolve','Display', 'none');
+            options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
+            %options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
             if nargin <=2
                 %hinit = obj.linear_shape;
                 hinit = 1+0*obj.z;
@@ -596,7 +597,7 @@ classdef shape_solveh
             end
             if nargin >1
                 if optionon ==1
-                    options = optimoptions('fsolve','Display', 'iter','PlotFcn',@optimplotfirstorderopt);
+                    options = optimoptions('fsolve','Display', 'iter','PlotFcn',@optimplotfirstorderopt,'FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
                 end
             end
             if obj.flow == 0
@@ -1104,9 +1105,9 @@ classdef shape_solveh
                 m= 0;
             end
             obj = obj.get_fluid_features;
-            figure(10+m),  hold on, title("Amplitude Changes with time")
-            figure(11+m),  hold on, title('Position of maxima/minima')
-            figure(12+m),  hold on , title('Drift of results')
+            figure(10+m),clf,  hold on, title("Amplitude Changes with time")
+            figure(11+m),clf,  hold on, title('Position of maxima/minima')
+            figure(12+m),clf,  hold on , title('Drift of results')
             d = obj.del;
             
             figure(10+m)
@@ -1115,7 +1116,8 @@ classdef shape_solveh
             figure(11+m)
             plot(obj.t,obj.hmaxloc/obj.L, 'DisplayName',sprintf('maxima $ \\delta = %g$',d))
             fig = gca;
-            %plot(t,obj.hminloc,'--','Color', fig.Children(1).Color, 'DisplayName',sprintf('minima$ \\delta = %g$',d))
+            hold on
+            plot(obj.t,obj.hminloc/obj.L,'--','Color', fig.Children(1).Color, 'DisplayName',sprintf('minima$ \\delta = %g$',d))
             figure(12+m)
             plot(obj.t,obj.hmax, 'DisplayName',sprintf('$\\delta = %g$',d))
         end
@@ -1372,11 +1374,24 @@ classdef shape_solveh
         end
         function obj = get_peak_data(obj)
             
+            for i = 1:length(obj.h)
+            [pks,loc]  = findpeaks(obj.a(i,:));
+            obj.pks{i} = pks;
+            obj.loc{i} = loc;
+            end
             
-            [obj.pks,obj.loc,obj.W, obj.P ]  = findpeaks(obj.a(:,obj.peakloc*obj.n/4+1));
-            meanP = mean(obj.P);
-            
-            obj.goodP = obj.P>meanP;
+        end
+        function plot_peaks(obj,t0)
+            obj = obj.get_peak_data;
+            if nargin ==1
+                t0i = 1;
+            else
+            t0i = floor(t0/obj.delt);
+            end
+            hold on 
+            for i = t0i:length(obj.h)
+                plot(obj.z(obj.loc{i}),obj.pks{i},'.','color','#0072BD')
+            end
         end
         
         function followminmax(obj)
@@ -1463,7 +1478,7 @@ classdef shape_solveh
                     end
                     
                     
-                elseif k-20<1
+                elseif k-region<1
                     [a, j ] = max(obj.h(i+i2,k-region+obj.n:obj.n));
                     [b,j2] = max(obj.h(i+i2,1:k+region));
                     if a > b
@@ -1485,7 +1500,7 @@ classdef shape_solveh
                 obj.speed(i) = (obj.zpos(i+1) - obj.zpos(i))/(obj.t(i2+i)-obj.t(i2+i-1));
             end
             
-            plot(obj.t(i2:end),obj.zpos)
+            %plot(obj.t(i2:end),obj.zpos)
             
         end
         function c = get_c(obj,method)

@@ -26,13 +26,15 @@ lab experiments (for instance features can form over time scales of hundreds of 
 to quantify fundamental physical systems in order to compare with field observations.
 
 \section{Proposed Thesis Outline}
-Introduction - outlining the literature and motivation of the work. \\
-Governing Equations and Scalings - Looking at three main different geometries, to see what affect they have on the fluid thickness.\\
-Fluid Thickness Steady States - Seeing how the amplitude and wavelength of the wall disturbance affect the steady fluid thickness. Also looking at varying the Radius of the stalactite, Reynold's number, Bond number and ratio between the fluid thickness and the wavelength of the wall disturbance. In this section we will also look at different shaped walls such as steps and sawtooths.\\
-Long Term Behaviour - In this section we numerically simulate the equations for the fluid thickness in order to determine the stability of the steady states, as well as seeing under what conditions periodic solutions and maybe chaotic solutions emerge. \\
-Chemistry - In this section we link the fluid thickness to equations for the deposition of calcium on the wall in order to predict the growth of stalactites. \\
-Conclusions.
- 
+\begin{itemize}
+	\item Introduction \subitem Outlining the literature and motivation of the work. \\
+\item Governing Equations and Scalings \subitem Looking at three main different geometries, to see what affect they have on the fluid thickness. In this section we will highlight how these different scalings relate to different periods in the stalactite's lifespan as it starts as a perfectly cylindrical 'soda straw' and evolves into a more conical stalactite with crenulations.\\
+\item Chapters based on each scaling, each with the following subsections
+\subitem Fluid Thickness Steady States - Seeing how the amplitude and wavelength of the wall disturbance affect the steady fluid thickness. Also looking at varying the Radius of the stalactite, Reynold's number, Bond number and ratio between the fluid thickness and the wavelength of the wall disturbance. In this section we will also look at different shaped walls such as steps and sawtooths.
+\subitem Long Term Behaviour - In this subsection we numerically simulate the equations for the fluid thickness in order to determine the stability of the steady states, as well as seeing under what conditions periodic solutions and maybe chaotic solutions emerge. We also compare results with those for the flat wall case to see how the introduction of the wall can affect the flow\\
+\item Growth of the stalactite- In this section we link the fluid thickness to equations for the deposition of calcium on the wall, causing the stalactite to grow. The growth of stalactites is dependent on the concentration of calcium ions in the fluid, which depends on the fluid thickness. We will therefore compare how the stalactites grow using the different equations for the fluid thickness shown in previous chapters.  \\
+\item Conclusions. Discussions on how our results compare with others in the literature.
+\end{itemize}
 
 
 \section{Work}
@@ -91,14 +93,19 @@ For certain parameters we could find travelling waves, and we wished to see if c
 These figures look at the Energy norm for a quasiperiodic case, the trajectories over the maxima vs the minima for a periodic orbit, and the fluid thickness if we travel in a frame of reference that follows the wavespeed. In this last figure we can see that for this case it exhibits two modes, which oscillate both in amplitude and position.
 \section{Teaching}
 I worked as a teaching assistant for year 1 calculus at Imperial College. This involved going through example sheets questions that were set by the lecturer to help with the course. In addition I helped to mark their coursework and mock tests. Additional I marked Vector Calculus for University of Reading.
+\section{Transferable skills}
+As part of our CDT activities we have had communication workshops, which resulted in a group of us going into a school to promote the use of green energy.\\
+I also took part in the MPE Hackathon, where a group of us working in a team were tasked with trying to predict the intensity of hurricanes. This as well as the Met office internship required data to be analysed in order to determine whether there were any patterns that could help predict future events.\\
+During the PhD I have had to solve many problems, working to improve the reliability of my code by reducing errors that could occur.
 
 \section{Met Office Internship}
 Over the summer I was working with the Met Office to see whether the impacts from volcanic eruptions would increase or decrease in likelihood according to their climate projections. This was done by looking at the climate through 30 weather patterns that had been derived using k-mean clustering to get a view of different regimes based off their mean sea level pressure. This was then matched to the wind data from 1950-2020, in order to see which regimes would bring ash flow from Iceland. Stream plots were then created to show the mean wind fields of these regimes as an indications of which British airspace the ash would likely impact. The impact was also split into lower level ash flow, to highlight to risk to take off and landing, and higher level ash flow, which affects aeroplanes that would be cruising through these sectors. This was done using python.
 \section{Plan for the Year}
 \begin{itemize}
-\item Write paper on equation (3) November-December
-\item Write paper on equation (4) Jan -March
-\item Link these papers to the Chemistry March - May
+\item Work towards writing paper based on flow down a cylinder with topography with larger surface tension. This is based off equation (3). Compare this to the literature for the smooth cylinder case and study the steady states and dynamics that occur, and the changes that can be seen by changing the wall amplitude.  November-December
+\item Correct paper on flow down a cylinder with topography, which is based on equation (4). Previous results here were using finite differences for the spatial discretisation. In some of these cases mass was only conserved to $10^{-4}$. Code has been rewritten with psuedo spectral derivatives in order to better conserve mass.  Jan -Feb
+\item Research how these fluid thickness, that have been found from equations (3) and (4) relate to other values for that of stalactites, and incorporate them into a model for how stalactites grow. This is a moving boundary problem where the stalactite wall grows depending on the concentration of calcium in the fluid. The contentration of calcium depends on the fluid thickness, so using the two fluid thicknesses will provide two different examples of how the stalactite may grow.  March - May
+\item Attend an in person conference to present my work.
 \item Write up thesis June-Oct.
 \end{itemize}
 \appendix
