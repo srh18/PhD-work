@@ -1,0 +1,390 @@
+ % This is file .tex
+% first release v1.0, 20th October 1996
+%       release v1.01, 29th October 1996
+%       release v1.1, 25th June 1997
+%       release v2.0, 27th July 2004
+%       release v3.0, 16th July 2014
+%   (based on JFMsampl.tex v1.3 for LaTeX2.09)
+% Copyright (C) 1996, 1997, 2014 Cambridge University Press
+\documentclass{jfm}
+
+%packages
+\usepackage{graphicx}
+\usepackage{epstopdf, epsfig, color}
+\usepackage{amsmath} 
+\usepackage[export]{adjustbox}
+\usepackage{bm}
+\usepackage{booktabs}
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage[version =4]{mhchem}
+\usepackage{url}
+
+\usepackage{nccmath}
+\usepackage{physics}
+\usepackage{tikz}
+
+\usepackage{mathtools}
+\usetikzlibrary{arrows,shapes,trees,backgrounds,calc,positioning}
+\usepackage{comment}
+
+\usepackage{mathrsfs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{setspace}
+\newcommand{\sq}[2][0]{% "sq" for "squeeze"
+	\mbox{$\medmuskip=#1mu\displaystyle#2$}%
+}
+
+
+% commands
+\newcommand{\partialfrac}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\D}{\mathcal{D}}
+\renewcommand{\dfrac}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\d}{\;\mathrm{d}}
+\newcommand{\intall}{\int_{-\infty}^\infty}
+\newcommand{\inflims}{_{-\infty}^\infty}
+\DeclareMathOperator{\const}{const}
+\DeclareMathOperator{\Bo}{Bo}
+
+\newcommand{\eqrefs}[1]{\eqref{#1top}-\eqref{#1bottom}}
+\newcommand{\scr}[1]{\mathcal{#1}}
+\newcommand{\e}[1]{\times 10^{#1}}
+
+
+\shorttitle{Dynamics of a thin film down a cylinder with topography}
+\shortauthor{S. R. Harrison and D. T. Papageorgiou}
+\title{Dynamics of a thin film down a cylinder with topography}
+\author{Samuel R. Harrison\aff{1}\aff{2}
+	\corresp{\email{s.r.harrison@pgr.reading.ac.uk}} \and
+	Demetrios T. Papageorgiou\aff{2}}
+\affiliation{\aff{1}
+	Department of Mathematics and Statistics, University of Reading,
+	Reading, UK \aff{2}Department of Mathematics, Imperial College London,
+	London, SW7 2AZ, UK}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	\maketitle
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	\begin{abstract}
+
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		
+		
+		
+		
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		
+	\end{abstract}
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	\begin{keywords}
+		thin films, cylindrical geometry, topography
+	\end{keywords}
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	\section{Introduction} \label{sec:1}
+	
+\section{Governing Equations} \label{sec:2} 
+For this problem we will be considering a thin film flow under gravity down a cylinder that has a long wave disturbance to its surface. The cylinder and its disturbance are fixed.The amplitude of this disturbance is of the same order as the fluid thickness. In order to model this flow down a cylinder, we start by using the axially symmetric Navier Stokes equations for an incompressible fluid. These are written as
+\begin{align}
+	\pdv{\tilde u}{\tilde r}+\frac{\tilde u}{\tilde r}+\pdv{\tilde w}{\tilde z}&=0\label{continuity}\\
+	\pdv{\tilde u}{\tilde t}+\tilde u\pdv{\tilde u}{\tilde r}+\tilde w\pdv{\tilde u}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde r}+\nu\left(\pdv[2]{\tilde u}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde u}{\tilde r}-\frac{1}{r^2}\tilde u+\pdv[2]{\tilde u}{\tilde z}\right)\\
+	\pdv{\tilde w}{\tilde t}+\tilde u\pdv{\tilde w}{\tilde r}+\tilde w\pdv{\tilde w}{\tilde z}&=-\frac{1}{\rho}\pdv{\tilde p}{\tilde z}+\nu\left(\pdv[2]{\tilde w}{\tilde r}+\frac{1}{\tilde r}\pdv{\tilde w}{\tilde r}+\pdv[2]{\tilde w}{\tilde z}\right) + g 
+\end{align}
+where $\tilde u$ the radial velocity and $\tilde w$ the downwards velocity as shown in figure \ref{fig:geom}. $\tilde p$ is the pressure, with $g$ the gravitational constant and $\nu$ the viscosity. At the wall we have no slip and no flux. The wall is located at the surface of a cylinder that has radius $\tilde{R}$ which has had a disturbance $\tilde{\eta}(\tilde{z})$. Therefore we can write the no slip and no flux conditions as
+\begin{align}
+\tilde{u}(\tilde{R} + \tilde{\eta}(\tilde{z})) = 0\\
+\tilde{w}(\tilde{R} + \tilde{\eta}(\tilde{z})) = 0
+\end{align}
+The air -fluid interface is located at a fluid thickness $\tilde{h}$ away from the wall at $\tilde r = \tilde S(\tilde z) = \tilde{h}+\tilde{R} + \tilde{\eta}(\tilde{z})$. At the fluid air interface we have the kinematic condition and conditions from tangential and normal stress.
+\begin{align}
+\tilde   u=\pdv{\tilde S}{\tilde t}+\tilde w\pdv{\tilde S}{\tilde z} \\
+2\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde r}-\pdv{\tilde w}{\tilde z}\right)+\left(1-\left(\pdv{\tilde S}{\tilde z}\right)^2\right)\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)&=0\label{tangstress}\\
+\tilde p\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-2\mu\left( \pdv{\tilde u}{\tilde r}-\pdv{\tilde S}{\tilde z}\left(\pdv{\tilde u}{\tilde z}+\pdv{\tilde w}{\tilde r}\right)+\left(\pdv{\tilde S}{\tilde z}\right)^2\pdv{\tilde w}{\tilde z}\right)&=\gamma\frac{\left(\frac{1}{\tilde S}\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)-\pdv[2]{\tilde S}{\tilde z}\right)}{\left(1+\left(\pdv{\tilde S}{\tilde z}\right)^2\right)^{\frac{1}{2}}}\label{normstress}
+\end{align}
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}
+		\draw[<->](-2,4.1)--(2,4.1);
+		\node[above] at (0,4.1) {$R$};
+		\draw[<->](2,4.1)--(3,4.1);
+		\node[above] at (2.5,4.1) {$a$};
+		
+		\draw[->] (4,4) --(4,3);
+		\node[ left] at (4,3) {$\tilde w$};
+		\draw[->] (4,4) --(5,4);
+		\node[above ] at (5,4) {$\tilde u$};
+		\draw[->] (0,3) --(0,1);
+		\node[right] at (0,2) {$\tilde g$};
+		
+		\draw[->] (-4,4) --(-4,3);
+		\node[left] at (-4,3) {$\tilde z$};
+		\draw[->] (-4,4) --(-3,4);
+		\node[above] at (-3,4) {$\tilde r$}; 
+		\draw (-2, 0) --(-2,4);
+		\draw[rotate = 90,shift = {(0,-2)}] (0,0)sin(1,1) cos (2,0) sin(3,-1) cos(4,0);
+		\draw[rotate = 90,shift = {(0,-3)}] (0,0)sin(1,0.25) cos (2,0) sin(3,-0.25) cos(4,0);
+		\node[below] at (2,0) {$\eta(z)$}; 
+		
+		
+	\end{tikzpicture}
+	\caption{Geometry the problem\label{fig:geom}}
+\end{figure}
+We non-dimensionalise by using the mean fluid thickness $h_0$. Our non dimensional variables will be written without the tildes. At this stage we also change coordinates so that the wall is located at $r =0$. The dimensional coordinates are written as.
+
+
+\begin{align}
+	\tilde r = h_0\left(\frac{R}{\epsilon}+\eta(z) +r\right)\\
+	\tilde z = h_0\frac{ z}{\epsilon}
+\end{align}
+where $\epsilon$ is the long wave parameter. This can be written as the ratio between the fluid thickness and the disturbance wavelength, $\epsilon = \frac{h_0}{\lambda}$. Here $R$ is the ratio between the radius of the cylinder and the disturbance, $R =\frac{\tilde{R}}{\lambda}$. For this we are considering $R = O(1)$ and $\eta = O(1)$ and $\epsilon\ll 1$. 
+
+This means that the $\tilde z$  derivative is now small and is written as
+\begin{align}
+	\pdv{\tilde{z}} = \epsilon\left(\pdv{z} - \eta_z\pdv{r}\right)
+\end{align}
+where subscripts here and from now on denote differentiation.
+From the continuity equation we find that $U = \epsilon W$, where $U,W$ are the dimensional constants for radial and vertical velocity. Since we have gravity driven flow we find that the vertical velocity scales like $W  = \frac{{h_0}^2g}{\nu}$. We also have the vertical velocity forced by the pressure gradient. This means $P = \frac{\rho h_0 g}{\epsilon}$. Time is scaled by how long it takes the fluid to travel one wavelength, $ T = \frac{\lambda}{W} =  \frac{a_0}{W\epsilon}$, meaning $\pdv{t} = O(\epsilon)$. Therefore all inertial terms only appear at $O(\epsilon)$.
+ 
+ To leading order our equations have now become
+ \begin{align}
+ 	u_r + w_z - \eta_z w_r = 0\\
+ 	p_r = 0\\
+ 	w_{rr}-p_z +1 = 0
+ \end{align}
+with boundary conditions
+\begin{align}
+	u(0) = w(0) = 0\\
+	u(h)  = h_t + w(h)h_z\\
+	w_r(h) = 0\\
+	p(h) = -\frac{1}{\Bo}\left(-\frac{1}{\epsilon R}+\frac{\eta + h}{R^2} + \eta_{zz} + h_{zz} \right)
+\end{align}
+	Where $\Bo = \frac{\rho {h_0}^2g}{\gamma\epsilon^3}$ is the Bond number. Solving this, we find 
+	\begin{align}
+		p_z = -\frac{1}{\Bo}\left(\frac{\eta_z+h_z}{R^2}+\eta_{zzz}+ h_{zzz}\right)\\
+		w = (p_z - 1)\left(\frac{r^2}{2} - r h\right)\\
+		u = \eta_z w - p_{zz}\left(\frac{r^3}{6} - \frac{r^2h}{2}\right)+(p_z - 1)\frac{r^2h_z}{2}
+	\end{align}
+Applying these into the kinematic condition we get an evolution equation for the fluid thickness.
+
+
+	
+
+	\begin{align}
+	h_t + \pdv{z}\left(\frac{h^3}{3}\left( 1  + \frac{1}{\Bo}\left(\frac{h_z+ \eta_z}{R^2} + h_{zzz}+ \eta_{zzz}\right)\right) \right)\label{maineq}
+	\end{align}
+
+	For the flat wall case, this is the same as the equation reported in \cite{CRASTER_2006,kalliadasis_chang_1994}.
+	Increasing the amplitude of the wall in this scenario causes waves that previously travelled down the wall to no longer be able to get past.
+\section{Linear Stability Analysis}
+For the flat wall case we can perform linear stability analysis by considering a small perturbation away from the flat wall case
+\begin{align}
+	h = h_0 + H e^{ikz - i\omega t}
+\end{align}
+This results in 
+\begin{align}
+	i\omega = ik {h_0}^2 + {h_0}^3\left(-\frac{k^2}{R^2 }+k^4\right)
+\end{align}
+Separating into real and imaginary parts this gives 
+\begin{align}
+	\omega_r = {h_0}^2 k\\
+	\omega_i = {h_0}^3\left(\frac{k^2}{R^2}-k^4\right)
+\end{align}
+Therefore we are stable if 
+\begin{align}
+	k<\frac{1}{R}
+\end{align}and unstable for 
+\begin{align}
+	k>\frac{1}{R}
+\end{align}
+This means that 
+\begin{align}
+	L = 2\pi R
+\end{align}
+lies on the neutral stability curve. 
+Note that if the wall is 
+\begin{align}
+	\eta  = \cos\left(\frac{2\pi z}{L}\right)
+\end{align}
+Then
+\begin{align}
+	\frac{\eta_z }{R}+ \eta_{zzz} = 0
+\end{align}
+at $L = 2\pi R$. 
+Since the case with the wall disturbance tends to the equation without the wall disturbance, it is expected that even with a wall disturbance that the steady states will change stability at $L = 2\pi R$
+\section{Steady states}
+We can find steady states of the system by setting $h_t = 0$. For the flat wall case $h = 1$ is a trivial solution. If we consider the amplitude of the wall to be small, i.e $|\eta| = \delta \ll 1$. Then we would expect this to perturb the fluid thickness at this order. Setting $h = 1 + \delta \hat{h}$ results in the equation
+\begin{align}
+	\hat{h}_{zzz} +\frac{\hat{h}_z}{R^2}  + 3\Bo\hat{h} =  - \frac{\eta_z}{R^2} - \eta_{zzz}
+\end{align}
+where $q$ is a constant and denotes the flow rate. For the case where we have a flat wall and the steady state is $h = 1$, the flow rate $q = \frac{1}{3}$. A steady state of the form 
+\begin{align}
+\hat{h} = A \cos(kz - \theta) \label{smallh}
+\end{align}
+where 
+\begin{align}
+	\tan \theta = \frac{3\Bo L^3R^2}{2\pi(4\pi^2R^2-L^2)}\\
+	A = -\cos \theta
+\end{align}
+Here we can see since for positive amplitude $\cos\theta<0$, hence the phase shift must be $\frac{\pi}{2}<\theta<\frac{3\pi}{2}$. There is a discontinuity at $L = 2\pi R$, however this is the case where the wall terms cancel out, resulting in the flat wall equation. Looking at the wavelengths just before and after by setting $L = 2\pi R \pm \epsilon$ where $\epsilon \to 0$.We find that $L = 2\pi R - \epsilon$ gives $\theta = \frac{3\pi}{2}$ and $L = 2\pi R + \epsilon$ gives $\theta = \frac{\pi}{2}$. Both of these result in an amplitude tending to 0, as expected from the flat wall case. It's also interesting to note that as $L\to 0 $ we would get $\tan \theta \to 0$ meaning that $\theta = \pi$ and so this case the fluid disturbance is out of phase with the wall. It also has $A = 1$ so that if you looked at the surface of the fluid it would seem completely flat. Looking at increasing $L>2\pi R$, the phase shift and the amplitude will initially increase slightly, however the limit $L\to \infty$ again means that $\theta\to \frac{\pi}{2}$.\\
+For larger amplitude walls we solve the equation numerically using MATLAB's function fsolve. We have integrated the equation to make it easier to solve. This gives us
+\begin{align}
+ q = 	\frac{h^3}{3}  + \frac{h^3}{3B}\left(\frac{h_z+ \eta_z}{R^2} + h_{zzz}+ \eta_{zzz}\right)
+\end{align}
+ where $q$ is the constant flow rate. The additional constraint
+\begin{align}
+	\frac{1}{L}\int_0^L h \dd{z} = 1
+\end{align}
+is imposed and $q$ can be calculated as a result of this. We look for steady states by fixing the mass instead of the flow rate to make it easier to compare to the dynamic solutions.
+\begin{figure}
+	\vspace{.25cm}
+	\centering
+	{\footnotesize (a) }\includegraphics[width = 0.4\linewidth]{/Users/srh18/Documents/PhD/plots/psbigp/SteadyAmpchangeamp}{\footnotesize  (b)   }\includegraphics[width = 0.4\linewidth]{/Users/srh18/Documents/PhD/plots/psbigp/SteadyPhasechangeamp}
+	\caption{How the fluid thickness's amplitude (a) and phase shift (b) are affected by different wavelength walls. This has been done for several different radii and compared to the small wall approximation \eqref{smallh}}
+	\label{deltasteady}
+\end{figure}
+From figure \ref{deltasteady} we can see that the amplitude and phase shift correspond well with the small amplitude approximation. Increasing the amplitude of the wall also seems to increase the amplitude of the fluid disturbance. Difference here being the $L<2\pi$ cases where we see that the $\delta = 1.5,2$ cases having a smaller amplitude.The phase shift for these steady states seem delayed as well.
+\section{Dynamical Solutions}
+To solve equation \eqref{maineq} we have used 256 spatial steps. spatial derivatives were done using a psuedo spectral technique. Time was integrated using MATLAB function ode15s. For these cases we integrated for 500 time units with the initial condition being 
+\begin{align}
+	h_0 = 1 + 0.1\sin\frac{2 \pi z}{L}
+\end{align}
+We fixed the parameters $\Bo = 1$ and $R = 1$ to primarily study the affect that the amplitude and wavelength of the wall had. To this end we also looked at modelling the flat wall equation to further see how adding the wall had any affect. As expected for cases where $L<2\pi$, these settled to the steady state solution. Therefore we will primary be looking at the cases where $L >2\pi$. 
+Most of the solutions give a travelling wave. The speed of this travelling wave varies slightly as it completes a period however an average speed can be calculated.
+\begin{figure}
+\vspace{.25cm}
+\centering
+ \includegraphics[width = 0.8\linewidth]{/Users/srh18/Documents/PhD/plots/psbigp/speed}
+\caption{Speed of main peak in travelling wave for different waveleght and amplitude walls}
+\label{speed}
+\end{figure}
+From figure \ref{speed} we can see that increasing the wavelength generally increases the wavespeed. However there are discontinuities where the wave speed suddenly drops. These discontinuities correspond to the solutions that form more than one main peak. Up until the first discontiunity there is one clear peak, with after the first discontinuity there are 2 peaks and after the 2nd discontinuity there are 3 peaks. The amplitude of the wall seems to have some influence on which solution that results. where we can see that for the $\delta = 1$ case we have the solution in the 3 peaks regime. Generally we also see that increasing the amplitude decreases the speed of the travelling wave. 
+
+To understand the affect that the wall has on the fluid thickness, we consider the Energy 
+\begin{align}
+	E = \frac{1}{L}\int_0^L h^2\dd{z}
+\end{align}
+Looking at the case where $L = 4\pi$.
+\begin{figure}
+	\vspace{.25cm}
+	\centering
+	\includegraphics[width = 0.8\linewidth]{/Users/srh18/Documents/PhD/plots/psbigp/L4pih2}
+	\caption{Energy norms over time for different amplitude walls}
+	\label{4pih2}
+\end{figure}
+Here we see that the solutions after around 100 time units settles to a time periodic solution. For the flat wall case the Energy is constant as we have a simple travelling wave. For the $\delta = 0.1$ case we see the oscillation has amplitude 0.0038, with a time period of  around 10.75 time units.
+For the $\delta = 1$ case we have the amplitude of the oscillation being 0.0405 almost 10 times larger, with a time period of  around 11.3 time units. This oscillation in the energy occurs as the wave travels through the period. 
+\begin{figure}
+	\vspace{.25cm}
+	\centering
+	\includegraphics[width = 0.8\linewidth]{/Users/srh18/Documents/PhD/plots/psbigp/waveperioddel1L4pi}
+	\caption{Fluid thickness wave moving through a period. The grey curves are taken every 0.1 time unit. The time which give the maximum and minimum energy are highlighted, as well as the times halfway between the two.}
+	\label{waveperiod}
+\end{figure}
+Figure \ref{waveperiod} shows us the bounds of the travelling waves oscillation and highlights the paths followed by the maximum and the minimum. For this case we also have a much smaller peak downstream of the main peak. The area in which travels can also be seen by the slightly darker grey, as this is where we have had some overlap. 
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	%\section*{Acknowledgements}
+	%
+	%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%
+	%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%
+	%\section*{Declaration of interests}
+	% 
+	% 
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%
+	%The authors report no conflict of interest.
+	%
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+%	\appendix
+%	\section{Code Validation} \label{app:A}
+%	The code has been checked against the Kuramoto-Sivashinsky, as reported in \cite{papageorgiou1991route}, a fourth-order nonlinear parabolic partial differential equation as reported in \cite{witelski2004blowup} and gives similar results.
+%	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	
+	
+	
+	
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+	
+	
+	\bibliographystyle{jfm}
+	\bibliography{refs.bib}
+	
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	
+\end{document}

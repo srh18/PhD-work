@@ -1336,6 +1336,49 @@ classdef shape_solveh
                 % plot(obj.h(lasttrajects(npeak):end,obj.n/4*m1+1)./obj.mass(lasttrajects(npeak):end),obj.h(lasttrajects(npeak):end,obj.n/4*m2+1)./obj.mass(lasttrajects(npeak):end))
             end
         end
+        function phaseplotE(obj,t,earlytraj)
+            if nargin <3
+                earlytraj = 0;
+            end
+            if nargin == 1
+                t = obj.T/2;
+            end
+            nt = floor(t/obj.delt);
+                if earlytraj == 1
+                    hold on 
+                    plot(obj.h2norm(1:nt),obj.h2norm(2:nt+1),'--','Color',[0.8 0.8 0.8])
+                end
+                plot(obj.h2norm(nt:end-1),obj.h2norm(nt+1:end),'Color',[0 0.4470 0.7410])
+                
+                hold off
+                xlabel('$E(t)$')
+                ylabel('$E(t+\delta t$')
+                title(sprintf('Energy compared between consecutive time steps for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+            
+        end
+        function phaseplotEt(obj,t,earlytraj)
+            if nargin <3
+                earlytraj = 0;
+            end
+            if nargin == 1
+                t = obj.T/2;
+            end
+            nt = floor(t/obj.delt);
+                if earlytraj == 1
+                    hold on 
+                    plot(obj.h2norm(1:nt),(obj.h2norm(2:nt+1)-obj.h2norm(1:nt))/obj.delt,'--','Color',[0.8 0.8 0.8])
+                end
+                plot(obj.h2norm(nt:end-1),(obj.h2norm(nt+1:end)-obj.h2norm(nt:end-1))/obj.delt,'Color',[0 0.4470 0.7410])
+                
+                hold off
+                xlabel('$E(t)$')
+                ylabel('$\frac{dE}{dt}$')
+                title(sprintf('Energy compared between consecutive time steps for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+            
+        end
+            
+            
+        
         function phaseplota(obj,m1,m2,npeak)
             if nargin ==3
                 hold on
@@ -1517,7 +1560,7 @@ classdef shape_solveh
         function surfdata(obj,c)
             if nargin ==1
             obj = obj.follow_peak;
-            c = polyfit(obj.t(floor(0.2*end):end),obj.zpos(floor(0.2*end):end),1);
+            c = polyfit(obj.t(floor(0.5*end):end),obj.zpos(floor(0.5*end):end),1);
             end
             phi = mod((obj.z-c(1)*obj.t),obj.L);
             [phi,I] = sort(phi,2);
@@ -1561,6 +1604,37 @@ classdef shape_solveh
         obj.h = real(ifft(Fh,[],2));
         
         end
+        
+        function [V,D] = Floquet(obj,h)
+            if nargin ==1
+                obj = obj.get_h;
+            else
+                obj.h0 = h;
+            end
+            [h0z,h0zz,h0zzz,h0zzzz] = obj.getdiv(obj.h0);
+            h0 = obj.h0;
+            eta = obj.eta;
+            etaz = obj.etaz;
+            etazz = obj.etazz;
+            etazzz = obj.etazzz;
+            etazzzz = obj.etazzzz;
+            H = 2*h0.*h0z.*(1 + 1/obj.Bo*((h0z+etaz)/obj.R^2 + h0zzz+etazzz))+h0.^2/obj.Bo.*((h0zz+etazz)/obj.R^2 +h0zzzz + etazzzz);
+            Hz = h0.^2.*(1 + 1/obj.Bo*((2*h0z+etaz)/obj.R^2 + h0zzz+etazzz));
+            Hzz = h0.^3/(3*obj.Bo*obj.R^2);
+            Hzzz = (h0.^2.*h0z)/(3*obj.Bo);
+            Hzzzz = h0.^3/3/obj.Bo;
+            
+            d0 = H - 2*(obj.n/obj.L)^2*Hzz+6*(obj.n/obj.L)^4*Hzzzz;
+            dn1 = -1/2*(obj.n/obj.L)*Hz + (obj.n/obj.L)^2*Hzz + (obj.n/obj.L)^3*Hzzz- 4*(obj.n/obj.L)^4*Hzzzz;
+            dn2 = -1/2*(obj.n/obj.L)^3*Hzzz + (obj.n/obj.L)^4*Hzzzz;
+            d1 = 1/2*(obj.n/obj.L)*Hz+ (obj.n/obj.L)^2*Hzz-(obj.n/obj.L)^3*Hzzz - 4*(obj.n/obj.L)^4*Hzzzz;
+            d2 = 1/2*(obj.n/obj.L)^3*Hzzz+(obj.n/obj.L)^4*Hzzzz;
+            Jac = diag(d0)+ diag(d1(1:end-1),1)+ diag(d2(1:end-2),2)+diag(dn1(2:end),-1)+diag(dn2(3:end),-2) + diag(d1(end),1-obj.n) + diag(d2(end-1:end),2-obj.n) + diag(dn1(1),obj.n-1) + diag(dn2(1:2),obj.n-2);
+            [V,D] = eig(Jac);
+            
+        end
+            
+            %construct Matrix
     end
 end
 %% Old Code
