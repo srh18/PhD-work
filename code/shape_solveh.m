@@ -204,7 +204,7 @@ classdef shape_solveh
             
         end
         function value = get.h2norm(obj)
-            value = sum(obj.h.^2,2)/obj.n;
+            value = sqrt(sum(obj.h.^2,2)/obj.n);
         end
         
         function value = get.hdiff(obj)
@@ -1195,11 +1195,11 @@ classdef shape_solveh
         end
         
         function h2varyamp(obj)
-            del = 0.05:0.05:2;
+            del = 0.05:0.05:4;
             for i = 1:length(del)
                 obj.del = del(i);
                 obj = obj.get_h;
-                if obj.eflag<= 0
+                if obj.eflag<= 0 | obj.q<0
                     break
                 end
                 obj.h = obj.h0;
@@ -1207,6 +1207,20 @@ classdef shape_solveh
             end
             l = length(h2);
             plot(del(1:l),h2)
+        end
+              function qvaryamp(obj)
+            del = 0.05:0.05:4;
+            for i = 1:length(del)
+                obj.del = del(i);
+                obj = obj.get_h;
+                if obj.eflag<= 0 | obj.q<0
+                    break
+                end
+                obj.h = obj.h0;
+                q(i) = obj.q;
+            end
+            l = length(q);
+            plot(del(1:l),q)
         end
         function plot_h2varyamp(obj,vals,param)
             if nargin ==3
@@ -1604,8 +1618,15 @@ classdef shape_solveh
         obj.h = real(ifft(Fh,[],2));
         
         end
-        
-        function [V,D] = Floquet(obj,h)
+        function plot_h2peaks(obj)
+            [~,hloc] = findpeaks(obj.h2norm);
+            hloc = hloc(hloc>2000);
+            hold on 
+            for i = hloc
+                plot(obj.z,obj.h(i,:))
+            end
+        end
+        function [V,d] = Floquet(obj,h)
             if nargin ==1
                 obj = obj.get_h;
             else
@@ -1631,10 +1652,46 @@ classdef shape_solveh
             d2 = 1/2*(obj.n/obj.L)^3*Hzzz+(obj.n/obj.L)^4*Hzzzz;
             Jac = diag(d0)+ diag(d1(1:end-1),1)+ diag(d2(1:end-2),2)+diag(dn1(2:end),-1)+diag(dn2(3:end),-2) + diag(d1(end),1-obj.n) + diag(d2(end-1:end),2-obj.n) + diag(dn1(1),obj.n-1) + diag(dn2(1:2),obj.n-2);
             [V,D] = eig(Jac);
+            d = diag(D);
+            index = d<0;
+            d = d(index);
+            V = real(V(:,index));
+            
             
         end
             
-            %construct Matrix
+        function n = most_unstable(obj)
+            [V,d] = obj.Floquet();
+            [val,loc] = max(-real(d));
+            [pval,ploc] = findpeaks(V(:,loc));
+            n = length(pval);
+        end
+        function n = num_unstable(obj,h)
+            if nargin ==2
+            [V,d] = obj.Floquet(h);
+            else
+                [V,d] = obj.Floquet();
+            end
+            
+            [pval,ploc] = findpeaks(V(:,1));
+            m = length(pval);
+            n = floor(length(d)/2);
+            if m~=n
+                n = n+0.1;
+            end
+        
+        end
+        function c = init_speed(obj)
+            [~,d] = obj.Floquet();
+            c = -1i*d*obj.L/2/pi;
+            c = abs(real(c));
+        end
+        function [k,kflat] = init_growth(obj)
+           [~,d] = obj.Floquet();
+            
+            k = real(d);
+            kflat = (imag(d).^4-imag(d).^2)/3/obj.Bo;
+        end
     end
 end
 %% Old Code
