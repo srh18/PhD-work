@@ -80,6 +80,8 @@ classdef shape_solveh
         
         zpos
         speed
+        peakh
+        peakp
         
         %string of parameters
         params = {'Bo','R','L','Re','\epsilon','\delta'}
@@ -134,7 +136,9 @@ classdef shape_solveh
         hdiff %differenence from the steady state
         at %time derivative of amass
         a
-        
+        pz
+        w
+        u
     end
     
     
@@ -185,6 +189,7 @@ classdef shape_solveh
         end
         function value = get.Q(obj)
             [hz,~,hzzz,~] = obj.getdiv(obj.h);
+            
             if obj.equation == 0
                 value = obj.h.^3/3+ obj.ep*(2/15*obj.Re*obj.h.^6.*hz + obj.h.^3/3/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz)-2/3/obj.R*obj.h.^3.*obj.eta - 1/6/obj.R*obj.h.^4);
             elseif obj.equation == 1
@@ -207,6 +212,18 @@ classdef shape_solveh
             value = sqrt(sum(obj.h.^2,2)/obj.n);
         end
         
+        function value = get.pz(obj)
+            [hz,~,hzzz,~] = obj.getdiv(obj.h);
+            
+            value = -1/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz);
+        end
+        function value = get.w(obj)
+            value = obj.h.^2.*(1-obj.pz)/2;
+        end
+        function value = get.u(obj)
+            [hz,hzz,~,hzzzz] = obj.getdiv(obj.h);
+            value = (obj.etaz -hz).*obj.w  -1/obj.Bo*((obj.etazz+hzz)/obj.R^2 + obj.etazzzz+hzzzz).*obj.h.^3/3;
+        end
         function value = get.hdiff(obj)
             value = obj.h - obj.h0;
         end
@@ -514,7 +531,7 @@ classdef shape_solveh
                     
                     
                     % Transform into fourier space
-                    yF = fft(a);
+                    yF = fft(a,[],2);
                     
                     N = obj.n/2;
                     
@@ -526,32 +543,32 @@ classdef shape_solveh
                     yF(abs(yF)<obj.suppression) = 0;
                     %yF = [yF,zeros(1,3*obj.n)]*4;
                     % Apply pseudo-spectral differentiation
-                    padzeros = zeros(1,(obj.pad-1)*obj.n);
+                    padzeros = zeros(dim(1),(obj.pad-1)*obj.n);
                     
-                    yF = [yF(1:N),padzeros, yF(N+1:obj.n)]*obj.pad;
-                    k = [0:N-1,padzeros, 0, 1-N:-1] * 2*pi/obj.L;
+                    yF = [yF(:,1:N),padzeros, yF(:,N+1:obj.n)]*obj.pad;
+                    k = [0:N-1,padzeros(1,:), 0, 1-N:-1] * 2*pi/obj.L;
                     % Posterior suppression
                     % dyF(abs(dyF) < suppression*N*2) = 0 ;
                     % dyF(abs(dyF) < suppression*max(abs(dyF))) = 0 ;
                     
                     % Transform back into real space
                     dyF = (1i*k).^1.*yF;
-                    az = real(ifft(dyF));
+                    az = real(ifft(dyF,[],2));
                     %az = real(ifft(dyF,obj.n*obj.pad));
-                    az = az(1:obj.pad:end);
+                    az = az(:,1:obj.pad:end);
                     dyF = (1i*k).^2.*yF;
-                    azz = real(ifft(dyF));
+                    azz = real(ifft(dyF,[],2));
                     %azz = real(ifft(dyF,obj.n*obj.pad));
-                    azz = azz(1:obj.pad:end);
+                    azz = azz(:,1:obj.pad:end);
                     dyF = (1i*k).^3.*yF;
                     
                     %azzz = real(ifft(dyF,obj.n*obj.pad));
-                    azzz = real(ifft(dyF));
-                    azzz = azzz(1:obj.pad:end);
+                    azzz = real(ifft(dyF,[],2));
+                    azzz = azzz(:,1:obj.pad:end);
                     dyF = (1i*k).^4.*yF;
-                    azzzz = real(ifft(dyF));
+                    azzzz = real(ifft(dyF,[],2));
                     %azzzz = real(ifft(dyF,obj.n*obj.pad));
-                    azzzz = azzzz(1:obj.pad:end);
+                    azzzz = azzzz(:,1:obj.pad:end);
                 else
                     if dim(1) == 1
                         
@@ -1316,22 +1333,26 @@ classdef shape_solveh
             else
                 plot(obj.t,sum(obj.hdiff.^2/obj.n,2))
             end
+            xlabel('$t$')
+            ylabel('$||h||_2$')
+            title(sprintf('$||h||_2$ for $\\delta =%g$, $L= %g\\pi$',obj.del,obj.L/pi))
         end
-        
+
         function plotz0(obj,m)
             % m = [0 1 2 3 10] plots the position at the maixima, 0 minima and 0
             if nargin ==1
-                m = 10;
+                m = 0;
             end
             
             if m == 10
                 plot(obj.t,mean(obj.a,2))
             else
-                plot(obj.t(floor(3/4*end):end), obj.a(floor(3/4*end):end,obj.n/4*m+1))
+                plot(obj.t, obj.a(:,obj.n/4*m+1))
             end
             xlabel('$t$')
-            ylabel('$a$')
-            title('Fluid thickness over the maximum')
+            ylabel('$h$')
+            maxstring = {'maximum', '0 after max','minimum','0 after min'};
+            title(sprintf('Fluid thickness over the wall %s for $\\delta =%g$, $L= %g\\pi$',maxstring{m+1},obj.del,obj.L/pi))
         end
         
         function phaseplot(obj,m1,m2,npeak)
@@ -1385,9 +1406,9 @@ classdef shape_solveh
                 plot(obj.h2norm(nt:end-1),(obj.h2norm(nt+1:end)-obj.h2norm(nt:end-1))/obj.delt,'Color',[0 0.4470 0.7410])
                 
                 hold off
-                xlabel('$E(t)$')
-                ylabel('$\frac{dE}{dt}$')
-                title(sprintf('Energy compared between consecutive time steps for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+                xlabel('$||h(t)||_2$')
+                ylabel('$\frac{d||h||_2}{dt}$')
+                title(sprintf('Phase plot for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
             
         end
             
@@ -1505,57 +1526,80 @@ classdef shape_solveh
             
         end
         
-        function obj = follow_peak(obj,t,zreset,region)
-            if nargin == 1
-                t = 0;
+        function obj = follow_peak(obj,n,t,zreset,region)
+            if nargin<3
+                t = obj.t(1);
                 zreset = 0;
                 region = 10;
             end
+            if nargin == 1
+                
+                n = 16;
+                
+            end
+            obj2 = obj;
+            obj2.n = obj.n*n;
+            obj2.ps = 0;
             [ba,i2] = min(abs(obj.t -t));
             l = length(obj.t(1:end));
             
             m = 0 ;
-            [~, k ] = max(obj.a(i2,:));
+            a = interp1([obj.z,obj.L],[obj.h(i2,:),obj.h(i2,1)],0:obj.L/obj.n/n:obj.L - obj.L/obj.n/n,'spline','extrap');
+            [h, k ] = max(a);
+            [~,hzz,~,~ ] = obj2.getdiv(a);
+            z0 = (k-1)/n/obj.n*obj.L;
+            obj.zpos(1) = z0;
+            obj.peakh(1) = h;
             
-            z0 = obj.z(k);
-            obj.zpos(1) = 0;
+            obj.peakp(1)  = -1/obj2.Bo*((obj2.eta(k)+h)/obj2.R^2+obj2.etazz(k)+ hzz(k));
             for i = 1:l-i2
-                if k+region<=obj.n && k-region>0
-                    [~, j ] = max(obj.a(i+i2,k-region:k+region));
+                a = interp1([obj.z,obj.L],[obj.h(i+i2,:),obj.h(i+i2,1)],0:obj.L/obj.n/n:obj.L - obj.L/obj.n/n,'spline','extrap');
+                [~,hzz,~,~ ] = obj2.getdiv(a);
+                if k+region<=n*obj.n && k-region>0
+                    [h, j ] = max(a(k-region:k+region));
                     k = k-region + j - 1;
-                elseif k+region>obj.n
-                    [a, j ] = max(obj.a(i+i2,k-region:obj.n));
                     
-                    [b,j2] = max(obj.a(i+i2,1:k+region-obj.n));
-                    if a>b
+                elseif k+region>obj.n
+                    [ma, j ] = max(a(k-region:obj.n*n));
+                    
+                    [mb,j2] = max(a(1:k+region-n*obj.n));
+                    if ma>mb
                         k = k-region+j-1;
+                        h = ma;
                     else
                         k = j2;
                         m= m+1;
+                        h = mb;
                     end
                     
                     
                 elseif k-region<1
-                    [a, j ] = max(obj.h(i+i2,k-region+obj.n:obj.n));
-                    [b,j2] = max(obj.h(i+i2,1:k+region));
-                    if a > b
+                    [ma, j ] = max(a(k-region+n*obj.n:n*obj.n));
+                    [mb,j2] = max(a(1:k+region));
+                    if ma > mb
                         m= m-1;
                         k = k-region+obj.n+j-1;
+                        h = ma;
                     else
                         k = j2;
+                        h= mb;
                     end
                     
                 end
                 
-                
-                obj.zpos(i+1) = obj.z(k) + m*obj.L-zreset*z0;
+                obj.peakh(i+1) = h;
+                obj.zpos(i+1) = (k-1)/obj.n/n*obj.L+m*obj.L;
+                obj.peakp(i+1)  = -1/obj2.Bo*((obj2.eta(k)+h)/obj2.R^2+obj2.etazz(k)+ hzz(k));
                 %                 if k ==1
                 %                     plot(obj.t(i+i2),obj.zpos(i+1),'kx')
                 %                 elseif k== 251
                 %                      plot(obj.t(i+i2),obj.zpos(i+1),'ko')
                 %                 end
-                obj.speed(i) = (obj.zpos(i+1) - obj.zpos(i))/(obj.t(i2+i)-obj.t(i2+i-1));
+                
+                
             end
+            %obj.zpos = smooth(smooth(obj.zpos,101),101);
+            obj.speed = [(obj.zpos(2)-obj.zpos(1))/obj.delt,(obj.zpos(3:end)-obj.zpos(1:end-2))/(2*obj.delt),(obj.zpos(end)-obj.zpos(end-1))/obj.delt];
             
             %plot(obj.t(i2:end),obj.zpos)
             
@@ -1571,21 +1615,26 @@ classdef shape_solveh
                 c = obj.L *(length(goodpeaks)-1)/(obj.t(goodpeaks(end))- obj.t(goodpeaks(1)));
             end
         end
-        function surfdata(obj,c)
+        function surfdata(obj,c,shift)
+            if nargin <=2
+                shift = 0;
+            end
             if nargin ==1
             obj = obj.follow_peak;
             c = polyfit(obj.t(floor(0.5*end):end),obj.zpos(floor(0.5*end):end),1);
             end
-            phi = mod((obj.z-c(1)*obj.t),obj.L);
+            phi = mod((obj.z-c(1)*obj.t+shift),obj.L);
             [phi,I] = sort(phi,2);
             I = I + obj.n*(0:length(I)-1)';
 %             for j = 1:length(obj.t)/100
 %                 a(100*j,:) = obj.a(100*j,I(j,:));
 %             end
             
-            clf
+            
             a = obj.a';
+            
             pcolor(phi,obj.t,a(I))
+            %pcolor(obj.t,phi',a(I)')
           
              
           
@@ -1595,8 +1644,14 @@ classdef shape_solveh
             colorbar
             xlabel('$z-ct$')
             ylabel('$t$')
+            xlim([0,obj.L])
             del = erase(string(obj.del),'.');
-            title(sprintf('Fluid Thickness for wall amplitude = %g, c = %g',obj.del, c(1)))
+            if obj.del == 1
+                title(sprintf('Fluid Thickness for wall $\\eta =\\cos %.2g z$, $c = %g$',2*pi/obj.L ,c(1)))
+            else
+                
+            title(sprintf('Fluid Thickness for wall $\\eta =%g\\cos %.2g z$, $c = %g$',obj.del,2*pi/obj.L ,c(1)))
+            end
             name = sprintf('../plots/colour/ColourL%gdel%s',obj.L/pi,del);
 %             savefig(name)
 %             saveas(gcf,name,'epsc')
@@ -1692,6 +1747,126 @@ classdef shape_solveh
             k = real(d);
             kflat = (imag(d).^4-imag(d).^2)/3/obj.Bo;
         end
+        function c = get_c_spectrally(obj,delay)
+            if nargin ==1
+                delay = 200;
+            end
+           
+           c = [loc(loc2)-0.5,loc(loc2), loc(loc2)+0.5]/(obj.T-delay)*obj.L;
+        end
+        
+        function plot_period(obj,t,delt,n)
+            if nargin<4
+                n = 1; 
+            end
+            if nargin<3
+                delt = 0.1;
+            end
+            if nargin <2
+                t = 300;
+            end
+            
+            [hmax,hloc0] = findpeaks(obj.h2norm);
+            [hmin,hmloc] = findpeaks(-obj.h2norm);
+            [hmax2,hloc2] = findpeaks(obj.Qint);
+            [hmin2,hmloc2] = findpeaks(-obj.Qint);
+            hloc = hloc0(hloc0>(t-obj.t(1))/obj.delt);
+            hmax1 = hmax(hloc0>(t-obj.t(1))/obj.delt);
+            hm1 = hloc(1)
+            hm2 = hloc(1+n)
+            hl = hmloc(hmloc<hm2&hmloc>hm1)
+            h2m = hloc2(hloc2<hm2&hloc2>hm1)
+            h2l = hmloc2(hmloc2<hm2&hmloc2>hm1)
+            obj = obj.get_h;
+            hold on,
+            title(sprintf('$h$ from between $t =%g$ and $t=%g$ at $t = %g$ intervals for wall $\\eta = %g\\cos %.2gz$',obj.t(hm1),obj.t(hm2),delt,obj.del,2*pi/obj.L))
+            
+            for i = hm1:floor(delt/obj.delt):hm2-1
+                plot(obj.nz,obj.h(i,:),'color',[0.8,0.8,0.8],'linewidth',0.5,'HandleVisibility','off')
+            end
+            set(gca,'ColorOrderIndex',1)
+            plot(obj.nz,obj.h(hm1,:),'linewidth',2,'DisplayName',sprintf('maximum $||h||_2 = %.4g$',hmax1(1)))
+            plot(obj.nz,obj.h(hl,:),'linewidth',2,'DisplayName',sprintf('minimum $||h||_2 = %.4g$',-hmin(hmloc<hm2&hmloc>hm1)))
+            plot(obj.nz,obj.h(h2m,:),'linewidth',2,'DisplayName',sprintf('maximum $Q$ = %.4g',hmax2(hloc2<hm2&hloc2>hm1)))
+            plot(obj.nz,obj.h(h2l,:),'linewidth',2,'DisplayName',sprintf('minimum $Q$ = %.4g',-hmin2(hmloc2<hm2&hmloc2>hm1)))
+            %plot(value.nz,value.h(floor((hm1+hl)/2),:),'linewidth',2,'HandleVisibility','off')
+            %plot(value.nz,value.h(floor((hm2+hl)/2),:),'linewidth',2,'HandleVisibility','off')
+%             plot(obj.nz,sum(obj.h(hloc(1):hloc(end)-1,:))/(hloc(end)-1-hloc(1)),'linewidth',2,'DisplayName','time averaged thickness')
+%             plot(obj.nz,obj.h0,'linewidth',2,'DisplayName','steady state thickness')
+            legend('NumColumns',2)
+            
+            grid
+            xticks([0 0.25 0.5 0.75 1])
+            xlabel('$\frac{z}{L}$')
+            ylabel('$h$')
+        end
+         function plot_all(obj)
+            
+            for i = hm1:hm2-1
+                plot(obj.nz,obj.h(i,:),'color',[0.8,0.8,0.8],'linewidth',0.5,'HandleVisibility','off')
+            end
+            set(gca,'ColorOrderIndex',1)
+            plot(obj.nz,obj.h(hm1,:),'linewidth',2,'DisplayName',sprintf('maximum $||h||_2 = %.4g$',hmax1(1)))
+            plot(obj.nz,obj.h(hl,:),'linewidth',2,'DisplayName',sprintf('minimum $||h||_2 = %.4g$',-hmin(hmloc<hm2&hmloc>hm1)))
+            plot(obj.nz,obj.h(h2m,:),'linewidth',2,'DisplayName',sprintf('maximum $Q$ = %.4g',hmax2(hloc2<hm2&hloc2>hm1)))
+            plot(obj.nz,obj.h(h2l,:),'linewidth',2,'DisplayName',sprintf('minimum $Q$ = %.4g',-hmin2(hmloc2<hm2&hmloc2>hm1)))
+            %plot(value.nz,value.h(floor((hm1+hl)/2),:),'linewidth',2,'HandleVisibility','off')
+            %plot(value.nz,value.h(floor((hm2+hl)/2),:),'linewidth',2,'HandleVisibility','off')
+%             plot(obj.nz,sum(obj.h(hloc(1):hloc(end)-1,:))/(hloc(end)-1-hloc(1)),'linewidth',2,'DisplayName','time averaged thickness')
+%             plot(obj.nz,obj.h0,'linewidth',2,'DisplayName','steady state thickness')
+            legend('NumColumns',2)
+            
+            grid
+            xticks([0 0.25 0.5 0.75 1])
+            xlabel('$\frac{z}{L}$')
+            ylabel('$h$')
+         end
+         function [npks,time_periodic,c,T] = get_peak_info(obj)
+             hp = obj.h(:,1);
+             ht = obj.h(:,1+obj.n/2);
+             [pkp,locp] = findpeaks(hp);
+             locp = locp(pkp>1);
+             pkp = pkp(pkp>1);
+             [pkt,loct] = findpeaks(ht);
+             loct = loct(pkt>1);
+             pkt = pkt(pkt>1);
+             [npk,~] = findpeaks(obj.h(floor((locp(1)+locp(2))/2),:));
+             npks = sum(npk>1);
+             
+             cp = [];
+             ct = [];
+             time_periodic = [];
+             for i=1:npks
+                 t_pks = diff(locp(i:npks:end));
+                 tp_test = sum(abs(t_pks - mean(t_pks))>1);
+                 if tp_test == 0
+                     time_periodic = [time_periodic ,1];
+                     cp = [cp, obj.L/(mean(t_pks)*obj.delt)];
+                     T = [T, mean(t_pks)*obj.delt];
+                 elseif tp_test<length(t_pks)/2
+                     tp_test2 = sum(abs(t_pks(floor(end/2):end) - mean(t_pks(floor(end/2):end)))>1);
+                     if tp_test2 == 0 
+                         time_periodic = [time_periodic ,0.9];
+                         cp = [cp, obj.L/(mean(t_pks(floor(end/2):end))*obj.delt)];
+                         T = [T, mean(t_pks)*obj.delt];
+                     else
+                         time_periodic = [time_periodic ,0.5];
+                         cp = [cp,0];
+                         T = [T, mean(t_pks)*obj.delt];
+                     end
+                 else
+                     time_periodic = [time_periodic ,0];
+                     cp = [cp,0];
+                     T = [T, mean(t_pks)*obj.delt];
+                 end
+               
+             end
+             c = mean(cp);
+             time_periodic = mean(time_periodic);
+             T = mean(T);
+         end
+                 
+                 
     end
 end
 %% Old Code

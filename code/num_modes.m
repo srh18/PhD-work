@@ -1,6 +1,7 @@
 function M = num_modes(value,del,L)
 if nargin == 0
     value = shape_solveh;
+    value.n = 256;
     value.equation = 1;
     value.R = 1;
     
@@ -25,4 +26,16 @@ for i = 1:length(del)
     end
 end
 %contourf(L,del,M)
+shading interp
+ text(3.25,4.25,'No steady state','FontSize',20)
+ text(2.75,2.9,'Stable','FontSize',20)
+ text(10.05,0.15,'$5$','FontSize',15)
+ text(2.75,1.5,'$k =1$','FontSize',20)
+text(4.75,1.5,'$k = 2$','FontSize',20)
+text(6.75,1.5,'$k = 3$','FontSize',20)
+text(8.75,1.5,'$k = 4$','FontSize',20)
+title('Number of unstable modes for walls $\eta = \delta\cos\left(\frac{2\pi z}{L}\right)$')
+xlabel('$\frac{L}{\pi}$')
+ylabel('$\delta$')
+saveas(gcf,'../plots/psbigp/modeshighres','epsc')
 end
