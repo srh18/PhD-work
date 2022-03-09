@@ -1830,12 +1830,14 @@ classdef shape_solveh
              [pkt,loct] = findpeaks(ht);
              loct = loct(pkt>1);
              pkt = pkt(pkt>1);
-             [npk,~] = findpeaks(obj.h(floor((locp(1)+locp(2))/2),:));
+             plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
+             [npk,~] = findpeaks(obj.h(floor((locp(end-1)+locp(end))/2),:));
              npks = sum(npk>1);
              
              cp = [];
              ct = [];
              time_periodic = [];
+             T = []
              for i=1:npks
                  t_pks = diff(locp(i:npks:end));
                  tp_test = sum(abs(t_pks - mean(t_pks))>1);
