@@ -1873,6 +1873,9 @@ classdef shape_solveh
             ylabel('$h$')
          end
          function [npks,time_periodic,c,T] = get_peak_info(obj,t)
+             if nargin<2
+                 t = obj.t(1);
+             end
              n0 = floor(t/obj.delt)+1;
              hp = obj.h(n0:end,1);
              lim =  min(max( obj.h(floor(t/obj.delt)+1:end,:)))-0.01;
@@ -1911,7 +1914,7 @@ classdef shape_solveh
                      end
                  else
                      time_periodic = [time_periodic ,0];
-                     cp = [cp,0];fit 
+                     cp = [cp,0];
                      T = [T, mean(t_pks)*obj.delt];
                  end
                
