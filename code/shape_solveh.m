@@ -1033,8 +1033,59 @@ classdef shape_solveh
             Jac = diag(d0)+ diag(d1(1:end-1),1)+ diag(d2(1:end-2),2)+diag(dn1(2:end),-1)+diag(dn2(3:end),-2) + diag(d1(end),1-obj.n) + diag(d2(end-1:end),2-obj.n) + diag(dn1(1),obj.n-1) + diag(dn2(1:2),obj.n-2);
             
         end
+        function M = animate_new(obj,t0,tint,tend,wall,periods,c)
+            if nargin<7
+                c = 0;
+                if nargin<6
+                    periods = 1;
+                    if nargin<5
+                        wall = 0;
+                        if nargin<4
+                            tend = obj.t(end);
+                            if nargin<3
+                                tint = obj.delt;
+                                if nargin<2
+                                    t0 = obj.t(1);
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            v = VideoWriter('test.avi');
+            open(v);
+            i0 = floor((t0-obj.t(1))/obj.delt)+1;
+            int = floor(tint/obj.delt);
+            if int<1
+                int =1;
+            end
+            iend = floor((tend-t0)/obj.delt)+i0;
+                
+          	ivec = i0:int:iend;
+            
+            clf
+            
+            ax = gca;
+            ax.NextPlot = 'replaceChildren';
+            xlim([obj.z(1),obj.z(end)])
+            ylim([min(min(obj.h(ivec,:),[],2))-0.05,max(max(obj.h(ivec,:),[],2))]+0.05)
+
+            loops = length(ivec);
+            M(loops) = struct('cdata',[],'colormap',[]);
+            
+            for i = 1:loops
+                plot(obj.z,obj.h(ivec(i),:))
+                title(sprintf('$t = %g$',obj.t(ivec(i))))
+                drawnow
+                
+   
+                M(i) = getframe(gcf);
+                writeVideo(v,M(i));
+            end
+            
+        end
         
-        function animate(obj,speed,wall,c,clearf)
+        function animate(obj,tint,wall,c,clearf)
             if nargin <= 4
                 clearf = 0 ;
             end
@@ -1046,7 +1097,7 @@ classdef shape_solveh
                 
             end
             if nargin <=1
-                speed = 1;
+                tint = 1;
             end
             data = obj.a;
             l = length(data(:,1));
@@ -1067,7 +1118,7 @@ classdef shape_solveh
             %obj = obj.follow_peak;
                    
                 grid
-            for i = 1:speed:l
+            for i = 1:tint:l
                 if clearf == 0
                    clf
                 end
@@ -1768,15 +1819,15 @@ classdef shape_solveh
             
             [hmax,hloc0] = findpeaks(obj.h2norm);
             [hmin,hmloc] = findpeaks(-obj.h2norm);
-            [hmax2,hloc2] = findpeaks(obj.Qint);
-            [hmin2,hmloc2] = findpeaks(-obj.Qint);
+            %[hmax2,hloc2] = findpeaks(obj.Qint);
+            %[hmin2,hmloc2] = findpeaks(-obj.Qint);
             hloc = hloc0(hloc0>(t-obj.t(1))/obj.delt);
             hmax1 = hmax(hloc0>(t-obj.t(1))/obj.delt);
-            hm1 = hloc(1)
-            hm2 = hloc(1+n)
-            hl = hmloc(hmloc<hm2&hmloc>hm1)
-            h2m = hloc2(hloc2<hm2&hloc2>hm1)
-            h2l = hmloc2(hmloc2<hm2&hmloc2>hm1)
+            hm1 = hloc(1);
+            hm2 = hloc(1+n);
+            hl = hmloc(hmloc<hm2&hmloc>hm1);
+            %h2m = hloc2(hloc2<hm2&hloc2>hm1);
+            %h2l = hmloc2(hmloc2<hm2&hmloc2>hm1);
             obj = obj.get_h;
             hold on,
             title(sprintf('$h$ from between $t =%g$ and $t=%g$ at $t = %g$ intervals for wall $\\eta = %g\\cos %.2gz$',obj.t(hm1),obj.t(hm2),delt,obj.del,2*pi/obj.L))
@@ -1787,13 +1838,13 @@ classdef shape_solveh
             set(gca,'ColorOrderIndex',1)
             plot(obj.nz,obj.h(hm1,:),'linewidth',2,'DisplayName',sprintf('maximum $||h||_2 = %.4g$',hmax1(1)))
             plot(obj.nz,obj.h(hl,:),'linewidth',2,'DisplayName',sprintf('minimum $||h||_2 = %.4g$',-hmin(hmloc<hm2&hmloc>hm1)))
-            plot(obj.nz,obj.h(h2m,:),'linewidth',2,'DisplayName',sprintf('maximum $Q$ = %.4g',hmax2(hloc2<hm2&hloc2>hm1)))
-            plot(obj.nz,obj.h(h2l,:),'linewidth',2,'DisplayName',sprintf('minimum $Q$ = %.4g',-hmin2(hmloc2<hm2&hmloc2>hm1)))
+            %plot(obj.nz,obj.h(h2m,:),'linewidth',2,'DisplayName',sprintf('maximum $Q$ = %.4g',hmax2(hloc2<hm2&hloc2>hm1)))
+            %plot(obj.nz,obj.h(h2l,:),'linewidth',2,'DisplayName',sprintf('minimum $Q$ = %.4g',-hmin2(hmloc2<hm2&hmloc2>hm1)))
             %plot(value.nz,value.h(floor((hm1+hl)/2),:),'linewidth',2,'HandleVisibility','off')
             %plot(value.nz,value.h(floor((hm2+hl)/2),:),'linewidth',2,'HandleVisibility','off')
 %             plot(obj.nz,sum(obj.h(hloc(1):hloc(end)-1,:))/(hloc(end)-1-hloc(1)),'linewidth',2,'DisplayName','time averaged thickness')
 %             plot(obj.nz,obj.h0,'linewidth',2,'DisplayName','steady state thickness')
-            legend('NumColumns',2)
+            legend()
             
             grid
             xticks([0 0.25 0.5 0.75 1])
@@ -1821,23 +1872,25 @@ classdef shape_solveh
             xlabel('$\frac{z}{L}$')
             ylabel('$h$')
          end
-         function [npks,time_periodic,c,T] = get_peak_info(obj)
-             hp = obj.h(:,1);
-             ht = obj.h(:,1+obj.n/2);
+         function [npks,time_periodic,c,T] = get_peak_info(obj,t)
+             n0 = floor(t/obj.delt)+1;
+             hp = obj.h(n0:end,1);
+             lim =  min(max( obj.h(floor(t/obj.delt)+1:end,:)))-0.01;
+             ht = obj.h(floor(t/obj.delt)+1:end,1+obj.n/2);
              [pkp,locp] = findpeaks(hp);
-             locp = locp(pkp>1);
-             pkp = pkp(pkp>1);
+             locp = locp(pkp>lim)+n0-1;
+             pkp = pkp(pkp>lim);
              [pkt,loct] = findpeaks(ht);
-             loct = loct(pkt>1);
-             pkt = pkt(pkt>1);
-             plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
+             loct = loct(pkt>lim)+n0-1;
+             pkt = pkt(pkt>lim);
+             %plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
              [npk,~] = findpeaks(obj.h(floor((locp(end-1)+locp(end))/2),:));
-             npks = sum(npk>1);
+             npks = sum(npk>lim);
              
              cp = [];
              ct = [];
              time_periodic = [];
-             T = []
+             T = [];
              for i=1:npks
                  t_pks = diff(locp(i:npks:end));
                  tp_test = sum(abs(t_pks - mean(t_pks))>1);
@@ -1858,7 +1911,7 @@ classdef shape_solveh
                      end
                  else
                      time_periodic = [time_periodic ,0];
-                     cp = [cp,0];
+                     cp = [cp,0];fit 
                      T = [T, mean(t_pks)*obj.delt];
                  end
                
