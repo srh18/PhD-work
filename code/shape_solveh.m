@@ -1878,7 +1878,7 @@ classdef shape_solveh
              end
              n0 = floor(t/obj.delt)+1;
              hp = obj.h(n0:end,1);
-             lim =  min(max( obj.h(floor(t/obj.delt)+1:end,:)))-0.01;
+             lim =  (min(max( obj.h(floor(t/obj.delt)+1:end,:)))+1)/2;
              ht = obj.h(floor(t/obj.delt)+1:end,1+obj.n/2);
              [pkp,locp] = findpeaks(hp);
              locp = locp(pkp>lim)+n0-1;
