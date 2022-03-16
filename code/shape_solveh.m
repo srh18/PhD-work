@@ -1033,13 +1033,15 @@ classdef shape_solveh
             Jac = diag(d0)+ diag(d1(1:end-1),1)+ diag(d2(1:end-2),2)+diag(dn1(2:end),-1)+diag(dn2(3:end),-2) + diag(d1(end),1-obj.n) + diag(d2(end-1:end),2-obj.n) + diag(dn1(1),obj.n-1) + diag(dn2(1:2),obj.n-2);
             
         end
-        function M = animate_new(obj,t0,tint,tend,wall,periods,c)
-            if nargin<7
+        function M = animate_new(obj,t0,tint,tend,filename,wall,periods,c)
+            if nargin<8
                 c = 0;
-                if nargin<6
+                if nargin<7
                     periods = 1;
-                    if nargin<5
+                    if nargin<6
                         wall = 0;
+                        if nargin<5
+                            filename = 'test';
                         if nargin<4
                             tend = obj.t(end);
                             if nargin<3
@@ -1049,10 +1051,11 @@ classdef shape_solveh
                                 end
                             end
                         end
+                        end
                     end
                 end
             end
-            v = VideoWriter('test.avi');
+            v = VideoWriter(strcat('../video/',filename),'MPEG-4');
             open(v);
             i0 = floor((t0-obj.t(1))/obj.delt)+1;
             int = floor(tint/obj.delt);
@@ -1067,21 +1070,37 @@ classdef shape_solveh
             
             ax = gca;
             ax.NextPlot = 'replaceChildren';
-            xlim([obj.z(1),obj.z(end)])
-            ylim([min(min(obj.h(ivec,:),[],2))-0.05,max(max(obj.h(ivec,:),[],2))]+0.05)
-
+            obj.z = 0:obj.L/obj.n:periods*obj.L-obj.L/obj.n;
+            obj = obj.get_wall;
+            obj.h = repmat(obj.h,1,periods);
+            
+            if wall == 1
+                ymin = min(obj.eta);
+            else
+                ymin = min(min(obj.h(ivec,:),[],2));
+            end
+            ylim([ymin-0.05,max(max(obj.h(ivec,:)+wall*obj.eta,[],2))]+0.05)
+            xlim([0,periods*obj.L])
             loops = length(ivec);
             M(loops) = struct('cdata',[],'colormap',[]);
             
             for i = 1:loops
-                plot(obj.z,obj.h(ivec(i),:))
+                if wall == 1
+                    plot(obj.z,obj.eta)
+                    hold on;
+                end
+                plot(obj.z,obj.h(ivec(i),:)+wall*obj.eta)
+                            ylim([ymin-0.05,max(max(obj.h(ivec,:)+wall*obj.eta,[],2))]+0.05)
+            xlim([0,periods*obj.L])
                 title(sprintf('$t = %g$',obj.t(ivec(i))))
                 drawnow
                 
    
                 M(i) = getframe(gcf);
                 writeVideo(v,M(i));
+                hold off
             end
+            close(v);
             
         end
         
@@ -1447,9 +1466,9 @@ classdef shape_solveh
                 earlytraj = 0;
             end
             if nargin == 1
-                t = obj.T/2;
+                t = obj.t(1)+obj.T/2;
             end
-            nt = floor(t/obj.delt);
+            nt = floor((t-obj.t(1))/obj.delt +1);
                 if earlytraj == 1
                     hold on 
                     plot(obj.h2norm(1:nt),(obj.h2norm(2:nt+1)-obj.h2norm(1:nt))/obj.delt,'--','Color',[0.8 0.8 0.8])
@@ -1779,13 +1798,8 @@ classdef shape_solveh
                 [V,d] = obj.Floquet();
             end
             
-            [pval,ploc] = findpeaks(V(:,1));
-            m = length(pval);
-            n = floor(length(d)/2);
-            if m~=n
-                n = n+0.1;
-            end
-        
+           %
+           n = floor(lenght(d)/2);
         end
         function c = init_speed(obj)
             [~,d] = obj.Floquet();
@@ -1876,17 +1890,18 @@ classdef shape_solveh
              if nargin<2
                  t = obj.t(1);
              end
-             n0 = floor(t/obj.delt)+1;
+             n0 = floor((t-obj.t(1))/obj.delt)+1;
              hp = obj.h(n0:end,1);
-             lim =  (min(max( obj.h(floor(t/obj.delt)+1:end,:)))+1)/2;
-             ht = obj.h(floor(t/obj.delt)+1:end,1+obj.n/2);
+             lim =  (min(max( obj.h(floor((t-obj.t(1))/obj.delt)+1:end,:)))+1)/2;
+             ht = obj.h(floor((t-obj.t(1))/obj.delt)+1:end,1+obj.n/2);
              [pkp,locp] = findpeaks(hp);
              locp = locp(pkp>lim)+n0-1;
-             pkp = pkp(pkp>lim);
+             pkp = pkp(pkp>lim)
              [pkt,loct] = findpeaks(ht);
-             loct = loct(pkt>lim)+n0-1;
+             loct = loct(pkt>lim)+n0-1
              pkt = pkt(pkt>lim);
-             %plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
+             figure
+             plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
              if length(locp)<4
                  c =0;
                  T = 0;
@@ -1902,7 +1917,11 @@ classdef shape_solveh
              time_periodic = [];
              T = [];
              for i=1:npks
+                 figure
+                 plot(obj.z,obj.h(locp(i:npks:end),:))
                  t_pks = diff(locp(i:npks:end));
+                 figure
+                 plot(t_pks)
                  tp_test = sum(abs(t_pks - mean(t_pks))>1);
                  if tp_test == 0
                      time_periodic = [time_periodic ,1];
@@ -1929,6 +1948,8 @@ classdef shape_solveh
              c = mean(cp);
              time_periodic = mean(time_periodic);
              T = mean(T);
+         end
+         function mean_h
          end
                  
                  

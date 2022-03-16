@@ -37,5 +37,5 @@ text(8.75,1.5,'$k = 4$','FontSize',20)
 title('Number of unstable modes for walls $\eta = \delta\cos\left(\frac{2\pi z}{L}\right)$')
 xlabel('$\frac{L}{\pi}$')
 ylabel('$\delta$')
-saveas(gcf,'../plots/psbigp/modeshighres','epsc')
+%saveas(gcf,'../plots/psbigp/modeshighres','epsc')
 end
