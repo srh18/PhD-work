@@ -606,15 +606,16 @@ classdef shape_solveh
         function obj = get_h(obj,optionon,hinit)
             %performs fsolve
             options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
-            %options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+            %options = optimoptionsp('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
             if nargin <=2
                 %hinit = obj.linear_shape;
-                hinit = 1+0*obj.z;
+                hinit = 1+0.1*sin(obj.nz);
                 
             end
             if nargin >1
                 if optionon ==1
-                    options = optimoptions('fsolve','Display', 'iter','PlotFcn',@optimplotfirstorderopt,'FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+                    options = optimoptions('fsolve','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+                %'Display', 'iter','PlotFcn',@optimplotfirstorderopt
                 end
             end
             if obj.flow == 0
