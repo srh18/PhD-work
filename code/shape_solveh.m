@@ -1887,9 +1887,12 @@ classdef shape_solveh
             xlabel('$\frac{z}{L}$')
             ylabel('$h$')
          end
-         function [npks,time_periodic,c,T] = get_peak_info(obj,t)
-             if nargin<2
+         function [npks,time_periodic,c,T] = get_peak_info(obj,t,display)
+             if nargin<3
+                 display = 0;
+                 if nargin<2
                  t = obj.t(1);
+                 end
              end
              n0 = floor((t-obj.t(1))/obj.delt)+1;
              hp = obj.h(n0:end,1);
@@ -1897,12 +1900,16 @@ classdef shape_solveh
              ht = obj.h(floor((t-obj.t(1))/obj.delt)+1:end,1+obj.n/2);
              [pkp,locp] = findpeaks(hp);
              locp = locp(pkp>lim)+n0-1;
-             pkp = pkp(pkp>lim)
+             pkp = pkp(pkp>lim);
              [pkt,loct] = findpeaks(ht);
-             loct = loct(pkt>lim)+n0-1
-             pkt = pkt(pkt>lim);
-             figure
-             plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
+             %loct = loct(pkt>lim)+n0-1;
+             %pkt = pkt(pkt>lim);
+             
+             if display ==1
+                 figure
+                 disp(pkp)
+                plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
+             end
              if length(locp)<4
                  c =0;
                  T = 0;
@@ -1918,11 +1925,14 @@ classdef shape_solveh
              time_periodic = [];
              T = [];
              for i=1:npks
+                 t_pks = diff(locp(i:npks:end));
+                 if display == 1
                  figure
                  plot(obj.z,obj.h(locp(i:npks:end),:))
-                 t_pks = diff(locp(i:npks:end));
+                 
                  figure
                  plot(t_pks)
+                 end
                  tp_test = sum(abs(t_pks - mean(t_pks))>1);
                  if tp_test == 0
                      time_periodic = [time_periodic ,1];
