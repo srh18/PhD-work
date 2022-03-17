@@ -1969,10 +1969,15 @@ classdef shape_solveh
              l = length(obj.t);
              if fit_periods == 1
              [pks,loc] = findpeaks(obj.h2norm);
+             if length(loc)>1
              loc = loc(abs(pks - pks(end))<1e-4);
-             if loc>1
+             if length(loc)>1
                  i1 = loc(1);
                  iend = loc(end)-1;
+             else
+                 i1 = floor(l/2);
+                 iend = l;
+             end
              else
                  i1 = floor(l/2);
                  iend = l;
