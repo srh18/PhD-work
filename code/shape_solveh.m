@@ -1962,8 +1962,33 @@ classdef shape_solveh
              time_periodic = mean(time_periodic);
              T = mean(T);
          end
-         function mean_h
+         function hm = mean_h(obj,fit_periods)
+             if nargin<2
+                 fit_periods = 0;
+             end
+             l = length(obj.t);
+             if fit_periods == 1
+             [pks,loc] = findpeaks(obj.h2norm);
+             loc = loc(abs(pks - pks(end))<1e-4);
+             if loc>1
+                 i1 = loc(1);
+                 iend = loc(end)-1;
+             else
+                 i1 = floor(l/2);
+                 iend = l;
+             end
+             else
+                 i1 = floor(l/2);
+                 iend = l;
+             end
+             hm = mean(obj.h(i1:iend,:));
+             
          end
+         function dif = steady_mean_diff(obj)
+             obj = obj.get_h;
+             dif = norm(obj.mean_h(1)-obj.h0,1)/obj.n;
+         end
+             
                  
                  
     end
