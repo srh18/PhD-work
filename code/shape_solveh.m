@@ -873,7 +873,9 @@ classdef shape_solveh
                 J = A + B;
             end
         end
-        
+        function err = mass_err(obj)
+            err = mean(abs(obj.mass-1));
+        end
         function obj = dynamics(obj,init,T)
             if nargin ==3
                 obj.T = T;
@@ -1800,7 +1802,7 @@ classdef shape_solveh
             end
             
            %
-           n = floor(lenght(d)/2);
+           n = floor(length(d)/2);
         end
         function c = init_speed(obj)
             [~,d] = obj.Floquet();
