@@ -1907,17 +1907,18 @@ classdef shape_solveh
              %loct = loct(pkt>lim)+n0-1;
              %pkt = pkt(pkt>lim);
              
-             if display ==1
-                 figure
-                 disp(pkp)
-                plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
-             end
+
              if length(locp)<4
                  c =0;
                  T = 0;
                  npks = 0;
                  time_periodic = -1;
                  return
+             end
+             if display ==1
+                 figure
+                 disp(pkp)
+                plot(obj.h(floor((locp(end-1)+locp(end))/2),:))
              end
              [npk,~] = findpeaks(obj.h(floor((locp(end-1)+locp(end))/2),:));
              npks = sum(npk>lim);
