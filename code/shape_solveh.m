@@ -1893,7 +1893,7 @@ classdef shape_solveh
              if nargin<3
                  display = 0;
                  if nargin<2
-                 t = obj.t(1);
+                 t = obj.t(floor(end/2));
                  end
              end
              n0 = floor((t-obj.t(1))/obj.delt)+1;
