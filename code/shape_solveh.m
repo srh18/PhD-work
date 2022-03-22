@@ -603,23 +603,27 @@ classdef shape_solveh
             
         
         
-        function obj = get_h(obj,optionon,hinit)
+        function obj = get_h(obj,optionon,hinit,q)
             %performs fsolve
-            options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
-            %options = optimoptionsp('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+            %options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
+            options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+            if nargin<4
+                q = 1/3;
             if nargin <=2
                 %hinit = obj.linear_shape;
-                hinit = 1+0.1*sin(obj.nz);
+                hinit = ones(1,obj.n);
                 
+            end
             end
             if nargin >1
                 if optionon ==1
-                    options = optimoptions('fsolve','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+                    options = optimoptions('fsolve','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-6,'StepTolerance',1e-10);
                 %'Display', 'iter','PlotFcn',@optimplotfirstorderopt
                 end
             end
             if obj.flow == 0
-                hinit = [hinit obj.q];
+                %always starting with 1/3
+                hinit = [hinit q];
             end
             [obj.h0,obj.Fval,obj.eflag,obj.out,obj.jac] = fsolve(@obj.hfun,hinit,options);
             if obj.eflag <= 0
@@ -1486,7 +1490,26 @@ classdef shape_solveh
         end
             
             
-        
+        function phaseplotEQ(obj,t,earlytraj)
+            if nargin <3
+                earlytraj = 0;
+            end
+            if nargin == 1
+                t = obj.t(1)+obj.T/2;
+            end
+            nt = floor((t-obj.t(1))/obj.delt +1);
+                if earlytraj == 1
+                    hold on 
+                    plot(obj.h2norm(1:nt),obj.Qint(1:nt),'--','Color',[0.8 0.8 0.8])
+                end
+                plot(obj.h2norm(nt:end),obj.Qint(nt:end),'Color',[0 0.4470 0.7410])
+                
+
+                xlabel('$||h(t)||_2$')
+                ylabel('$Q$')
+                title(sprintf('Phase plot for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+            
+        end
         function phaseplota(obj,m1,m2,npeak)
             if nargin ==3
                 hold on
@@ -1990,9 +2013,27 @@ classdef shape_solveh
              hm = mean(obj.h(i1:iend,:));
              
          end
-         function dif = steady_mean_diff(obj)
-             obj = obj.get_h;
-             dif = norm(obj.mean_h(1)-obj.h0,1)/obj.n;
+         function [dif,Afac,pshift,tshift,pdiff,tdiff] = steady_mean_diff(obj)
+             znew = 0:obj.L/obj.n/4:obj.L - obj.L/obj.n/4;
+             mh = obj.mean_h(1);
+             if length(obj.h0)~=obj.n
+                obj = obj.get_h;
+             end
+             h0 = obj.h0;
+             dif = norm(mh-h0,1)/obj.n;
+             mh = interp1(0:obj.L/obj.n:obj.L,[mh mh(1)],0:obj.L/obj.n/4:obj.L - obj.L/obj.n/4 );
+             h0 = interp1(0:obj.L/obj.n:obj.L,[h0 h0(1)],0:obj.L/obj.n/4:obj.L - obj.L/obj.n/4 );
+             [mpk,mpl] = findpeaks(mh);
+             [hpk,hpl] = findpeaks(h0);
+             [mtg,mtl] = findpeaks(-mh);
+             [htg,htl] = findpeaks(-h0);
+             mtg = -mtg;
+             htg = -htg;
+             pshift = (mpl-hpl)/obj.n/4;
+             tshift = (mtl-htl)/obj.n/4;
+             Afac = (mpk - mtg)/(hpk - htg);
+             pdiff = (mpk - hpk);
+             tdiff = (mtg - htg);
          end
              
                  
