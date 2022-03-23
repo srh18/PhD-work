@@ -606,7 +606,7 @@ classdef shape_solveh
         function obj = get_h(obj,optionon,hinit,q)
             %performs fsolve
             %options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
-            options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+            options = optimoptions('fsolve','Display', 'Iter','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
             if nargin<4
                 q = 1/3;
             if nargin <=2
@@ -617,7 +617,7 @@ classdef shape_solveh
             end
             if nargin >1
                 if optionon ==1
-                    options = optimoptions('fsolve','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-6,'StepTolerance',1e-10);
+                    options = optimoptions('fsolve','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-6,'StepTolerance',1e-10,'Display','Iter');
                 %'Display', 'iter','PlotFcn',@optimplotfirstorderopt
                 end
             end
