@@ -606,7 +606,7 @@ classdef shape_solveh
         function obj = get_h(obj,optionon,hinit,q)
             %performs fsolve
             %options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
-            options = optimoptions('fsolve','Display', 'Iter','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
+            options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
             if nargin<4
                 q = 1/3;
             if nargin <=2
@@ -1048,7 +1048,7 @@ classdef shape_solveh
                     if nargin<6
                         wall = 0;
                         if nargin<5
-                            filename = 'test';
+                            filename = 0;
                         if nargin<4
                             tend = obj.t(end);
                             if nargin<3
@@ -1062,8 +1062,11 @@ classdef shape_solveh
                     end
                 end
             end
-            v = VideoWriter(strcat('../video/',filename),'MPEG-4');
-            open(v);
+            record = ischar(filename);
+            if record
+                v = VideoWriter(strcat('../video/',filename),'MPEG-4');
+                open(v);
+            end
             i0 = floor((t0-obj.t(1))/obj.delt)+1;
             int = floor(tint/obj.delt);
             if int<1
@@ -1104,10 +1107,14 @@ classdef shape_solveh
                 
    
                 M(i) = getframe(gcf);
+                if record
                 writeVideo(v,M(i));
+                end
                 hold off
             end
+            if record
             close(v);
+            end
             
         end
         
@@ -1817,6 +1824,7 @@ classdef shape_solveh
             [pval,ploc] = findpeaks(V(:,loc));
             n = length(pval);
         end
+        
         function n = num_unstable(obj,h)
             if nargin ==2
             [V,d] = obj.Floquet(h);
@@ -2023,10 +2031,10 @@ classdef shape_solveh
              dif = norm(mh-h0,1)/obj.n;
              mh = interp1(0:obj.L/obj.n:obj.L,[mh mh(1)],0:obj.L/obj.n/4:obj.L - obj.L/obj.n/4 );
              h0 = interp1(0:obj.L/obj.n:obj.L,[h0 h0(1)],0:obj.L/obj.n/4:obj.L - obj.L/obj.n/4 );
-             [mpk,mpl] = findpeaks(mh);
-             [hpk,hpl] = findpeaks(h0);
-             [mtg,mtl] = findpeaks(-mh);
-             [htg,htl] = findpeaks(-h0);
+             [mpk,mpl] = max(mh);
+             [hpk,hpl] = max(h0);
+             [mtg,mtl] = max(-mh);
+             [htg,htl] = max(-h0);
              mtg = -mtg;
              htg = -htg;
              pshift = (mpl-hpl)/obj.n/4;
