@@ -19,7 +19,7 @@ classdef shape_solveh
         mass0 = 1 %initial mass
         
         %Wall shape parameters
-        
+        gamma {mustBeNonnegative} = 1e-7 % Growth rate of wall
         del {mustBeNonnegative} = 1 % Disturbance amplitude
         L {mustBeNonnegative} = 2*pi % wavelength of disturbance
         l {mustBeNonnegative,mustBeLessThanOrEqual(l,1)} = 0.5 %width of the step
@@ -38,7 +38,7 @@ classdef shape_solveh
         
         eta % wall shape
         h0 %steady state
-        
+        etat = 0 %if h is actually eta
         
         
         % Info about code
@@ -1439,6 +1439,12 @@ classdef shape_solveh
             title(sprintf('Fluid thickness over the wall %s for $\\delta =%g$, $L= %g\\pi$',maxstring{m+1},obj.del,obj.L/pi))
         end
         
+        function plotQ(obj)
+            plot(obj.t,obj.Qint)
+            xlabel('$t$')
+            ylabel('$Q$')
+        end
+        
         function phaseplot(obj,m1,m2,npeak)
             if nargin ==3
                 hold on
@@ -1797,11 +1803,19 @@ classdef shape_solveh
             etazz = obj.etazz;
             etazzz = obj.etazzz;
             etazzzz = obj.etazzzz;
+            if obj.equation == 1
             H = 2*h0.*h0z.*(1 + 1/obj.Bo*((h0z+etaz)/obj.R^2 + h0zzz+etazzz))+h0.^2/obj.Bo.*((h0zz+etazz)/obj.R^2 +h0zzzz + etazzzz);
             Hz = h0.^2.*(1 + 1/obj.Bo*((2*h0z+etaz)/obj.R^2 + h0zzz+etazzz));
             Hzz = h0.^3/(3*obj.Bo*obj.R^2);
             Hzzz = (h0.^2.*h0z)/(3*obj.Bo);
             Hzzzz = h0.^3/3/obj.Bo;
+            elseif obj.equation ==0
+            H = 2*h0.*h0z.*(1 + obj.ep/obj.Bo*((h0z+etaz)/obj.R^2 + h0zzz+etazzz))+h0.^2*obj.ep/obj.Bo.*((h0zz+etazz)/obj.R^2 +h0zzzz + etazzzz)+obj.ep*(2/15*obj.Re*30*h0.^4.*h0z.^2 -2*h0.^2.*h0z/obj.R-4*h0.*h0z.*eta/obj.R-2*h0.^2.*etaz/obj.R);
+            Hz = h0.^2.*(1 + obj.ep/obj.Bo*((2*h0z+etaz)/obj.R^2 + h0zzz+etazzz))+obj.ep*2/15*obj.Re*12*h0.^5.*h0z-obj.ep*2/3/obj.R*h0.^3 -2*obj.ep/obj.R*h0.^2.*eta;
+            Hzz = h0.^3*obj.ep/(3*obj.Bo*obj.R^2)+obj.ep*2/15*obj.Re*h0.^6;
+            Hzzz = (h0.^2.*h0z)*obj.ep/(3*obj.Bo);
+            Hzzzz = h0.^3/3*obj.ep/obj.Bo;
+            end
             
             d0 = H - 2*(obj.n/obj.L)^2*Hzz+6*(obj.n/obj.L)^4*Hzzzz;
             dn1 = -1/2*(obj.n/obj.L)*Hz + (obj.n/obj.L)^2*Hzz + (obj.n/obj.L)^3*Hzzz- 4*(obj.n/obj.L)^4*Hzzzz;
@@ -2018,7 +2032,7 @@ classdef shape_solveh
                  i1 = floor(l/2);
                  iend = l;
              end
-             hm = mean(obj.h(i1:iend,:));
+             hm = sum(obj.h(i1:iend,:))/(obj.t(iend)-obj.t(i1))*obj.delt;
              
          end
          function [dif,Afac,pshift,tshift,pdiff,tdiff] = steady_mean_diff(obj)
@@ -2043,9 +2057,95 @@ classdef shape_solveh
              pdiff = (mpk - hpk);
              tdiff = (mtg - htg);
          end
+         function h = simple_growth_function(obj,t,eta)
+             obj.eta = eta';
+             obj = obj.get_h;
+
+             h = obj.gamma*(obj.h0'-1);
+             if obj.eflag <= 0
+              stop = 0;
+             else
+                 stop = 1;
+             end
+             save('breakfunction','stop')
              
-                 
-                 
+             end
+         
+         function obj = simple_growth(obj)
+             opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
+           [t,y] = ode15s(@(t,y) obj.simple_growth_function(t,y),0:obj.delt:obj.T,obj.eta ,opts);
+           obj.etat = 1;
+           obj.t = t;
+           obj.h = y;
+         end
+         
+         function [value,isterminal,direction] = EventsFcn(obj,t,y)
+             load('breakfunction','stop')
+         value = stop;
+
+         % The value that we want to be zero
+         isterminal = 1;  % Halt integration 
+         direction = 0;   % The zero can be approached from either direction
+         end
+         
+         
+         function obj = fast_growth(obj)
+              opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
+           [t,y] = ode15s(@(t,y) obj.fast_growth_function(t,y),0:obj.delt:obj.T,[1+0*obj.eta,obj.eta] ,opts);
+           obj.etat = 1;
+           obj.t = t;
+           obj.h = y;
+           
+         end
+         
+         function dt = fast_growth_function(obj,t,y)
+             y = y';
+             l = length(y);
+             h = y(1:end/2);
+             eta = y(l/2+1:end);
+             obj.eta = eta;
+             [hz,hzz,hzzz,hzzzz ] = obj.getdiv(h);
+
+            if obj.equation == 1
+                %small Bond
+                ht = -hz.*h.^2 -(h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz));
+            elseif obj.equation == 2
+                %
+                ht = -3*hz.*h.^2 -(h.^3.*((hzz)*obj.R+hzzzz)+3*hz.*h.^2.*(hz*obj.R+hzzz));
+            elseif obj.equation ==4
+                ht = -h.*hz +obj.R*hzz;
+            elseif obj.equation == 5
+                ht = -hzz-obj.R*hzzzz-h.*hz;
+            elseif obj.equation == 6
+                ht = -3*h.^2.*hz.^2 - h.^3.*hzz - hz.*hzzz-h.*hzzzz;
+            elseif obj.equation == 10
+                %a equation
+                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)+h.^3.*hz/(3*obj.R) + h.^3.*obj.etaz/(3*obj.R));
+            elseif obj.equation == 20
+                
+                ht = -0.1*hz.*h.^2;
+            else
+                
+                %main equation
+                ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
+                
+            end
+            dt = [ht  obj.gamma*h]';
+              
+         end
+         function plot_fourier_modes(obj)
+             y = fft(obj.h(floor(end/2):end,:),[],2);
+             y = abs(y(:,2:11));
+             %clf
+             hold on 
+             errorbar(1:10,sum(y)/(obj.T-obj.t(floor(end/2)))*obj.delt,mean(y) - min(y),max(y)-mean(y),'_','MarkerSize',50)
+             xlim([0.5 10.5])
+%              plot(max(y),'_')
+%              plot(min(y),'_')
+title('Mean value of Fourier modes, with range')
+xlabel('$k$')
+ylabel('$|H(k)|$')
+         end
     end
 end
 %% Old Code
