@@ -2060,8 +2060,14 @@ classdef shape_solveh
          function h = simple_growth_function(obj,t,eta)
              obj.eta = eta';
              obj = obj.get_h;
+             if obj.equation == 0
+                 obj.h = obj.h0;
+                 h0 = obj.a;
+             else
+                 h0 = obj.h0;
+             end
 
-             h = obj.gamma*(obj.h0'-1);
+             h = obj.gamma*(h0'-1);
              if obj.eflag <= 0
               stop = 0;
              else
@@ -2072,12 +2078,17 @@ classdef shape_solveh
              end
          
          function obj = simple_growth(obj)
+             tic
              opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
+             
            [t,y] = ode15s(@(t,y) obj.simple_growth_function(t,y),0:obj.delt:obj.T,obj.eta ,opts);
            obj.etat = 1;
            obj.t = t;
            obj.h = y;
+           obj.integration_time = toc;
          end
+         
+         
          
          function [value,isterminal,direction] = EventsFcn(obj,t,y)
              load('breakfunction','stop')
@@ -2090,11 +2101,14 @@ classdef shape_solveh
          
          
          function obj = fast_growth(obj)
+             tic
+             obj = obj.get_h;
               opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
-           [t,y] = ode15s(@(t,y) obj.fast_growth_function(t,y),0:obj.delt:obj.T,[1+0*obj.eta,obj.eta] ,opts);
+           [t,y] = ode15s(@(t,y) obj.fast_growth_function(t,y),0:obj.delt:obj.T,[obj.h0,obj.eta] ,opts);
            obj.etat = 1;
            obj.t = t;
            obj.h = y;
+           obj.integration_time = toc;
            
          end
          
@@ -2130,7 +2144,7 @@ classdef shape_solveh
                 ht = -hz.*h.^2 -obj.ep*(2/15*obj.Re*(h.^6.*hzz+6*h.^5.*hz.^2)+h.^3/(3*obj.Bo).*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+hz.*h.^2/obj.Bo.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz)-2*h.^3.*hz/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R - 2*h.^3.*obj.etaz/(3*obj.R));
                 
             end
-            dt = [ht  obj.gamma*h]';
+            dt = [1/obj.gamma*ht  h]';
               
          end
          function plot_fourier_modes(obj)
