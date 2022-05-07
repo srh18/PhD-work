@@ -2068,19 +2068,19 @@ classdef shape_solveh
              end
 
              h = obj.gamma*(h0'-1);
-             if obj.eflag <= 0
-              stop = 0;
-             else
-                 stop = 1;
-             end
-             save('breakfunction','stop')
-             
+%              if obj.eflag <= 0
+%               stop = 0;
+%              else
+%                  stop = 1;
+%              end
+%              save('breakfunction','stop')
+%              
              end
          
          function obj = simple_growth(obj)
              tic
-             opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
-             
+             %opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
+             opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on');
            [t,y] = ode15s(@(t,y) obj.simple_growth_function(t,y),0:obj.delt:obj.T,obj.eta ,opts);
            obj.etat = 1;
            obj.t = t;
