@@ -2087,7 +2087,16 @@ classdef shape_solveh
            obj.h = y;
            obj.integration_time = toc;
          end
-         
+                  function obj = simple_growth45(obj)
+             tic
+             opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on');
+             
+           [t,y] = ode45(@(t,y) obj.simple_growth_function(t,y),[0:obj.delt:obj.T],obj.eta );
+           obj.etat = 1;
+           obj.t = t;
+           obj.h = y;
+           obj.integration_time = toc;
+         end
          
          
          function [value,isterminal,direction] = EventsFcn(obj,t,y)
@@ -2146,6 +2155,83 @@ classdef shape_solveh
             end
             dt = [1/obj.gamma*ht  h]';
               
+         end
+         function [hout,etaout,tout] = Euler_growth(obj,res)
+             if nargin <2
+                 res = 1;
+             end
+             eta0 = obj.eta;
+             obj = obj.get_h;
+             h0 = obj.h0;
+             etaold = eta0;
+             h = h0;
+             q = obj.q;
+             tout = 0:obj.delt:obj.T;
+             t = 0:obj.delt/res:obj.T;
+             etaout = [etaold];
+             hout = [h];
+             
+             for i = 2:length(t)
+                 etan = etaold +obj.delt/res*(h-1);
+                 obj.eta = etan;
+                 obj = obj.get_h(0,h,q);
+                 h = obj.h0;
+                 q = obj.q;
+                 if mod(i-1,res) == 0
+                 hout = [hout;h];
+                 etaout = [etaout;etan];
+                 etaold = etan;
+                 end
+                 
+                 
+                 
+             end
+             
+         end
+         
+         function [hout,etaout,tout] = RK_growth(obj,res)
+             tic
+             if nargin <2
+                 res = 1;
+             end
+             eta0 = obj.eta;
+             obj = obj.get_h;
+             h0 = obj.h0;
+             etao = eta0;
+             h = h0;
+             q = obj.q;
+             tout = 0:obj.delt:obj.T;
+             t = 0:obj.delt/res:obj.T;
+             etaout = [etao];
+             hout = [h];
+             
+             for i = 2:length(t)
+                 k1 = h-1;
+                 obj.eta = etao+obj.delt/res*k1/2;
+                 obj = obj.get_h(0,h,q);
+                 k2 = obj.h0-1;
+                 obj.eta = etao+obj.delt/res*k2/2;
+                 obj = obj.get_h(0,h,q);
+                 k3 = obj.h0-1;
+                 obj.eta = etao+obj.delt/res*k3;
+                 obj = obj.get_h(0,h,q);
+                 k4 = obj.h0-1;
+                 etan = etao +obj.delt/res/6*(k1+2*k2+2*k3+k4);
+                 obj.eta = etan;
+                 obj = obj.get_h(0,h,q);
+                 h = obj.h0;
+                 q = obj.q;
+                 if mod(i-1,res) == 0
+                 hout = [hout;h];
+                 etaout = [etaout;etan];
+                 etao = etan;
+                 end
+                 
+                 
+                 
+             end
+             toc
+             
          end
          function plot_fourier_modes(obj)
              y = fft(obj.h(floor(end/2):end,:),[],2);
