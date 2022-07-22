@@ -224,6 +224,9 @@ classdef shape_solveh
             [hz,hzz,~,hzzzz] = obj.getdiv(obj.h);
             value = (obj.etaz -hz).*obj.w  -1/obj.Bo*((obj.etazz+hzz)/obj.R^2 + obj.etazzzz+hzzzz).*obj.h.^3/3;
         end
+        function obj = set.W(obj,r)
+        W = (obj.h).^2.*(1-obj.pz).*(r-r.^2/2);
+        end
         function value = get.hdiff(obj)
             value = obj.h - obj.h0;
         end
@@ -384,6 +387,7 @@ classdef shape_solveh
             %analytic solution to first order of a disturbance
             %del*cos(2*pi/L) (where del<<1) used as a initial guess for
             %fsolve
+            if obj.equation ==0
             a0 = 1;
             k = 2*pi/obj.L;
             A = -k  +obj.ep*(2*k./(3.*obj.R));
@@ -394,6 +398,15 @@ classdef shape_solveh
             b = (B.*C-D.*A)/(A.^2+B.^2);
             
             hinit = 1+ a.*obj.del.*cos(2*pi./obj.L.*obj.z)-b.*obj.del.*sin(2*pi./obj.L.*obj.z);
+            elseif obj.equation ==1
+                theta = atan((3*obj.Bo*obj.L^3*obj.R^2)/(2*pi*(4*pi^2-obj.L^2)));
+                if theta<0
+                    theta = theta + 2*pi;
+                end
+                hinit = 1 + obj.del*-cos(theta)*cos(2*pi/obj.L*obj.z-theta);
+            end
+            
+
             
         end
         function [A,lambda] = shift(obj,values, param,linear)
@@ -610,8 +623,8 @@ classdef shape_solveh
             if nargin<4
                 q = 1/3;
             if nargin <=2
-                %hinit = obj.linear_shape;
-                hinit = ones(1,obj.n);
+                hinit = obj.linear_shape;
+                %hinit = ones(1,obj.n);
                 
             end
             end

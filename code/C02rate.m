@@ -1,0 +1,9 @@
+function [r,kp,km] = C02rate(pH,T,pCO2,Ca)
+[k1p,k1m,k2p,k2m,ka,Kw,K2,KH] = rate_constants(T,Ca);
+H = 10.^(-pH);
+OH = Kw./H;
+HCO3 = 1./(H+2*K2).*(2*Ca.*H + H.^2 - Kw)
+CO2 = pCO2*KH
+kp = k1p + k2p.*OH;
+km = ka.*H + k2m;
+r = km.*HCO3 - kp.*CO2;
