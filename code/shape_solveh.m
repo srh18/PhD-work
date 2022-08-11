@@ -5,7 +5,7 @@ classdef shape_solveh
     
     properties
         n {mustBeInteger,mustBePositive} = 256  %number of grid points INT
-        
+        nr = 100
         % Fluid properties Parameters
         
         Bo {mustBeNonnegative} = 1 % Bond number
@@ -25,12 +25,15 @@ classdef shape_solveh
         l {mustBeNonnegative,mustBeLessThanOrEqual(l,1)} = 0.5 %width of the step
         del2 {mustBeNonnegative} = 0.1 % steepness of the step
         dir {mustBeMember(dir,[-1,1])} = 1 %direction of slope
+        dir2 {mustBeMember(dir2,[-1,1])} = 1 %direction of step
+
         ps {mustBeMember(ps,[0,1])} = 1; %whether to use Psuedo spectral differentiation rather than finite differences
         % Asthetic features
         
         periods {mustBePositive,mustBeInteger} = 1 % number of periods to plot INT - ignored for now
         
         %Derived from parameters
+        r %domain
         
         z % domain
         t % time domain
@@ -136,9 +139,11 @@ classdef shape_solveh
         hdiff %differenence from the steady state
         at %time derivative of amass
         a
-        pz
+        
         w
         u
+        U
+        pz
     end
     
     
@@ -218,12 +223,36 @@ classdef shape_solveh
             value = -1/obj.Bo.*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz);
         end
         function value = get.w(obj)
-            value = obj.h.^2.*(1-obj.pz)/2;
+            if obj.equation == 0
+            value = obj.a.^2.*(obj.r - obj.r.^2/2);
+            elseif obj.equation == 1
+                value = obj.h.^2.*(obj.pz-1).*(obj.r.^2/2-obj.r);
+            end
+            
+                
         end
+        
         function value = get.u(obj)
-            [hz,hzz,~,hzzzz] = obj.getdiv(obj.h);
-            value = (obj.etaz -hz).*obj.w  -1/obj.Bo*((obj.etazz+hzz)/obj.R^2 + obj.etazzzz+hzzzz).*obj.h.^3/3;
+            [hz,~,~,~] = obj.getdiv(obj.h);
+            
+            if obj.equation == 0
+            value = obj.a.^2;
+            elseif obj.equation ==1
+                [pzz,~,~,~] = obj.getdiv(obj.pz);
+                value = obj.etaz.*obj.h.^2.*(obj.pz-1).*(obj.r.^2/2-obj.r) +1/2*hz.*obj.h.^2.*(obj.pz-1).*obj.r.^2-obj.h.^3.*pzz.*(obj.r.^3/6-obj.r.^2/2);
+            end
         end
+        function value = get.U(obj)
+            [hz,~,~,~] = obj.getdiv(obj.a);
+            if obj.equation ==0
+                value = 3*obj.a.^2.*hz.*(obj.r.^3/6-obj.r.^2/2);
+            elseif obj.equation == 1
+                [pzz,~,~,~] = obj.getdiv(obj.pz);
+                value = -(3*obj.a.^2.*hz.*(obj.pz - 1)+obj.a.^3.*pzz).*(obj.r.^3/6-obj.r.^2/2);
+            end
+            
+        end
+
         function obj = set.W(obj,r)
         W = (obj.h).^2.*(1-obj.pz).*(r-r.^2/2);
         end
@@ -246,6 +275,11 @@ classdef shape_solveh
    
         function obj = set.n(obj,value)
             obj.n = value;
+            obj = obj.reset;
+            
+        end
+        function obj = set.nr(obj,value)
+            obj.nr = value;
             obj = obj.reset;
             
         end
@@ -302,7 +336,8 @@ classdef shape_solveh
             %realign z, wall if n or L are changed
             obj.z = 0: obj.L/obj.n: obj.periods*obj.L- obj.L/obj.n;
             obj = obj.get_wall;
-            obj.q = 1/3 - 1/12*obj.ep/obj.R;
+            obj.q = 1/3 + 1/3*obj.ep/obj.R*(1-obj.equation);
+            obj.r = (0:1/obj.nr:1)';
             
             
         end
@@ -352,10 +387,10 @@ classdef shape_solveh
         function obj = get_wall(obj)
             %Function to create the wall depending on the wall shape
             if obj.wall_shape == 1
-                obj.eta = obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z/obj.L - (1+obj.l)/2)/obj.del2))-obj.del/2;
+                obj.eta = obj.del*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z/obj.L - (1+obj.l)/2)/obj.del2))-2*obj.del*obj.l;
                 
             elseif  obj.wall_shape ==2
-                obj.eta = (obj.z/obj.L-(1-obj.l)/2)/(obj.l).*(obj.del/2*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z-obj.L*(1+obj.l)/2)/obj.del2)));
+                obj.eta = obj.dir*((obj.z/obj.L-(1-obj.dir2*obj.l)/2)/(obj.l).*(obj.del*(tanh((obj.z/obj.L-(1-obj.l)/2)/obj.del2) - tanh((obj.z/obj.L -(1+obj.l)/2)/obj.del2))) -obj.dir2*obj.del*obj.l);
             elseif obj.wall_shape == 0
                 
                 obj.eta = obj.del*cos(2*pi/obj.L*obj.z);
@@ -379,7 +414,7 @@ classdef shape_solveh
             obj.ac = ac(I);
         end
         
-        
+
         %MAIN FUNCTIONS
         
         function hinit = linear_shape(obj)
@@ -388,21 +423,33 @@ classdef shape_solveh
             %del*cos(2*pi/L) (where del<<1) used as a initial guess for
             %fsolve
             if obj.equation ==0
-            a0 = 1;
-            k = 2*pi/obj.L;
-            A = -k  +obj.ep*(2*k./(3.*obj.R));
-            B = obj.ep*(-2/15*obj.Re*k.^2+1./(3.*obj.Bo)*(-k.^2/obj.R.^2+k.^4));
-            C = obj.ep*(2.*k./(3*obj.R));
-            D = (obj.ep./(3.*obj.Bo).*(-k.^2./obj.R.^2+k.^4));
-            a = -(A.*C+B.*D)./(A.^2+B.^2);
-            b = (B.*C-D.*A)/(A.^2+B.^2);
-            
-            hinit = 1+ a.*obj.del.*cos(2*pi./obj.L.*obj.z)-b.*obj.del.*sin(2*pi./obj.L.*obj.z);
+                a0 = 1;
+                k = 2*pi/obj.L;
+                R = obj.R;
+                Re = obj.Re;
+                Bo = obj.Bo;
+                eps = obj.ep;
+                %             A = -k  +obj.ep*(2*k./(3.*obj.R));
+                %             B = obj.ep*(-2/15*obj.Re*k.^2+1./(3.*obj.Bo)*(-k.^2/obj.R.^2+k.^4));
+                %             C = obj.ep*(2.*k./(3*obj.R));
+                %             D = (obj.ep./(3.*obj.Bo).*(-k.^2./obj.R.^2+k.^4));
+                %             a = -(A.*C+B.*D)./(A.^2+B.^2);
+                %             b = (B.*C-D.*A)/(A.^2+B.^2);
+                %
+                %             hinit = 1+ a.*obj.del.*cos(2*pi./obj.L.*obj.z)-b.*obj.del.*sin(2*pi./obj.L.*obj.z);
+                
+                a = (5*eps.*(20*eps.*R.^2.*Bo.^2-30*Bo.^2.*R.^3+eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4-300*Bo.^2.*eps.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
+                
+                theta = atan(Bo.*k.*R.^2.*(15*k.^2.*R.^2-15-4*eps.*Re.*R.*Bo)./(30*Bo.^2.*R.^3-eps.*(20*Bo.^2.*R.^2+k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
+                A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4-300*eps.*Bo.^2.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
+                
+                hinit = obj.mass0 + obj.del*A*cos(k.*obj.z-theta);
             elseif obj.equation ==1
                 theta = atan((3*obj.Bo*obj.L^3*obj.R^2)/(2*pi*(4*pi^2-obj.L^2)));
                 if theta<0
                     theta = theta + 2*pi;
                 end
+                
                 hinit = 1 + obj.del*-cos(theta)*cos(2*pi/obj.L*obj.z-theta);
             end
             
@@ -501,6 +548,10 @@ classdef shape_solveh
             %warning uses old equation may be incorrect
             a = 1 - obj.ep/3*obj.del*(cos(2*pi/obj.L*obj.z)+1/obj.Bo*(-2*pi/obj.L+8*pi^3/obj.L^3)*sin(2*pi/obj.L*obj.z));
         end
+        function h = small_ep(obj)
+            h = -1/3*(obj.eta/obj.R + 1/obj.Bo*(obj.etaz/obj.R^2+obj.etazzz));
+         
+        end
         
         function F = hfun(obj,h)
             
@@ -522,7 +573,14 @@ classdef shape_solveh
                 elseif obj.equation ==1
                     F = H.^3/3+H.^3/(3*obj.Bo).*((hz+obj.etaz)/obj.R^2+ hzzz+ obj.etazzz) - h(l);
                 end
-                F(l) = sum(H)/obj.n - obj.mass0;
+                if obj.equation == 0
+                    m = -(obj.eta+obj.R./obj.ep)+sqrt((obj.eta+obj.R/obj.ep).^2 +2*obj.R*H/obj.ep);
+                else
+                    m=H;
+                end
+                F(l) = sum(m)/obj.n - 1;
+                
+                
                 %F = hz.*h.^2 + obj.ep.*(-4*hz.*h.^3/(12.*obj.R)+2/15.*obj.Re.*(h.^6.*hzz+6.*h.^5.*hz.^2)+1/(3.*obj.Bo).*(h.^3.*((hzz+obj.etazz)/obj.R^2+hzzzz+obj.etazzzz)+3*hz.*h.^2.*((hz+obj.etaz)/obj.R^2+hzzz+obj.etazzz))-2*obj.etaz.*h.^3/(3*obj.R)-2*hz.*h.^2.*obj.eta/obj.R);
             end
         end
@@ -621,7 +679,7 @@ classdef shape_solveh
             %options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central');
             options = optimoptions('fsolve','Display', 'none','FiniteDifferenceType','central','FunctionTolerance',1e-10,'OptimalityTolerance',1e-14,'StepTolerance',1e-10);
             if nargin<4
-                q = 1/3;
+                q = 1/3*(1+obj.ep*(obj.equation-1));
             if nargin <=2
                 hinit = obj.linear_shape;
                 %hinit = ones(1,obj.n);
@@ -646,6 +704,7 @@ classdef shape_solveh
                 obj.q = obj.h0(end);
                 obj.h0 = obj.h0(1:end-1);
             end
+            obj.mass0 = sum(obj.h0)/obj.n;
             
         end
         
@@ -2259,6 +2318,244 @@ title('Mean value of Fourier modes, with range')
 xlabel('$k$')
 ylabel('$|H(k)|$')
          end
+         function [c1,c2,f] = get_conc(obj,c10,c20)
+             obj = obj.get_h;
+             obj.h = obj.h0;
+             options = optimoptions('fsolve','Display','iter');
+             cinit = [c10;c20];
+             [c] = fsolve(@obj.cfun,cinit,options);
+             c1 = c(1:obj.nr+1,:);
+             c2 = c(obj.nr+2:end-1,:);
+             f = -0.9e-9*5*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:))./(1e-5*obj.a);
+         end
+         function F = cfun(obj,c)
+             h0 = 1e-5;
+             D1 = 0.9e-9;
+             D2 = 1.3e-9;
+             g = 9.81;
+             nu = 1e-6;
+             Pe2 = h0^3*g/(nu*D2);
+             Pe1 = 1.3/0.9*Pe2;
+             C1 = 5;
+             C2 = 2.7e-2;
+             km = 2e-4;
+             kp = 1e-2;
+             w = obj.w(2:end-1,:);
+             U = obj.U(2:end-1,:);
+             c1 = c(1:obj.nr+1,:);
+             c2 = c(obj.nr+2:end,:);
+             %f = c(end,:);
+             c11 = c1(3:end,:);
+             c10 = c1(2:end-1,:);
+             c1n1 = c1(1:end-2,:);
+             c1r = obj.nr*(c11 -c1n1)/2 ;
+             c1rr = obj.nr^2*(c1n1+c11-2*c10);
+             [c1z,~,~,~] =obj.getdiv(c10); 
+             
+             c21 = c2(3:end,:);
+             c20 = c2(2:end-1,:);
+             c2n1 = c2(1:end-2,:);
+             c2r = obj.nr*(c21 -c2n1)/2 ;
+             c2rr = obj.nr^2*(c2n1+c21-2*c20);
+             [c2z,~,~,~] =obj.getdiv(c20); 
+
+             F1 = c1rr +obj.ep/obj.R*c1r.*obj.a -obj.ep*Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2);
+             F2 = c2rr +obj.ep/obj.R*c1r.*obj.a+ kp*h0^2/D2*(2*C1*km/(kp*C2)*c10 -c20).*obj.a.^2 - obj.ep*Pe2*(U.*c2r.*obj.a + w.*c2z.*obj.a.^2);
+             %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) + h0*obj.a.*f;
+             bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
+             bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+             bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
+             %bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep/obj.R).*f;
+             bc5 = c2(end,:) -1;
+             %F = [F1;F2;bc1;bc2;bc3;bc4;bc5];
+             F = [F1;F2;bc1;bc2;bc3;bc5];
+             
+             
+         end
+         function F = cfunfd(obj,c)
+             h0 = 1e-5;
+             D1 = 0.9e-9;
+             D2 = 1.3e-9;
+             g = 9.81;
+             nu = 1e-6;
+             Pe2 = h0^3*g/(nu*D2);
+             Pe1 = 1.3/0.9*Pe2;
+             C1 = 5;
+             C2 = 2.7e-2;
+             km = 2e-4;
+             kp = 1e-2;
+             w = obj.w(2:end-1,:);
+             U = obj.U(2:end-1,:);
+             c1 = c(1:obj.nr+1,:);
+             c2 = c(obj.nr+2:end,:);
+             %f = c(end,:);
+             c11 = c1(3:end,:);
+             c10 = c1(2:end-1,:);
+             c1n1 = c1(1:end-2,:);
+             c1r = obj.nr*(c11 -c1n1)/2 ;
+             c1rr = obj.nr^2*(c1n1+c11-2*c10);
+             %[c1z,~,~,~] =obj.getdiv(c10); 
+             cz1 = [c1(:,2:end) c1(:,1)];
+             czn1 = [c1(:,end) c1(:,1:end-1)];
+             c1z = 1/2*obj.n/obj.L*(cz1-czn1);
+             
+             c21 = c2(3:end,:);
+             c20 = c2(2:end-1,:);
+             c2n1 = c2(1:end-2,:);
+             c2r = obj.nr*(c21 -c2n1)/2 ;
+             c2rr = obj.nr^2*(c2n1+c21-2*c20);
+             %[c2z,~,~,~] =obj.getdiv(c20); 
+                          cz2 = [c2(:,2:end) c2(:,1)];
+             czn2 = [c2(:,end) c2(:,1:end-1)];
+             c2z = 1/2*obj.n/obj.L*(cz2-czn2);
+             
+             c1z = c1z(2:end-1,:);
+             c2z = c2z(2:end-1,:);
+             F1 = c1rr +obj.ep/obj.R*c1r.*obj.a -obj.ep*Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2);
+             F2 = c2rr +obj.ep/obj.R*c2r.*obj.a+ kp*h0^2/D2*(2*C1*km/(kp*C2)*c10 -c20).*obj.a.^2 - obj.ep*Pe2*(U.*c2r.*obj.a + w.*c2z.*obj.a.^2);
+             %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) + h0*obj.a.*f;
+             bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
+             bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+             bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
+             %bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep/obj.R).*f;
+             bc5 = c2(end,:) -1;
+             %F = [F1;F2;bc1;bc2;bc3;bc4;bc5];
+             F = [F1;F2;bc1;bc2;bc3;bc5];
+             
+             
+         end
+                  function [c2,f] = get_conc2(obj,c20,f0)
+                                   obj = obj.get_h;
+             obj.h = obj.h0;
+             options = optimoptions('fsolve','Display','iter');
+             cinit = [c20;f0];
+             [c] = fsolve(@obj.c2fun,cinit,options);
+             c2 = c(1:obj.nr+1,:);
+             
+             f = c(end,:);
+         end
+         function F = c2fun(obj,c)
+             h0 = 1e-5;
+             D1 = 0.9e-9;
+             D2 = 1.3e-9;
+             g = 9.81;
+             nu = 1e-6;
+             Pe2 = h0^3*g/(nu*D2);
+             Pe1 = 1.3/0.9*Pe2;
+             C1 = 5;
+             C2 = 2.7e-2;
+             km = 2e-4;
+             kp = 1e-2;
+            
+             
+             w = obj.w(2:end-1,:);
+             U = obj.U(2:end-1,:);
+             c1 = ones(1,obj.n);
+             c2 = c(1:obj.nr+1,:);
+             %c2 = c(obj.nr+2:end-1,:);
+             f = c(end,:);
+             
+             
+             c21 = c2(3:end,:);
+             c20 = c2(2:end-1,:);
+             c2n1 = c2(1:end-2,:);
+             c2r = obj.nr*(c21 -c2n1)/2 ;
+             c2rr = obj.nr^2*(c2n1+c21-2*c20);
+             [c2z,~,~,~] =obj.getdiv(c20); 
+             
+             F2 = c2rr +obj.ep/obj.R*c2r.*obj.a+ kp*h0^2/D2*(2*C1*km/(kp*C2)*c1 -c20).*obj.a.^2 - obj.ep*Pe2*(U.*c2r.*obj.a + w.*c2z.*obj.a.^2);
+             %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) + h0*obj.a.*f;
+             %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
+             bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+             %bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
+             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep/obj.R).*f;
+             bc5 = c2(end,:) -1;
+%             
+%              F2 = c2rr + k0*(k1*(c1+k2) -c20).*obj.h.^2 - Pe2*(U.*c2r.*obj.h + w.*c2z.*obj.h.^2);
+%             
+%              bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+%     
+%              bc4 = obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + v2*obj.h.*f;
+%              bc5 = c2(end,:) -CO2;
+             F = [F2;bc2;bc4;bc5];
+             
+             
+         end
+         function [c2,f] = get_co2(obj,c20)
+             options = optimoptions('fsolve','Display','iter');
+             
+             [c] = fsolve(@obj.co2fun,c20,options);
+             c2 = c(1:obj.nr+1,:);
+             
+             f = -1e-9/1e-5*2.7e-2./obj.h.*obj.nr.*(3/2*c(end,:) -2*c(end-1,:)+1/2*c(end-2,:));
+         end
+         
+         function F = co2fun(obj,c)
+             D = 1.3e-9;
+             h0 = 1e-5;
+             C1 = 2*5;
+             C2 = 2.7e-2;
+             k1 = 2e-4;
+             k2 = 1e-2;
+             c1 = ones(1,obj.n);
+             c2 = c(1:obj.nr+1,:);
+             %c2 = c(obj.nr+2:end-1,:);
+             %f = c(end,:);
+             
+             
+             c21 = c2(3:end,:);
+             c20 = c2(2:end-1,:);
+             c2n1 = c2(1:end-2,:);
+             c2r = obj.nr*(c21 -c2n1)/2 ;
+             c2rr = obj.nr^2*(c2n1+c21-2*c20);
+             [c2z,~,~,~] =obj.getdiv(c20); 
+             
+             F2 = C2*D/h0^2.*c2rr +(C1*k1*c1 -C2*k2*c20).*obj.h.^2 ;
+            
+             bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+    
+             %bc4 = D*C2/h0*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + v2*obj.h.*f;
+             bc5 = c2(end,:) -1;
+             F = [F2;bc2;bc5];
+         end
+         
+         function F = calcfun(obj,c)
+             h0 = 1e-5;
+             D1 = 0.9e-9;
+             D2 = 1.3e-9;
+             g = 9.81;
+             nu = 1e-6;
+             Pe2 = h0^3*g/(nu*D2);
+             Pe1 = 1.3/0.9*Pe2;
+             D = 0.9e-9;
+             h0 = 1e-5;
+             C1 = 5;
+             C2 = 2.7e-2;
+             k1 = 2e-4;
+             k2 = 1e-2;
+             
+             c1 = c(1:obj.nr+1,:);
+             %c2 = c(obj.nr+2:end-1,:);
+             %f = c(end,:);
+             
+             
+             c11 = c1(3:end,:);
+             c10 = c1(2:end-1,:);
+             c1n1 = c1(1:end-2,:);
+             c1r = obj.nr*(c11 -c1n1)/2 ;
+             c1rr = obj.nr^2*(c1n1+c11-2*c10);
+             [c1z,~,~,~] =obj.getdiv(c10); 
+             
+             F2 = c1rr +obj.ep*(c1r/obj.R.*obj.a-Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2));
+            
+             bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+    
+             %bc4 = D*C2/h0*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + v2*obj.h.*f;
+             bc5 = c2(end,:) -1;
+             F = [F2;bc2;bc5];
+         end
+         
+         
     end
 end
 %% Old Code
