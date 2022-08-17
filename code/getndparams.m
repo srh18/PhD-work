@@ -1,4 +1,4 @@
-function [R,Re,Bo,eps] = getndparams(R1,Q,L,eqn)
+function [R,Re,Bo,eps,h] = getndparams(R1,Q,L,eqn)
 L = L/(2*pi);
 h = (3*Q*1e-6./(2*pi*9.81*R1)).^(1/3);
 R = R1./L;

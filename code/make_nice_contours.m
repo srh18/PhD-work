@@ -3,6 +3,7 @@ if nargin <1
     m = 1;
 end
 load('/Volumes/srh18/home/QH2Nunstablemat2highres.mat')
+%load('/Volumes/srh18/home/eq0Re1ep-1QH2Nunstablemat2highres.mat','Q','H2','M','L','del')
 l = {};
 n = 5;
 v = contour(L/pi,del,M, [-1 0 1 2 3 4 5 ]);

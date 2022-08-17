@@ -1,4 +1,5 @@
-load('/Volumes/srh18/home/QH2Nunstablemat2highres.mat')
+load('/Volumes/srh18/home/eq0Re1ep-1QH2Nunstablemat2highres.mat','Q','H2','M','L','del')
+%load('/Volumes/srh18/home/QH2Nunstablemat2highres.mat')
 f = figure;
 hold on
 s = pcolor(L/pi,del,Q);

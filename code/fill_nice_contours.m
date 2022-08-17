@@ -24,5 +24,5 @@ ylabel('$\delta$')
 f = gcf;
 f.WindowStyle = 'normal';
 f.Position = [100 100 1200 750];
-saveas(f,'../plots/psbigp/modeshighressmooth','epsc')
+%saveas(f,'../plots/psbigp/modeshighressmooth','epsc')
 end

@@ -42,7 +42,7 @@ classdef shape_solveh
         eta % wall shape
         h0 %steady state
         etat = 0 %if h is actually eta
-        
+        H = 1e-5 %mean thickness
         
         % Info about code
         
@@ -2329,7 +2329,7 @@ ylabel('$|H(k)|$')
              f = -0.9e-9*5*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:))./(1e-5*obj.a);
          end
          function F = cfun(obj,c)
-             h0 = 1e-5;
+             h0 = 1e-4;
              D1 = 0.9e-9;
              D2 = 1.3e-9;
              g = 9.81;
@@ -2340,6 +2340,7 @@ ylabel('$|H(k)|$')
              C2 = 2.7e-2;
              km = 2e-4;
              kp = 1e-2;
+             rhoc  = 3.69e-5;
              w = obj.w(2:end-1,:);
              U = obj.U(2:end-1,:);
              c1 = c(1:obj.nr+1,:);
@@ -2362,7 +2363,7 @@ ylabel('$|H(k)|$')
              F1 = c1rr +obj.ep/obj.R*c1r.*obj.a -obj.ep*Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2);
              F2 = c2rr +obj.ep/obj.R*c1r.*obj.a+ kp*h0^2/D2*(2*C1*km/(kp*C2)*c10 -c20).*obj.a.^2 - obj.ep*Pe2*(U.*c2r.*obj.a + w.*c2z.*obj.a.^2);
              %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) + h0*obj.a.*f;
-             bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
+             bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R.*obj.a);
              bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
              bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
              %bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep/obj.R).*f;
@@ -2373,7 +2374,7 @@ ylabel('$|H(k)|$')
              
          end
          function F = cfunfd(obj,c)
-             h0 = 1e-5;
+             h0 = 9.9106e-06;
              D1 = 0.9e-9;
              D2 = 1.3e-9;
              g = 9.81;
@@ -2424,18 +2425,33 @@ ylabel('$|H(k)|$')
              
              
          end
-                  function [c2,f] = get_conc2(obj,c20,f0)
+         function obj = getndparams(obj,R1,Q,L)
+L = L/(2*pi);
+obj.H = (3*Q*1e-6./(2*pi*9.81*R1)).^(1/3);
+obj.R = R1./L;
+obj.ep = obj.H./L;
+obj.Bo = 997*L.^2*9.81/0.072./(obj.equation*(obj.ep -1)+1);
+obj.Re = 3*Q./(2*pi*R1*1e-6);
+obj.L = 2*pi;
+end
+                  function [c2,f] = get_conc2(obj,c20,f0,R,Q,L)
+                      if nargin<=3
+                          R = 0.1;
+                          Q = 1e-9;
+                          L = 1e-2;
+                      end
+                      obj = obj.getndparams(R,Q,L);
                                    obj = obj.get_h;
              obj.h = obj.h0;
-             options = optimoptions('fsolve','Display','iter');
+             options = optimoptions('fsolve','Display','none');
              cinit = [c20;f0];
-             [c] = fsolve(@obj.c2fun,cinit,options);
+             [c] = fsolve(@obj.c2fun,cinit);
              c2 = c(1:obj.nr+1,:);
              
              f = c(end,:);
          end
          function F = c2fun(obj,c)
-             h0 = 1e-5;
+             h0 = obj.H;
              D1 = 0.9e-9;
              D2 = 1.3e-9;
              g = 9.81;
@@ -2446,6 +2462,7 @@ ylabel('$|H(k)|$')
              C2 = 2.7e-2;
              km = 2e-4;
              kp = 1e-2;
+             rhoc  = 3.69e-5;
             
              
              w = obj.w(2:end-1,:);
@@ -2468,7 +2485,7 @@ ylabel('$|H(k)|$')
              %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
              bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
              %bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
-             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep/obj.R).*f;
+             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1+obj.ep.*obj.a/obj.R).*h0/rhoc.*f;
              bc5 = c2(end,:) -1;
 %             
 %              F2 = c2rr + k0*(k1*(c1+k2) -c20).*obj.h.^2 - Pe2*(U.*c2r.*obj.h + w.*c2z.*obj.h.^2);
@@ -2492,7 +2509,7 @@ ylabel('$|H(k)|$')
          
          function F = co2fun(obj,c)
              D = 1.3e-9;
-             h0 = 1e-5;
+             h0 = 9.9106e-06;
              C1 = 2*5;
              C2 = 2.7e-2;
              k1 = 2e-4;
@@ -2520,15 +2537,15 @@ ylabel('$|H(k)|$')
          end
          
          function F = calcfun(obj,c)
-             h0 = 1e-5;
+             
+             h0 = obj.H;
              D1 = 0.9e-9;
              D2 = 1.3e-9;
              g = 9.81;
              nu = 1e-6;
              Pe2 = h0^3*g/(nu*D2);
              Pe1 = 1.3/0.9*Pe2;
-             D = 0.9e-9;
-             h0 = 1e-5;
+
              C1 = 5;
              C2 = 2.7e-2;
              k1 = 2e-4;
