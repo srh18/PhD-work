@@ -44,6 +44,7 @@ classdef shape_solveh
         etat = 0 %if h is actually eta
         H = 1e-5 %mean thickness
         
+        f %growth rate of wall
         % Info about code
         
         integration_time
@@ -2129,6 +2130,50 @@ classdef shape_solveh
              pdiff = (mpk - hpk);
              tdiff = (mtg - htg);
          end
+         function obj = CO2_growth(obj,R0,del,Q,L,gamma)
+             if nargin<4
+             gamma = 1e8;
+             Q = 1e-8;
+             L = 1e-2;
+             if nargin<3
+                 del = 0.1;
+                 if nargin<2
+                     R0 = 0.01;
+                 end
+             end
+             end
+             
+             tic
+             obj.del = del;
+              f0 = ones(1,obj.n)*1e-7;
+              c0 = 1+1/2*f0.*(obj.r.^2)*1e-3 +obj.ep*sin(obj.nz*2*pi);
+             [c0,f0] = obj.get_conc2(c0,f0,R0,Q,L);
+             obj = obj.getndparams(R0,Q,L);
+             eta0 = obj.eta*obj.H;
+             y0 = [eta0 R0];
+             
+             %opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on','Events',@obj.EventsFcn);
+             opts = odeset('RelTol',obj.reltol,'AbsTol',obj.abstol,'Stats','on','BDF','on');
+           [t,y] = ode15s(@(t,y) obj.growth_CO2_fun(t,y,Q,L,gamma,c0,f0),0:obj.delt:obj.T,y0 ,opts);
+           obj.etat = 1;
+           obj.t = t;
+           obj.h = y;
+           obj.integration_time = toc;
+         end
+         function dy = growth_CO2_fun(obj,t,y,Q,L,gamma,c0,f0)
+            eta = y(1:obj.n)';
+            R = y(obj.n+1);
+            
+             obj = obj.getndparams(R,Q,L);
+             obj.eta = eta/obj.H;
+             [~,f] = obj.get_conc2(c0,f0,R,Q,L);
+             etat = gamma*obj.H*(f-mean(f));
+             Rt = obj.H*mean(f)*gamma;
+             dy = [etat Rt]';
+             
+             
+             
+         end
          function h = simple_growth_function(obj,t,eta)
              obj.eta = eta';
              obj = obj.get_h;
@@ -2440,12 +2485,14 @@ end
                           Q = 1e-9;
                           L = 1e-2;
                       end
+                      eta = obj.eta;
                       obj = obj.getndparams(R,Q,L);
+                      obj.eta = eta;
                                    obj = obj.get_h;
              obj.h = obj.h0;
              options = optimoptions('fsolve','Display','none');
              cinit = [c20;f0];
-             [c] = fsolve(@obj.c2fun,cinit);
+             [c] = fsolve(@obj.c2fun,cinit,options);
              c2 = c(1:obj.nr+1,:);
              
              f = c(end,:);
@@ -2485,7 +2532,7 @@ end
              %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
              bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
              %bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
-             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1+obj.ep.*obj.a/obj.R).*h0/rhoc.*f;
+             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep.*obj.a/obj.R).*h0/rhoc.*f;
              bc5 = c2(end,:) -1;
 %             
 %              F2 = c2rr + k0*(k1*(c1+k2) -c20).*obj.h.^2 - Pe2*(U.*c2r.*obj.h + w.*c2z.*obj.h.^2);
@@ -2536,6 +2583,12 @@ end
              F = [F2;bc2;bc5];
          end
          
+         function [c] = get_calc(obj,c20)
+             options = optimoptions('fsolve','Display','iter');
+             
+             [c] = fsolve(@obj.calcfun,c20,options);
+         end
+         
          function F = calcfun(obj,c)
              
              h0 = obj.H;
@@ -2550,8 +2603,9 @@ end
              C2 = 2.7e-2;
              k1 = 2e-4;
              k2 = 1e-2;
-             
-             c1 = c(1:obj.nr+1,:);
+             w = obj.w(2:end-1,:);
+             U = obj.U(2:end-1,:);
+             c1 = c;
              %c2 = c(obj.nr+2:end-1,:);
              %f = c(end,:);
              
@@ -2562,17 +2616,142 @@ end
              c1r = obj.nr*(c11 -c1n1)/2 ;
              c1rr = obj.nr^2*(c1n1+c11-2*c10);
              [c1z,~,~,~] =obj.getdiv(c10); 
-             
+          
              F2 = c1rr +obj.ep*(c1r/obj.R.*obj.a-Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2));
             
-             bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
+             bc2 = D1*C1/h0*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) + obj.a.*obj.f;
     
-             %bc4 = D*C2/h0*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + v2*obj.h.*f;
-             bc5 = c2(end,:) -1;
-             F = [F2;bc2;bc5];
+             bc4 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) ;
+             
+             F = [F2;bc2;bc4];
          end
          
+         function [eta,R] = stalactite_grow(obj,del0,R0,Q,L)
+             gamma = 1e8;
+             f0 = ones(1,obj.n)*1e-7;
+             
+             c0 = 1+1/2*f0.*(1-obj.r.^2)*1e-3 +obj.ep*sin(obj.nz*2*pi);
+         delt = 0.01;
+         T = 1.2;
+         obj.del = del0;
+         obj = obj.getndparams(R0,Q,L);
+         etao = obj.eta*obj.H;
          
+         R = [R0];
+         t = 0:delt:T;
+         
+         
+         eta = [etao];
+         obj.eta = obj.H*obj.eta;
+         for i =1:length(t)
+             obj = obj.getndparams(R0,Q,L);
+             obj.eta = etao/obj.H;
+             [c,f] = obj.get_conc2(c0,f0,R0,Q,L);
+             
+             etan = obj.eta+delt*(f-mean(f))*gamma;
+             etan = obj.H*etan;
+             eta = [eta;etan];
+             obj.eta = etan;
+             etao = etan;
+             Rn = R0+delt*gamma*mean(f)*obj.H;
+             
+             R = [R;Rn];
+             R0 = Rn;
+         
+             c0 = c;
+             f0 = f;
+         end
+         end
+         function [c0,c1,Rt,etat] = stalactite_stab(obj,c0,c1,Rt,etat,R,Q,L)
+             
+              if nargin<=5
+                          R = 0.1;
+                          Q = 1e-9;
+                          L = 1e-2;
+              end
+                      if nargin ==1
+                      c0 = 1+1/2*(obj.r.^2)*1e-3;
+                      c1 = 0*c0;
+                      Rt = 1;
+                      etat = 0;
+                      end
+                      
+                      
+                      obj = obj.getndparams(R,Q,L);
+                      
+                                   obj = obj.get_h;
+             obj.h = obj.h0;
+              
+             options = optimoptions('fsolve','Display','none');
+             cinit = [c0;Rt;c1;etat];
+             [c] = fsolve(@obj.stalactite_stab_fun,cinit,options);
+             c0 = c(1:end/2-1);
+             c1 = c(end/2+1:end-1);
+             Rt = c(end/2);
+             etat = c(end);
+             
+             
+             
+         end
+         function F = stalactite_stab_fun(obj,c)
+              h0 = obj.H;
+             D1 = 0.9e-9;
+             D2 = 1.3e-9;
+             g = 9.81;
+             nu = 1e-6;
+             Pe2 = h0^3*g/(nu*D2);
+             Pe1 = 1.3/0.9*Pe2;
+             C1 = 5;
+             C2 = 2.7e-2;
+             km = 2e-4;
+             kp = 1e-2;
+             rhoc  = 3.69e-5;
+             
+              k = 2*pi/obj.L;
+                R = obj.R;
+                Re = obj.Re;
+                Bo = obj.Bo;
+                eps = obj.ep;
+                a = (5*eps.*(20*eps.*R.^2.*Bo.^2-30*Bo.^2.*R.^3+eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4-300*Bo.^2.*eps.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
+                
+                theta = atan(Bo.*k.*R.^2.*(15*k.^2.*R.^2-15-4*eps.*Re.*R.*Bo)./(30*Bo.^2.*R.^3-eps.*(20*Bo.^2.*R.^2+k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
+                A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4-300*eps.*Bo.^2.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
+                h = A*exp(1i*theta)/eps;
+
+                
+             c0 =c(1:end/2-1);
+             Rt = c(end/2);
+             c1 = c(1+end/2:end-1);
+             etat = c(end);
+             c0n1 = c0(1:end-2);
+             c00  = c0(2:end-1);
+             c01 = c0(3:end);
+             c0r = obj.nr*(c01 -c0n1)/2 ;
+             c0rr = obj.nr^2*(c0n1+c01-2*c00);
+             c1n1 = c1(1:end-2);
+             c10  = c1(2:end-1);
+             c11 = c1(3:end);
+             c1r = obj.nr*(c11 -c1n1)/2 ;
+             c1rr = obj.nr^2*(c1n1+c11-2*c10);
+             r = linspace(0,1,length(c0))';
+             w0 = r - r.^2/2 + eps/R*(r/2 - r.^2/2+r.^3/6);
+             w0i = r.^2/2- r.^3/6 + eps/R*(r.^2/4 - r.^3/6 + r.^4/24);
+             w1i = eps*(r.^3/3-r.^2)*(1i*k+2*obj.Bo*h*R^2-1i*k^3*R^2)/(2*obj.Bo*R^2);
+             w0 = w0(2:end-1);
+             w1i = w1i(2:end-1);
+             w0i = w0i(2:end-1);
+             F1 = c0rr+eps/R*c0r+kp*h0^2/D2*(2*C1*km/(kp*C2) -c00);
+             F2 = c0(end)-1;
+             F3 = obj.nr*(-3/2*c0(1,:) +2*c0(2,:)-1/2*c0(3,:));
+             F4 = c1rr+eps/R*c1r+kp*h0^2/D2*(2*h*eps*(2*C1*km/(kp*C2) -c00)-c10)-1i*k*Pe2*(w0.*c10-(eps*h*w0i+w1i).*c0r);
+             F5 = c1(end);
+             F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
+             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt/eps;
+
+             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*(Rt*h+etat);
+             
+             F = [F1;F2;F3;F4;F5;F6;F7;F8];
+         end
     end
 end
 %% Old Code
