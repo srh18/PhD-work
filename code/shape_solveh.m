@@ -2478,6 +2478,15 @@ obj.ep = obj.H./L;
 obj.Bo = 997*L.^2*9.81/0.072./(obj.equation*(obj.ep -1)+1);
 obj.Re = 3*Q./(2*pi*R1*1e-6);
 obj.L = 2*pi;
+         end
+function obj = getndparams2(obj,R1,Q,L)
+%L = L/(2*pi);
+obj.H = (3*Q*1e-6./(2*pi*9.81*R1)).^(1/3);
+obj.R = 1;
+obj.ep = obj.H./R1;
+obj.Bo = 997*R1.^2*9.81/0.072./(obj.equation*(obj.ep -1)+1);
+obj.Re = 3*Q./(2*pi*R1*1e-6);
+obj.L = L/R1;
 end
                   function [c2,f] = get_conc2(obj,c20,f0,R,Q,L)
                       if nargin<=3
@@ -2677,7 +2686,7 @@ end
                       end
                       
                       
-                      obj = obj.getndparams(R,Q,L);
+                      obj = obj.getndparams2(R,Q,L);
                       
                                    obj = obj.get_h;
              obj.h = obj.h0;
@@ -2716,7 +2725,7 @@ end
                 
                 theta = atan(Bo.*k.*R.^2.*(15*k.^2.*R.^2-15-4*eps.*Re.*R.*Bo)./(30*Bo.^2.*R.^3-eps.*(20*Bo.^2.*R.^2+k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
                 A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4-300*eps.*Bo.^2.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
-                h = A*exp(1i*theta)/eps;
+                h = A*exp(1i*theta);
 
                 
              c0 =c(1:end/2-1);
@@ -2736,19 +2745,19 @@ end
              r = linspace(0,1,length(c0))';
              w0 = r - r.^2/2 + eps/R*(r/2 - r.^2/2+r.^3/6);
              w0i = r.^2/2- r.^3/6 + eps/R*(r.^2/4 - r.^3/6 + r.^4/24);
-             w1i = eps*(r.^3/3-r.^2)*(1i*k+2*obj.Bo*h*R^2-1i*k^3*R^2)/(2*obj.Bo*R^2);
+             w1i = h*(r.^2-r.^3/3)+eps/24.*(12*h.*(3*r.^2/2-r.^3+3*r.^4/4)/R + 12i*(1+h).*k.*(r.^3/3-r.^2).*(R^2*k^2-1)/(Bo*R^2)+1i*h*k*Re.*(4*r.^2-r.^4+r.^5/5))
              w0 = w0(2:end-1);
              w1i = w1i(2:end-1);
              w0i = w0i(2:end-1);
              F1 = c0rr+eps/R*c0r+kp*h0^2/D2*(2*C1*km/(kp*C2) -c00);
              F2 = c0(end)-1;
              F3 = obj.nr*(-3/2*c0(1,:) +2*c0(2,:)-1/2*c0(3,:));
-             F4 = c1rr+eps/R*c1r+kp*h0^2/D2*(2*h*eps*(2*C1*km/(kp*C2) -c00)-c10)-1i*k*Pe2*(w0.*c10-(eps*h*w0i+w1i).*c0r);
+             F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2) -c00)-c10)-1i*k*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
              F5 = c1(end);
              F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
              F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt/eps;
 
-             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*(Rt*h+etat);
+             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*(Rt/eps*h+etat);
              
              F = [F1;F2;F3;F4;F5;F6;F7;F8];
          end
