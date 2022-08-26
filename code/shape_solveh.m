@@ -2745,14 +2745,14 @@ end
              r = linspace(0,1,length(c0))';
              w0 = r - r.^2/2 + eps/R*(r/2 - r.^2/2+r.^3/6);
              w0i = r.^2/2- r.^3/6 + eps/R*(r.^2/4 - r.^3/6 + r.^4/24);
-             w1i = h*(r.^2-r.^3/3)+eps/24.*(12*h.*(3*r.^2/2-r.^3+3*r.^4/4)/R + 12i*(1+h).*k.*(r.^3/3-r.^2).*(R^2*k^2-1)/(Bo*R^2)+1i*h*k*Re.*(4*r.^2-r.^4+r.^5/5))
+             w1i = h*(r.^2-r.^3/3)+eps/24.*(12*h.*(3*r.^2/2-r.^3+3*r.^4/4)/R + 12i*(1+h).*k.*(r.^3/3-r.^2).*(R^2*k^2-1)/(Bo*R^2)+1i*h*k*Re.*(4*r.^2-r.^4+r.^5/5));
              w0 = w0(2:end-1);
              w1i = w1i(2:end-1);
              w0i = w0i(2:end-1);
              F1 = c0rr+eps/R*c0r+kp*h0^2/D2*(2*C1*km/(kp*C2) -c00);
              F2 = c0(end)-1;
              F3 = obj.nr*(-3/2*c0(1,:) +2*c0(2,:)-1/2*c0(3,:));
-             F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2) -c00)-c10)-1i*k*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
+             F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2) -c00)-c10)-1i*k*eps*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
              F5 = c1(end);
              F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
              F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt/eps;
