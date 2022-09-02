@@ -10,6 +10,10 @@ if nargin<5
     end
  
 end
-
+if folder == 100
+    load(replace(sprintf('/Volumes/srh18/home/epseq/R1/CasePSn%gR1del%.2fL%.3fT500tol%ginit0-1sin',n,del,L,log10(tol)),'.','-'),'value')
+else
+    
 load(replace(sprintf('/Volumes/srh18/home/psbigp/R1/%sCasePSn%gR1del%.2fL%.3fT500tol%ginit0-1sin',inits{folder},n,del,L,log10(tol)),'.','-'),'value')
+end
 end
