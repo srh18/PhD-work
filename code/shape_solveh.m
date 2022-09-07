@@ -450,12 +450,12 @@ classdef shape_solveh
                 %             b = (B.*C-D.*A)/(A.^2+B.^2);
                 %
                 %             hinit = 1+ a.*obj.del.*cos(2*pi./obj.L.*obj.z)-b.*obj.del.*sin(2*pi./obj.L.*obj.z);
-                
+%                 
 %                 a = (5*eps.*(20*eps.*R.^2.*Bo.^2-30*Bo.^2.*R.^3+eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4-300*Bo.^2.*eps.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
 %                 
 %                 theta = atan(Bo.*k.*R.^2.*(15*k.^2.*R.^2-15-4*eps.*Re.*R.*Bo)./(30*Bo.^2.*R.^3-eps.*(20*Bo.^2.*R.^2+k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
 %                 A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4-300*eps.*Bo.^2.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
-%                 
+% %                 
                 a = (5*eps.*(10*eps.*R.^2.*Bo.^2+30*Bo.^2.*R.^3-eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4+150*Bo.^2.*eps.*R.^3+eps.^2.*(25*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
                 
                 theta = atan(Bo.*k.*R.*(-15*k.^2.*R.^3+15*R+eps.*(15+(-15*k.^2+4*Re.*Bo).*R.^2))./(30*Bo.^2.*R.^3+eps.*(10*Bo.^2.*R.^2-k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
@@ -1508,7 +1508,8 @@ classdef shape_solveh
                 plot(obj.t,sum(obj.hdiff.^2/obj.n,2))
             end
             xlabel('$t$')
-            ylabel('$||h||_2$')
+            %ylabel('$||h||_2$')
+            ylabel('$||H||_2$')
             title(sprintf('$||h||_2$ for $\\delta =%g$, $L= %g\\pi$',obj.del,obj.L/pi))
         end
 
@@ -1586,8 +1587,8 @@ classdef shape_solveh
                 plot(obj.h2norm(nt:end-1),(obj.h2norm(nt+1:end)-obj.h2norm(nt:end-1))/obj.delt,'Color',[0 0.4470 0.7410])
                 
                 hold off
-                xlabel('$||h(t)||_2$')
-                ylabel('$\frac{d||h||_2}{dt}$')
+                xlabel('$||H(t)||_2$')
+                ylabel('$\frac{d||H||_2}{dt}$')
                 title(sprintf('Phase plot for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
             
         end
@@ -1743,7 +1744,7 @@ classdef shape_solveh
             l = length(obj.t(1:end));
             
             m = 0 ;
-            a = interp1([obj.z,obj.L],[obj.h(i2,:),obj.h(i2,1)],0:obj.L/obj.n/n:obj.L - obj.L/obj.n/n,'spline','extrap');
+            a = interp1([obj.z,obj.L],[obj.a(i2,:),obj.a(i2,1)],0:obj.L/obj.n/n:obj.L - obj.L/obj.n/n,'spline','extrap');
             [h, k ] = max(a);
             [~,hzz,~,~ ] = obj2.getdiv(a);
             z0 = (k-1)/n/obj.n*obj.L;
@@ -1752,7 +1753,7 @@ classdef shape_solveh
             
             obj.peakp(1)  = -1/obj2.Bo*((obj2.eta(k)+h)/obj2.R^2+obj2.etazz(k)+ hzz(k));
             for i = 1:l-i2
-                a = interp1([obj.z,obj.L],[obj.h(i+i2,:),obj.h(i+i2,1)],0:obj.L/obj.n/n:obj.L - obj.L/obj.n/n,'spline','extrap');
+                a = interp1([obj.z,obj.L],[obj.a(i+i2,:),obj.a(i+i2,1)],0:obj.L/obj.n/n:obj.L - obj.L/obj.n/n,'spline','extrap');
                 [~,hzz,~,~ ] = obj2.getdiv(a);
                 if k+region<=n*obj.n && k-region>0
                     [h, j ] = max(a(k-region:k+region));
@@ -2691,9 +2692,9 @@ end
          function [c0,c1,Rt,etat] = stalactite_stab(obj,c0,c1,Rt,etat,R,Q,L)
              
               if nargin<=5
-                          R = 0.007;
-                          Q = 1e-8;
-                          L = 5e-3;
+                R = 0.01;
+                          Q = 1e-9;
+                          L = 1e-2;
               end
                       if nargin ==1
                       c0 = 1+1/2*(obj.r.^2)*1e-3;
@@ -2719,10 +2720,10 @@ end
              
              
          end
-         function [c0,c1,ca,Rt,etat,etatcheck] = stalactite_stab_ca(obj,c0,c1,ca,Rt,etat,R,Q,L)
+         function [c0,c1,ca,Rt,etat] = stalactite_stab_ca(obj,c0,c1,ca,Rt,etat,R,Q,L)
              
               if nargin<=5
-                          R = 0.1;
+                          R = 0.01;
                           Q = 1e-9;
                           L = 1e-2;
               end
@@ -2742,14 +2743,16 @@ end
              obj.h = obj.h0;
               
              options = optimoptions('fsolve','Display','none');
-             cinit = [c0;Rt;c1;etat;ca;etat];
+             cinit = [c0;Rt;c1;etat;ca];
              [c] = fsolve(@obj.stalactite_stab_fun_ca,cinit,options);
-             c0 = c(1:end/3-1);
-             c1 = c(end/3+1:2/3*end-1);
-             ca = c(2/3*end+1:end-1);
-             Rt = c(end/3);
-             etat = c(2/3*end);
-             etatcheck = c(end);
+             
+             nr = length(obj.r); 
+             c0 =c(1:nr);
+             Rt = c(nr+1);
+             c1 = c(nr+2:2*nr +1);
+             etat = c(2*nr + 2);
+             ca = c(2*nr+3:end);
+             
              
              
          end
@@ -2835,19 +2838,21 @@ end
                 Re = obj.Re;
                 Bo = obj.Bo;
                 eps = obj.ep;
-                a = (5*eps.*(20*eps.*R.^2.*Bo.^2-30*Bo.^2.*R.^3+eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4-300*Bo.^2.*eps.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
+                a = (5*eps.*(10*eps.*R.^2.*Bo.^2+30*Bo.^2.*R.^3-eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4+150*Bo.^2.*eps.*R.^3+eps.^2.*(25*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
                 
-                theta = atan(Bo.*k.*R.^2.*(15*k.^2.*R.^2-15-4*eps.*Re.*R.*Bo)./(30*Bo.^2.*R.^3-eps.*(20*Bo.^2.*R.^2+k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
-                A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4-300*eps.*Bo.^2.*R.^3+eps.^2.*(100*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
-                h = A*exp(1i*theta);
+                theta = atan(Bo.*k.*R.*(-15*k.^2.*R.^3+15*R+eps.*(15+(-15*k.^2+4*Re.*Bo).*R.^2))./(30*Bo.^2.*R.^3+eps.*(10*Bo.^2.*R.^2-k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
+                A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4+150*eps.*Bo.^2.*R.^3+eps.^2.*(25*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
+                 phi = atan(R*A*tan(theta)/(R*A - eps*sec(theta)));
+                B = A*R*sin(theta)/((R+eps)*sin(phi));
+                h = B*exp(-1i*phi);
 
-                
-             c0 =c(1:end/3-1);
-             Rt = c(end/3);
-             c1 = c(1+end/3:2/3*end-1);
-             etat = c(2/3*end);
-             ca = c(2/3*end+1:end-1);
-             etatcheck = c(end);
+             nr = length(obj.r); 
+             c0 =c(1:nr);
+             Rt = c(nr+1);
+             c1 = c(nr+2:2*nr +1);
+             etat = c(2*nr + 2);
+             ca = c(2*nr+3:end);
+             
              c0n1 = c0(1:end-2);
              c00  = c0(2:end-1);
              c01 = c0(3:end);
@@ -2873,15 +2878,16 @@ end
              F1 = c0rr+eps/R*c0r+kp*h0^2/D2*(2*C1*km/(kp*C2) -c00);
              F2 = c0(end)-1;
              F3 = obj.nr*(-3/2*c0(1,:) +2*c0(2,:)-1/2*c0(3,:));
-             F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2)+ca0 -c00)-c10)-1i*k*eps*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
+             F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2) -c00)+2*C1*km/(kp*C2)*ca0-c10)-1i*k*eps*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
              F5 = c1(end);
              F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
-             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt/eps;
+             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt;
 
-             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*(Rt/eps*h+etat);
+             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0.^2/rhoc.*((1-obj.ep/obj.R).*(Rt*h+etat)-obj.ep/obj.R*Rt*h);
              F9 = carr+eps/R*(car)-1i*k*eps*Pe1*(w0.*ca0);
-             F10 = D1*C1*obj.nr*(-3/2*ca(1,:) +2*ca(2,:)-1/2*ca(3,:)) + h0*h0/rhoc*(Rt/eps*h+etatcheck);
-             F = [F1;F2;F3;F4;F5;F6;F7;F8;F9;F10];
+             F10 =  obj.nr*(3/2*ca(end,:) -2*ca(end-1,:)+1/2*ca(end-2,:));
+             F11 = D1*C1*obj.nr*(-3/2*ca(1,:) +2*ca(2,:)-1/2*ca(3,:)) + h0*h0/rhoc*(Rt*h+etat);
+             F = [F1;F2;F3;F4;F5;F6;F7;F8;F9;F10;F11];
          end
     end
 end
