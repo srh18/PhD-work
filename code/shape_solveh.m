@@ -2389,7 +2389,7 @@ ylabel('$|H(k)|$')
              [c] = fsolve(@obj.cfun,cinit,options);
              c1 = c(1:obj.nr+1,:);
              c2 = c(obj.nr+2:end-1,:);
-             f = -0.9e-9*5*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:))./(1e-5*obj.a);
+             f = -0.9e-9*5*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:))./(obj.H*obj.a);
          end
          function F = cfun(obj,c)
              h0 = 1e-4;
@@ -2426,7 +2426,7 @@ ylabel('$|H(k)|$')
              F1 = c1rr +obj.ep/obj.R*c1r.*obj.a -obj.ep*Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2);
              F2 = c2rr +obj.ep/obj.R*c1r.*obj.a+ kp*h0^2/D2*(2*C1*km/(kp*C2)*c10 -c20).*obj.a.^2 - obj.ep*Pe2*(U.*c2r.*obj.a + w.*c2z.*obj.a.^2);
              %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) + h0*obj.a.*f;
-             bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R.*obj.a);
+             bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)).*(1 + obj.ep/obj.R.*obj.a)+ mean(D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)).*(1 + obj.ep/obj.R.*obj.a));
              bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
              bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
              %bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep/obj.R).*f;
@@ -2513,7 +2513,7 @@ end
                           L = 1e-2;
                       end
                       eta = obj.eta;
-                      obj = obj.getndparams(R,Q,L);
+                      obj = obj.getndparams2(R,Q,L);
                       obj.eta = eta;
                                    obj = obj.get_h;
              obj.h = obj.h0;
@@ -2739,8 +2739,7 @@ end
                       
                       obj = obj.getndparams2(R,Q,L);
                       
-                                   obj = obj.get_h;
-             obj.h = obj.h0;
+                                   
               
              options = optimoptions('fsolve','Display','none');
              cinit = [c0;Rt;c1;etat;ca];

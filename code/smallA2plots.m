@@ -6,8 +6,8 @@ clf
 hold on 
 
 
-% fig.WindowStyle = 'normal';
-% fig.Position = [100 100 600 500];
+fig.WindowStyle = 'normal';
+fig.Position = [100 100 600 500];
 xlabel('$\frac{L}{\pi}$','FontSize',20)
 ylabel('$B$')
 title('Amplitude of fluid disturbance for small wall disturbance')
@@ -16,8 +16,8 @@ ax = gca;
 ax.YScale ='log';
 fig2 = figure;
 hold on 
-% fig2.WindowStyle = 'normal';
-% fig2.Position = [100 100 600 500];
+fig2.WindowStyle = 'normal';
+fig2.Position = [100 100 600 500];
 xlabel('Re')
 ylabel('$\frac{\theta}{\pi}$','FontSize',20)
 title('Phase shift of fluid disturbance from small wall disturbance')
@@ -29,7 +29,7 @@ figure(fig);
 ax = gca;
 for R = [0.5 1 2]
     Bo = 1;
-    eps = 1e-3;
+    eps = 1e-1;
     Re = 1;
 [A,~,B,~,Be,~] = smallA2(L,R,Bo,1,eps);
 
@@ -49,6 +49,6 @@ for eps = [1e-1, 1e-2]
 plot(Re,phi/pi,'DisplayName',sprintf('$\\epsilon =%g$',eps))
 
 end
-% saveas(fig,'../plots/smallA2A','epsc')
-% saveas(fig2,'../plots/smallA2theta','epsc')
+saveas(fig,'../plots/smallA2A','epsc')
+saveas(fig2,'../plots/smallA2theta','epsc')
 end
