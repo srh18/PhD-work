@@ -2559,7 +2559,7 @@ end
              %bc1 = D1*C1*obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:)) - D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:))*(1 + obj.ep/obj.R);
              bc2 = obj.nr*(-3/2*c2(1,:) +2*c2(2,:)-1/2*c2(3,:));
              %bc3 = obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:));
-             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep.*obj.a/obj.R).*h0/rhoc.*f;
+             bc4 = D2*C2*obj.nr*(3/2*c2(end,:) -2*c2(end-1,:)+1/2*c2(end-2,:)) + h0*obj.a.*(1-obj.ep.*obj.a/obj.R)./rhoc.*f;
              bc5 = c2(end,:) -1;
 %             
 %              F2 = c2rr + k0*(k1*(c1+k2) -c20).*obj.h.^2 - Pe2*(U.*c2r.*obj.h + w.*c2z.*obj.h.^2);
@@ -2812,9 +2812,9 @@ end
              F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2) -c00)-c10)-1i*k*eps*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
              F5 = c1(end);
              F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
-             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt;
+             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R)./rhoc.*Rt;
 
-             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0.^2/rhoc.*((1-obj.ep/obj.R).*(Rt*h+etat)-obj.ep/obj.R*Rt*h);
+             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0./rhoc.*((1-obj.ep/obj.R).*(Rt*h+etat)-obj.ep/obj.R*Rt*h);
              
              F = [F1;F2;F3;F4;F5;F6;F7;F8];
          end
@@ -2880,12 +2880,12 @@ end
              F4 = c1rr+eps/R*(c1r+h*c0r)+kp*h0^2/D2*(2*h*(2*C1*km/(kp*C2) -c00)+2*C1*km/(kp*C2)*ca0-c10)-1i*k*eps*Pe2*(w0.*c10-(h*w0i+w1i).*c0r);
              F5 = c1(end);
              F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
-             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R).*h0/rhoc.*Rt;
+             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R)./rhoc.*Rt;
 
-             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0.^2/rhoc.*((1-obj.ep/obj.R).*(Rt*h+etat)-obj.ep/obj.R*Rt*h);
+             F8 = D2*C2*obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:)) + h0/rhoc.*((1-obj.ep/obj.R).*(Rt*h+etat)-obj.ep/obj.R*Rt*h);
              F9 = carr+eps/R*(car)-1i*k*eps*Pe1*(w0.*ca0);
              F10 =  obj.nr*(3/2*ca(end,:) -2*ca(end-1,:)+1/2*ca(end-2,:));
-             F11 = D1*C1*obj.nr*(-3/2*ca(1,:) +2*ca(2,:)-1/2*ca(3,:)) + h0*h0/rhoc*(Rt*h+etat);
+             F11 = D1*C1*obj.nr*(-3/2*ca(1,:) +2*ca(2,:)-1/2*ca(3,:)) + h0/rhoc*(Rt*h+etat);
              F = [F1;F2;F3;F4;F5;F6;F7;F8;F9;F10;F11];
          end
     end
