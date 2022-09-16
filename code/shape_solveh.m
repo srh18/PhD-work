@@ -2165,8 +2165,9 @@ classdef shape_solveh
              obj.del = del;
               f0 = ones(1,obj.n)*1e-7;
               c0 = 1+1/2*f0.*(obj.r.^2)*1e-3 +obj.ep*sin(obj.nz*2*pi);
+              obj = obj.getndparams2(R0,Q,L);
              [c0,f0] = obj.get_conc2(c0,f0,R0,Q,L);
-             obj = obj.getndparams(R0,Q,L);
+             
              eta0 = obj.eta*obj.H;
              y0 = [eta0 R0];
              
