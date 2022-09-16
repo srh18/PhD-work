@@ -2185,8 +2185,8 @@ classdef shape_solveh
              obj = obj.getndparams2(R,Q,L);
              obj.eta = eta/obj.H;
              [~,f] = obj.get_conc2(c0,f0,R,Q,L);
-             etat = gamma*obj.H*(f-mean(f));
-             Rt = obj.H*mean(f)*gamma;
+             etat = gamma*(f-mean(f));
+             Rt = mean(f)*gamma;
              dy = [etat Rt]';
              
              
