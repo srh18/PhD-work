@@ -1510,7 +1510,7 @@ classdef shape_solveh
             xlabel('$t$')
             %ylabel('$||h||_2$')
             ylabel('$||H||_2$')
-            title(sprintf('$||h||_2$ for $\\delta =%g$, $L= %g\\pi$',obj.del,obj.L/pi))
+            title(sprintf('$||H||_2$ for $\\delta =%g$, $L= %g\\pi$',obj.del,obj.L/pi))
         end
 
         function plotz0(obj,m)
