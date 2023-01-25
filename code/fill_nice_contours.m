@@ -14,15 +14,15 @@ patch([l{7}(1,:) 10.1 ],[l{7}(2,:) 0 ],[0.9769    0.9839    0.0805])
  text(3.25,4.25,'No steady state','FontSize',20,'Color','white')
  text(3,2.9,'Stable','FontSize',20,'Color','white')
  text(10.015,0.15,'$5$','FontSize',15)
- text(2.75,1.5,'$k =1$','FontSize',20)
-text(4.75,1.5,'$k = 2$','FontSize',20)
-text(6.75,1.5,'$k = 3$','FontSize',20)
-text(8.75,1.5,'$k = 4$','FontSize',20)
+ text(3,1.5,'$1$','FontSize',20)
+text(5,1.5,'$2$','FontSize',20)
+text(7,1.5,'$3$','FontSize',20)
+text(9,1.5,'$4$','FontSize',20)
 title('Number of unstable modes for walls $\eta = \delta\cos\left(\frac{2\pi z}{L}\right)$')
 xlabel('$\frac{L}{\pi}$')
 ylabel('$\delta$')
 f = gcf;
 f.WindowStyle = 'normal';
 f.Position = [100 100 1200 750];
-%saveas(f,'../plots/psbigp/modeshighressmooth','epsc')
+saveas(f,'../plots/modeshighressmooth','epsc')
 end

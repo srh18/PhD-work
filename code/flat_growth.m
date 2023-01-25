@@ -4,15 +4,14 @@ L = 2*pi:pi/100:10*pi;
 k = 2*pi./L;
 for kn = 1:4
 y = ((kn*k).^2-(kn*k).^4)/3;
-plot(L/pi,y,'DisplayName',sprintf('k = %g',kn))
+plot(L/pi,y,'DisplayName',sprintf('m = %g',kn))
 end
 legend('Location','North','NumColumns',4)
 ylim([0, 0.1]);
 xlabel('$\frac{L}{\pi}$')
 ylabel('Growth rate')
-title('Growth rate of unstable mode $k$')
-end
-function other_growth
+title('Growth rate of unstable mode $m$ for $\delta =0$')
+saveas(gcf,'../plots/psbigp/unstablemodegrowthd0','epsc')
 value = loadbigpR1(1,4*pi,1);
 
 for delta = [0.1 0.5 1 2 3]
@@ -57,15 +56,15 @@ end
 end
 end
 clf,hold on
-plot(L/pi,omega1,'DisplayName','$k=1$')
-plot(L/pi,omega2,'DisplayName','$k=2$')
-plot(L/pi,omega3,'DisplayName','$k=3$')
-plot(L/pi,omega4,'DisplayName','$k=4$')
+plot(L/pi,omega1,'DisplayName','$m=1$')
+plot(L/pi,omega2,'DisplayName','$m=2$')
+plot(L/pi,omega3,'DisplayName','$m=3$')
+plot(L/pi,omega4,'DisplayName','$m=4$')
 str = replace(sprintf('%g',delta),'.','-');
 legend('Location','North','NumColumns',4)
 ylim([0, 0.1]);
 xlabel('$\frac{L}{\pi}$')
 ylabel('Growth rate')
-title(sprintf('Growth rate of unstable mode $k$ for $\\delta =%g$',delta))
+title(sprintf('Growth rate of unstable mode $m$ for $\\delta =%g$',delta))
 saveas(gcf,sprintf('../plots/psbigp/unstablemodegrowthd%s',str),'epsc')
 end

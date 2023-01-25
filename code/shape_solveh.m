@@ -1186,13 +1186,16 @@ classdef shape_solveh
             
             for i = 1:loops
                 if wall == 1
-                    plot(obj.z,obj.eta)
+                    plot(obj.z,obj.eta,'DisplayName','$\eta$')
+                    legend('Location','southeast')
                     hold on;
                 end
-                plot(obj.z,obj.a(ivec(i),:)+wall*obj.eta)
+                plot(obj.z,obj.a(ivec(i),:)+wall*obj.eta,'DisplayName','$h$')
                             ylim([ymin-0.05,max(max(obj.a(ivec,:)+wall*obj.eta,[],2))]+0.05)
             xlim([0,periods*obj.L])
                 title(sprintf('$t = %g$',obj.t(ivec(i))))
+                ylabel('$h$')
+                xlabel('$z$')
                 drawnow
                 
    
@@ -1509,8 +1512,8 @@ classdef shape_solveh
             end
             xlabel('$t$')
             %ylabel('$||h||_2$')
-            ylabel('$||H||_2$')
-            title(sprintf('$||H||_2$ for $\\delta =%g$, $L= %g\\pi$',obj.del,obj.L/pi))
+            ylabel('$||h||_2$')
+            title(sprintf('$||h||_2$ for $\\delta =%g$, $L= %g\\pi$',obj.del,obj.L/pi))
         end
 
         function plotz0(obj,m)
@@ -1587,9 +1590,9 @@ classdef shape_solveh
                 plot(obj.h2norm(nt:end-1),(obj.h2norm(nt+1:end)-obj.h2norm(nt:end-1))/obj.delt,'Color',[0 0.4470 0.7410])
                 
                 hold off
-                xlabel('$||H(t)||_2$')
-                ylabel('$\frac{d||H||_2}{dt}$')
-                title(sprintf('Phase plot for $L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
+                xlabel('$||h(t)||_2$')
+                ylabel('$\frac{d||h||_2}{dt}$')
+                title(sprintf('Phase plot for\n$L = %g\\pi$, $\\delta = %g$',obj.L/pi,obj.del))
             
         end
             
@@ -1841,16 +1844,27 @@ classdef shape_solveh
 
             shading interp
             
-            colorbar
+            cbar = colorbar;
+            cbar.Label.String = '$h$';
+            cbar.Label.Interpreter = 'Latex';
             xlabel('$z-ct$')
             ylabel('$t$')
             xlim([0,obj.L])
             del = erase(string(obj.del),'.');
             if obj.del == 1
-                title(sprintf('Fluid Thickness for wall $\\eta =\\cos %.2g z$, $c = %g$',2*pi/obj.L ,c(1)))
-            else
+                if obj.L == 2*pi
+                    title(sprintf('Fluid thickness for\nwall $\\eta =\\cos z$, $c = %g$' ,c(1)))
+                else
+                title(sprintf('Fluid thickness for\nwall $\\eta =\\cos %.2g z$, $c = %g$',2*pi/obj.L ,c(1)))
+                end
                 
-            title(sprintf('Fluid Thickness for wall $\\eta =%g\\cos %.2g z$, $c = %g$',obj.del,2*pi/obj.L ,c(1)))
+                
+            else
+                if obj.L == 2*pi
+                    title(sprintf('Fluid thickness for\nwall$\\eta =%g\\cos z$, $c = %g$',obj.del ,c(1)))
+                else
+            title(sprintf('Fluid thickness for\nwall$\\eta =%g\\cos %.2g z$, $c = %g$',obj.del,2*pi/obj.L ,c(1)))
+                end
             end
             name = sprintf('../plots/colour/ColourL%gdel%s',obj.L/pi,del);
 %             savefig(name)
@@ -1983,7 +1997,7 @@ classdef shape_solveh
             %h2l = hmloc2(hmloc2<hm2&hmloc2>hm1);
             obj = obj.get_h;
             hold on,
-            title(sprintf('$h$ from between $t =%g$ and $t=%g$ at $t = %g$ intervals for wall $\\eta = %g\\cos %.2gz$',obj.t(hm1),obj.t(hm2),delt,obj.del,2*pi/obj.L))
+            title(sprintf('$h$ from between $t =%g$ and $t=%g$ \nat $t = %g$ intervals for wall $\\eta = %g\\cos %.2gz$',obj.t(hm1),obj.t(hm2),delt,obj.del,2*pi/obj.L))
             
             for i = hm1:floor(delt/obj.delt):hm2-1
                 plot(obj.nz,obj.a(i,:),'color',[0.8,0.8,0.8],'linewidth',0.5,'HandleVisibility','off')
@@ -1997,7 +2011,7 @@ classdef shape_solveh
             %plot(value.nz,value.h(floor((hm2+hl)/2),:),'linewidth',2,'HandleVisibility','off')
 %             plot(obj.nz,sum(obj.h(hloc(1):hloc(end)-1,:))/(hloc(end)-1-hloc(1)),'linewidth',2,'DisplayName','time averaged thickness')
 %             plot(obj.nz,obj.h0,'linewidth',2,'DisplayName','steady state thickness')
-            legend()
+            legend('NumColumns',2)
             
             grid
             xticks([0 0.25 0.5 0.75 1])
@@ -2374,13 +2388,13 @@ classdef shape_solveh
              y = abs(y(:,2:11));
              %clf
              hold on 
-             errorbar(1:10,sum(y)/(obj.T-obj.t(floor(end/2)))*obj.delt,mean(y) - min(y),max(y)-mean(y),'_','MarkerSize',50)
+             errorbar(1:10,sum(y)/(obj.T-obj.t(floor(end/2)))*obj.delt,mean(y) - min(y),max(y)-mean(y),'_','MarkerSize',30)
              xlim([0.5 10.5])
 %              plot(max(y),'_')
 %              plot(min(y),'_')
-title('Mean value of Fourier modes, with range')
-xlabel('$k$')
-ylabel('$|H(k)|$')
+title({'Mean value and range','of Fourier modes'})
+xlabel('$m$')
+ylabel('$|\mathcal{F}[h]|$')
          end
          function [c1,c2,f] = get_conc(obj,c10,c20)
              obj = obj.get_h;
@@ -2849,6 +2863,42 @@ F1 = c1rr +obj.ep/obj.R*c1r.*obj.a -obj.ep*Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2);
              
              
          end
+         
+         function [c0,c1,ca,Rt,etat] = stalactite_stab_ca2(obj,c0,c1,ca,Rt,etat,R,Q,L)
+             
+              if nargin<=5
+                          R = 0.005;
+                          Q = 1e-9;
+                          L = 3e-3;
+              end
+                      if nargin ==1
+                      c0 = 1+1/2*(obj.r.^2)*1e-3;
+                      c1 = 0*c0;
+                      ca = c1;
+                      Rt = 1;
+                      etat = 0;
+                      
+                      end
+                      
+                      
+                      obj = obj.getndparams2(R,Q,L);
+                      
+                                   
+              
+             options = optimoptions('fsolve','Display','none');
+             cinit = [c0;Rt;c1;etat;ca];
+             [c] = fsolve(@obj.stalactite_stab_fun_ca2,cinit,options);
+             
+             nr = length(obj.r); 
+             c0 =c(1:nr);
+             Rt = c(nr+1);
+             c1 = c(nr+2:2*nr +1);
+             etat = c(2*nr + 2);
+             ca = c(2*nr+3:end);
+             
+             
+             
+         end
          function F = stalactite_stab_fun(obj,c)
               h0 = obj.H;
              D1 = 0.9e-9;
@@ -2980,6 +3030,78 @@ F1 = c1rr +obj.ep/obj.R*c1r.*obj.a -obj.ep*Pe1*(U.*c1r.*obj.a+w.*c1z.*obj.a.^2);
              F9 = carr+eps/R*(car)-1i*k*eps*Pe1*(w0.*ca0);
              F10 =  obj.nr*(3/2*ca(end,:) -2*ca(end-1,:)+1/2*ca(end-2,:));
              F11 = D1*C1*obj.nr*(-3/2*ca(1,:) +2*ca(2,:)-1/2*ca(3,:)) + h0/rhoc*(Rt*h+etat);
+             F = [F1;F2;F3;F4;F5;F6;F7;F8;F9;F10;F11];
+         end
+         
+         function F = stalactite_stab_fun_ca2(obj,c)
+              h0 = obj.H;
+             D1 = 0.9e-9;
+             D2 = 1.3e-9;
+             g = 9.81;
+             nu = 1e-6;
+             Pe2 = h0^3*g/(nu*D2);
+             Pe1 = 1.3/0.9*Pe2;
+             C1 = 5;
+             C2 = 2.7e-2;
+             km = 2e-4;
+             kp = 1e-2;
+             rhoc  = 3.69e-5;
+             
+              k = 2*pi/obj.L;
+                R = obj.R;
+                Re = obj.Re;
+                Bo = obj.Bo;
+                eps = obj.ep;
+                a = (5*eps.*(10*eps.*R.^2.*Bo.^2+30*Bo.^2.*R.^3-eps.*k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2*Bo.*Re).*R.^2-5)))./(225*Bo.^2.*R.^4+150*Bo.^2.*eps.*R.^3+eps.^2.*(25*R.^2.*Bo.^2+k.^2.*(5+(2*Bo.*Re-5*k.^2).*R.^2).^2));
+                
+                theta = atan(Bo.*k.*R.*(-15*k.^2.*R.^3+15*R+eps.*(15+(-15*k.^2+4*Re.*Bo).*R.^2))./(30*Bo.^2.*R.^3+eps.*(10*Bo.^2.*R.^2-k.^2.*(k.^2.*R.^2-1).*((5*k.^2-2.*Bo.*Re).*R.^2-5))))+(1-sign(a))/2*pi;
+                A = 5.*eps.*sqrt((4*R.^2.*Bo.^2+(k-k.^3.*R.^2).^2)./(225*Bo.^2.*R.^4+150*eps.*Bo.^2.*R.^3+eps.^2.*(25*R.^2.*Bo.^2+k.^2.*(5 + (2*Bo.*Re-5*k.^2).*R.^2).^2)));
+                 phi = atan(R*A*tan(theta)/(R*A - eps*sec(theta)));
+                B = A*R*sin(theta)/((R+eps)*sin(phi));
+                h = B*exp(-1i*phi);
+
+             nr = length(obj.r); 
+             c0 =c(1:nr);
+             Rt = c(nr+1);
+             c1 = c(nr+2:2*nr +1);
+             etat = c(2*nr + 2);
+             ca = c(2*nr+3:end);
+             
+             c0n1 = c0(1:end-2);
+             c00  = c0(2:end-1);
+             c01 = c0(3:end);
+             c0r = obj.nr*(c01 -c0n1)/2 ;
+             c0rr = obj.nr^2*(c0n1+c01-2*c00);
+             c1n1 = c1(1:end-2);
+             c10  = c1(2:end-1);
+             c11 = c1(3:end);
+             c1r = obj.nr*(c11 -c1n1)/2 ;
+             c1rr = obj.nr^2*(c1n1+c11-2*c10);
+                          can1 = ca(1:end-2);
+             ca0  = ca(2:end-1);
+             ca1 = ca(3:end);
+             car = obj.nr*(ca1 -can1)/2 ;
+             carr = obj.nr^2*(can1+ca1-2*ca0);
+             r = linspace(0,1,length(c0))';
+             w0 = r - r.^2/2 + eps/R*(r/2 - r.^2/2+r.^3/6);
+             w1 = h.*r + eps *(1i*k*Re*h.*(r.^4/24 -r.^3/6 +r/3) +1/Bo*(1i*k.*(1+h)./R-1i.*k.^3.*(1+h)).*(r-r.^2/2) + 1/R*(h.*r-h.*r.^2/2));
+             u1 = -1i*k*h.*r.^2/2 + eps * (k.^2*Re.*h.*(r.^5/120 - r.^4/24 +r.^2/6)-1/Bo*(-k.^2.*(h+1)./R.^2 + k.^4.*(1+h)).*(r.^2/2-r.^3/6)-1/R.*(-1i*k*h.*r.^3/6 + 1i.*k.*r.^2/2)+1i*k/(6*R).*r.^3 - 1i*k/R.*(r.^2/2-r.^3/6+eps/R.*(r.^2/4-r.^3/6+r.^4/24))) 
+             
+             w0 = w0(2:end-1);
+             w1 = w1(2:end-1);
+             u1 = u1(2:end-1);
+             F1 = c0rr+eps/R*c0r+kp*h0^2/D2*(2*C1*km/(kp*C2) -c00);
+             F2 = c0(end)-1;
+             F3 = obj.nr*(-3/2*c0(1,:) +2*c0(2,:)-1/2*c0(3,:));
+             F4 = c1rr+eps/R*(c1r)+kp*h0^2/D2*(2*C1*km/(kp*C2)*ca0-c10)-1i*k*eps*Pe2*(w0.*c10+(u1-w0).*c0r);
+             F5 = c1(end)+h.*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:));
+             F6 = obj.nr*(-3/2*c1(1,:) +2*c1(2,:)-1/2*c1(3,:));
+             F7 =   D2*C2*obj.nr*(3/2*c0(end,:) -2*c0(end-1,:)+1/2*c0(end-2,:)) + h0*(1-obj.ep/obj.R)./rhoc.*Rt;
+
+             F8 = D2*C2*(obj.nr*(3/2*c1(end,:) -2*c1(end-1,:)+1/2*c1(end-2,:))+h.*obj.nr.^2*(2*c0(end,:)-5*c0(end-1,:)+4*c0(end-2,:)-c0(end-3,:))) + h0/rhoc.*((1-obj.ep/obj.R).*(etat)+obj.ep/obj.R*Rt*h);
+             F9 = carr+eps/R*(car)-1i*k*eps*Pe1*(w0.*ca0);
+             F10 =  obj.nr*(3/2*ca(end,:) -2*ca(end-1,:)+1/2*ca(end-2,:));
+             F11 = D1*C1*obj.nr*(-3/2*ca(1,:) +2*ca(2,:)-1/2*ca(3,:)) + h0/rhoc*(etat);
              F = [F1;F2;F3;F4;F5;F6;F7;F8;F9;F10;F11];
          end
     end

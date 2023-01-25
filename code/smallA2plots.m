@@ -8,9 +8,9 @@ hold on
 
 fig.WindowStyle = 'normal';
 fig.Position = [100 100 600 500];
-xlabel('$\frac{L}{\pi}$','FontSize',20)
+xlabel('$\frac{L}{\pi}$')
 ylabel('$B$')
-title('Amplitude of fluid disturbance for small wall disturbance')
+title({'Amplitude of fluid disturbance',' for a small wall disturbance'})
 legend
 ax = gca;
 ax.YScale ='log';
@@ -19,8 +19,8 @@ hold on
 fig2.WindowStyle = 'normal';
 fig2.Position = [100 100 600 500];
 xlabel('Re')
-ylabel('$\frac{\theta}{\pi}$','FontSize',20)
-title('Phase shift of fluid disturbance from small wall disturbance')
+ylabel('$\frac{\theta}{\pi}$')
+title({'Phase shift of fluid disturbance','from the small wall disturbance'})
 legend('Location','east')
 L = pi/4:pi/100:8*pi;
 

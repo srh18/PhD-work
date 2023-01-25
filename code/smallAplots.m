@@ -10,7 +10,7 @@ fig.WindowStyle = 'normal';
 fig.Position = [100 100 600 500];
 xlabel('$\frac{L}{\pi}$')
 ylabel('Amplitude')
-title('Amplitude of fluid disturbance for small wall disturbance')
+title({'Amplitude of fluid disturbance','for small wall disturbance'})
 legend
 fig2 = figure;
 hold on 
@@ -18,7 +18,7 @@ fig2.WindowStyle = 'normal';
 fig2.Position = [100 100 600 500];
 xlabel('$\frac{L}{\pi}$')
 ylabel('$\frac{\theta}{\pi}$')
-title('Phase shift of fluid disturbance from small wall disturbance')
+title({'Phase shift of fluid disturbance','from small wall disturbance'})
 legend
 L = pi/4:pi/100:8*pi;
 %L(176) = 2pi

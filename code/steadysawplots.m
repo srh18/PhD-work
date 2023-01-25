@@ -1,5 +1,6 @@
 function steadysawplots
 value = shape_solveh;
+value.equation =1;
 value.wall_shape = 2;
 fig = gcf;
 clf
@@ -21,10 +22,10 @@ end
 legend
 xlabel('$\frac{z}{L}$')
 ylabel('$h-1$')
-title('Fluid thickness over a step')
+title('Fluid thickness over a sawtooth')
 ylim([-0.12,0.12])
 plot(value.z/value.L,value.eta,'k--','DisplayName','$\eta$')
-saveas(gcf,'../plots/steadysaw','epsc')
+%saveas(gcf,'../plots/steadysaw','epsc')
 
 clf
 
@@ -45,10 +46,10 @@ end
 legend('Location','west')
 xlabel('$\frac{z}{L}$')
 ylabel('$S$')
-title('Fluid profile over a step')
+title('Fluid profile over a sawtooth')
 
 plot(value.z/value.L,value.eta,'k--','DisplayName','$\eta$')
-saveas(gcf,'../plots/steadysawS','epsc')
+%saveas(gcf,'../plots/steadysawS','epsc')
 
 fig.Position = [100 100 600 300];
 clf
